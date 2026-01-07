@@ -1,59 +1,106 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# n8n Control Panel
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+**A lightweight, backend-first control panel built with Laravel for managing n8n instances and Docker containers.**
+Designed for VPS hosting environments, this system supports **role-based access**, **container management**, and **user-level resource control**.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Features
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+### 1. **User Management & Authentication**
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+* Secure login system with **email/password authentication**.
+* Forgot password functionality.
+* **Role-based access**:
 
-## Learning Laravel
+  * **Admin** – Full access to all system features.
+  * **Reseller** – Limited access to assigned containers and user resources.
+* Middleware guards prevent unauthorized access to protected routes.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+---
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### 2. **Role & Permission Management**
 
-## Laravel Sponsors
+* Powered by **Spatie Laravel Permission** package.
+* **Assign roles** to users (admin or reseller).
+* Role-based dashboard routing:
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+  * Admins are directed to the admin panel.
+  * Resellers are directed to a reseller-specific dashboard.
+* Easily expandable with custom permissions for advanced access control.
 
-### Premium Partners
+---
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+### 3. **Docker Container Management**
 
-## Contributing
+* Integrates **Spatie Docker package** for Laravel-friendly Docker API.
+* **Container CRUD operations**:
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+  * List all containers (with filtering by user if applicable).
+  * Start, stop, and remove containers directly from the dashboard.
+  * Create new containers with configurable options.
+* **Container monitoring**:
 
-## Code of Conduct
+  * View container IDs, names, status, and resource usage.
+  * Supports `running`, `stopped`, and `paused` states.
+* Role-based container management:
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+  * Admins can manage all containers.
+  * Resellers manage only assigned containers.
 
-## Security Vulnerabilities
+---
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### 4. **Resource Management**
 
-## License
+* Assign CPU and RAM limits per container (optional).
+* Monitor container resource consumption.
+* Ensure isolated resources for multiple users or resellers.
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+---
+
+### 5. **Dashboard & UI**
+
+* Minimal, backend-first **Blade templates** (no npm/Vite required).
+* User-friendly tables for container management.
+* Action buttons for **Start**, **Stop**, and **Remove** operations.
+* Extendable layout for future enhancements.
+
+---
+
+### 6. **Security & Permissions**
+
+* All routes protected via **Laravel middleware**.
+* Role-based route guards prevent unauthorized operations.
+* Web server restricted from directly manipulating Docker — all operations run via controlled Laravel services.
+* No frontend dependencies — reduces attack surface and simplifies server management.
+
+---
+
+### 7. **Extensibility**
+
+* **Add new roles or permissions** using Spatie’s role management.
+* Easily integrate **additional n8n instance management features**:
+
+  * Environment variable updates per instance.
+  * Logs access.
+  * Container rebuild/restart operations.
+* Can be extended with APIs for automated VPS provisioning or SaaS reseller dashboards.
+
+---
+
+### 8. **Developer-Friendly Backend**
+
+* Fully Laravel-powered architecture.
+* Clean MVC separation.
+* Services for Docker abstraction (`DockerService`) to allow centralized container management logic.
+* Easily extendable for custom business logic, automated workflows, or integration with n8n APIs.
+
+---
+
+### 9. **Key Advantages**
+
+* Lightweight and minimal — no npm, no Vite required.
+* Supports multi-user environment with secure role-based access.
+* Centralized Docker container management for VPS hosting.
+* Modular and developer-friendly design, making it ideal for SaaS hosting, reseller platforms, or internal automation dashboards.
+
