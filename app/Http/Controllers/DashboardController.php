@@ -29,26 +29,33 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
         $systemStats = null;
-
-        if ($user->hasRole('admin')) {
-            $systemStats = $this->systemStatusService->getSystemStats();
-            // Add counts
-            $systemStats['container_count'] = Container::count();
-            $systemStats['user_count'] = \App\Models\User::count();
-            $systemStats['panel_version'] = '1.0.0'; // Static for now
-        }
+        $traefikStatus = 'Unknown';
+        $mysqlStatus = 'Unknown';
 
         // Fetch all docker containers once
         $dockerContainers = $this->dockerService->listContainers();
-        // Convert to collection keyed by ID (short or long, let's normalize to matching what we stored)
-        // DockerService listContainers returns IDs.
+
         $dockerMap = [];
         foreach ($dockerContainers as $dc) {
-            // Store by partial ID (12 chars) as that is what we likely store or can match
-            // Or store by full ID if available.
-            // In DockerService::listContainers we return ID from `docker ps`. `docker ps --format "{{.ID}}"` usually returns short ID (12 chars).
-            // Let's assume keys are IDs.
-            $dockerMap[$dc['id']] = $dc;
+            $shortId = substr($dc['id'], 0, 12);
+            $dockerMap[$shortId] = $dc;
+        }
+
+        if ($user->hasRole('admin')) {
+            $systemStats = $this->systemStatusService->getSystemStats();
+            $systemStats['container_count'] = Container::count();
+            $systemStats['user_count'] = \App\Models\User::count();
+            $systemStats['panel_version'] = '1.0.0';
+
+            $mysqlStatus = $this->serviceManager->getStatus('mysql');
+
+            $traefikStatus = 'stopped';
+            foreach ($dockerContainers as $dc) {
+                if ((str_contains($dc['image'], 'traefik') || str_contains($dc['name'], 'traefik')) && str_contains(strtolower($dc['state']), 'running')) {
+                    $traefikStatus = 'active';
+                    break;
+                }
+            }
         }
 
         if ($user->hasRole('admin')) {
@@ -59,26 +66,12 @@ class DashboardController extends Controller
              return abort(403);
         }
 
-        // Merge Data
         $containers = $dbContainers->map(function ($dbContainer) use ($dockerMap) {
-            // Find matching docker container.
-            // We stored `docker_id` in DB.
-            // Check if we have a match in $dockerMap
-            // Note: DB `docker_id` might be 12 chars. `docker ps` usually gives 12 chars by default or full.
-            // Our DockerService uses `{{.ID}}` which is short ID usually.
-
-            // We need a fuzzy match or exact match.
-            // Let's try exact match first.
-            $dockerInfo = null;
-            foreach ($dockerMap as $dId => $info) {
-                if (str_starts_with($dId, $dbContainer->docker_id) || str_starts_with($dbContainer->docker_id, $dId)) {
-                    $dockerInfo = $info;
-                    break;
-                }
-            }
+            $shortId = substr($dbContainer->docker_id, 0, 12);
+            $dockerInfo = $dockerMap[$shortId] ?? null;
 
             return [
-                'id' => $dbContainer->id, // Database ID for actions
+                'id' => $dbContainer->id,
                 'docker_id' => $dbContainer->docker_id,
                 'name' => $dbContainer->name,
                 'port' => $dbContainer->port,
@@ -89,6 +82,6 @@ class DashboardController extends Controller
             ];
         });
 
-        return view('dashboard.index', compact('containers', 'systemStats'));
+        return view('dashboard.index', compact('containers', 'systemStats', 'traefikStatus', 'mysqlStatus'));
     }
 }

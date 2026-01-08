@@ -6,11 +6,21 @@ use Illuminate\Support\Facades\Process;
 
 class ServiceManager
 {
-    protected $allowedServices = [];
+    protected $allowedServices = ['mysql', 'mariadb'];
 
     public function getStatus(string $service)
     {
         if (!in_array($service, $this->allowedServices)) {
+            // Try adding it if it's safe? No, let's keep strict whitelist or specific logic.
+            // If checking mysql, we might try mariadb fallback.
+            if ($service === 'mysql') {
+                 $process = Process::run("systemctl is-active mysql");
+                 $status = trim($process->output());
+                 if ($status === 'active') return 'active';
+
+                 $process = Process::run("systemctl is-active mariadb");
+                 return trim($process->output());
+            }
             return 'Unknown';
         }
 

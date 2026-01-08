@@ -129,6 +129,59 @@
 
 @endif
 
+<!-- Core Services Status (Admin Only) -->
+@if(auth()->user()->hasRole('admin'))
+<div class="card border-0 shadow-sm mb-5">
+    <div class="card-header bg-white py-3 border-0">
+        <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-shield-check me-2 text-primary"></i>Core Services</h5>
+    </div>
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-4">
+                 <div class="d-flex align-items-center justify-content-between p-3 rounded bg-light h-100">
+                     <div class="d-flex align-items-center">
+                         <i class="bi bi-database-fill fs-3 text-secondary me-3"></i>
+                         <div>
+                             <h6 class="mb-0 fw-bold">MySQL Database</h6>
+                             <small class="text-muted">System Service</small>
+                         </div>
+                     </div>
+                     <span class="badge {{ $mysqlStatus === 'active' ? 'bg-success' : 'bg-danger' }}">
+                         {{ $mysqlStatus === 'active' ? 'Running' : 'Stopped' }}
+                     </span>
+                 </div>
+            </div>
+            <div class="col-md-4">
+                 <div class="d-flex align-items-center justify-content-between p-3 rounded bg-light h-100">
+                     <div class="d-flex align-items-center">
+                         <i class="bi bi-signpost-split-fill fs-3 text-secondary me-3"></i>
+                         <div>
+                             <h6 class="mb-0 fw-bold">Traefik Proxy</h6>
+                             <small class="text-muted">Docker Container</small>
+                         </div>
+                     </div>
+                     <span class="badge {{ $traefikStatus === 'active' ? 'bg-success' : 'bg-danger' }}">
+                         {{ $traefikStatus === 'active' ? 'Running' : 'Stopped' }}
+                     </span>
+                 </div>
+            </div>
+            <div class="col-md-4">
+                 <div class="d-flex align-items-center justify-content-between p-3 rounded bg-light h-100">
+                     <div class="d-flex align-items-center">
+                         <i class="bi bi-box-fill fs-3 text-secondary me-3"></i>
+                         <div>
+                             <h6 class="mb-0 fw-bold">Docker Engine</h6>
+                             <small class="text-muted">System Service</small>
+                         </div>
+                     </div>
+                     <span class="badge bg-success">Running</span>
+                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endif
+
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h4 class="fw-bold text-dark mb-0">My n8n Instances</h4>
     <a href="{{ route('instances.create') }}" class="btn btn-success shadow-sm">
