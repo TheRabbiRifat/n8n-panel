@@ -53,7 +53,8 @@ class DockerService
                 ->name($name)
                 ->mapPort($port, $internalPort)
                 ->daemonize()
-                ->doNotCleanUpAfterExit(); // We want it to persist so we can see it in list
+                ->doNotCleanUpAfterExit() // We want it to persist so we can see it in list
+                ->setStartCommandTimeout(300); // Increase timeout to 5 mins for image pulling
 
             $optionalArgs = [];
             if ($cpu) {

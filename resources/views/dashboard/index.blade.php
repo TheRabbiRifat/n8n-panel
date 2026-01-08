@@ -14,86 +14,122 @@
 </div>
 
 @if($systemStats)
-<div class="row g-4 mb-5">
-    <!-- Docker Status -->
-    <div class="col-md-6 col-lg-3">
+<div class="row g-4 mb-4">
+    <!-- Card 1: System Resources & Activity -->
+    <div class="col-lg-6">
         <div class="card h-100 border-0 shadow-sm">
-            <div class="card-body d-flex align-items-center">
-                <div class="rounded-3 p-3 d-flex align-items-center justify-content-center bg-primary bg-opacity-10 text-primary me-3" style="width: 64px; height: 64px;">
-                    <i class="bi bi-box-seam fs-2"></i>
-                </div>
-                <div>
-                    <h6 class="text-uppercase text-muted small fw-bold mb-1">Docker Service</h6>
-                    <h4 class="mb-0 fw-bold {{ $systemStats['docker'] === 'Running' ? 'text-success' : 'text-danger' }}">
-                        {{ $systemStats['docker'] }}
-                    </h4>
+            <div class="card-header bg-white py-3 border-0">
+                <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-activity me-2 text-primary"></i>System Resources</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-4">
+                    <!-- CPU -->
+                    <div class="col-md-6 border-end-md">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="bi bi-cpu fs-4 text-secondary me-2"></i>
+                            <h6 class="fw-bold text-muted mb-0">CPU Load</h6>
+                        </div>
+                         <h4 class="mb-3 fw-bold">{{ $systemStats['cpu'] }}</h4>
+
+                         <div class="d-flex justify-content-between text-muted small mt-2">
+                             <div>
+                                 <span class="d-block fw-bold text-dark">{{ $systemStats['loads']['1'] }}</span>
+                                 1 min
+                             </div>
+                             <div>
+                                 <span class="d-block fw-bold text-dark">{{ $systemStats['loads']['5'] }}</span>
+                                 5 min
+                             </div>
+                             <div>
+                                 <span class="d-block fw-bold text-dark">{{ $systemStats['loads']['15'] }}</span>
+                                 15 min
+                             </div>
+                         </div>
+                    </div>
+
+                    <!-- RAM -->
+                    <div class="col-md-6">
+                         <div class="d-flex align-items-center mb-2">
+                            <i class="bi bi-memory fs-4 text-secondary me-2"></i>
+                            <h6 class="fw-bold text-muted mb-0">RAM Usage</h6>
+                        </div>
+                        <h4 class="mb-1 fw-bold">{{ $systemStats['ram']['percent'] }}%</h4>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-primary" role="progressbar" style="width: {{ $systemStats['ram']['percent'] }}%"></div>
+                        </div>
+                        <small class="text-muted mt-1 d-block">{{ $systemStats['ram']['used'] }}MB / {{ $systemStats['ram']['total'] }}MB</small>
+                    </div>
+
+                    <!-- Storage -->
+                    <div class="col-12"><hr class="my-0 opacity-10"></div>
+
+                    <div class="col-md-6 border-end-md">
+                         <div class="d-flex align-items-center mb-2">
+                            <i class="bi bi-hdd fs-4 text-secondary me-2"></i>
+                            <h6 class="fw-bold text-muted mb-0">Storage</h6>
+                        </div>
+                        <h4 class="mb-1 fw-bold">{{ $systemStats['disk']['percent'] }}%</h4>
+                         <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-info" role="progressbar" style="width: {{ $systemStats['disk']['percent'] }}%"></div>
+                        </div>
+                        <small class="text-muted mt-1 d-block">{{ $systemStats['disk']['used_gb'] }}GB / {{ $systemStats['disk']['total_gb'] }}GB</small>
+                    </div>
+
+                    <!-- Uptime & Users -->
+                    <div class="col-md-6">
+                        <div class="row">
+                            <div class="col-6 mb-3">
+                                 <h6 class="text-uppercase text-muted small fw-bold mb-1">Uptime</h6>
+                                 <span class="fw-bold text-dark">{{ $systemStats['uptime'] }}</span>
+                            </div>
+                             <div class="col-6 mb-3">
+                                 <h6 class="text-uppercase text-muted small fw-bold mb-1">Users</h6>
+                                 <span class="fw-bold text-dark">{{ $systemStats['user_count'] }}</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Uptime -->
-    <div class="col-md-6 col-lg-3">
+    <!-- Card 2: Server Information -->
+    <div class="col-lg-6">
         <div class="card h-100 border-0 shadow-sm">
-            <div class="card-body d-flex align-items-center">
-                <div class="rounded-3 p-3 d-flex align-items-center justify-content-center bg-success bg-opacity-10 text-success me-3" style="width: 64px; height: 64px;">
-                    <i class="bi bi-clock-history fs-2"></i>
-                </div>
-                <div>
-                    <h6 class="text-uppercase text-muted small fw-bold mb-1">Uptime</h6>
-                    <h5 class="mb-0 fw-bold text-dark">{{ $systemStats['uptime'] }}</h5>
-                </div>
+             <div class="card-header bg-white py-3 border-0">
+                <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-server me-2 text-success"></i>Server Information</h5>
             </div>
-        </div>
-    </div>
-
-    <!-- CPU & RAM -->
-    <div class="col-md-6 col-lg-3">
-        <div class="card h-100 border-0 shadow-sm">
-            <div class="card-body d-flex align-items-center">
-                <div class="rounded-3 p-3 d-flex align-items-center justify-content-center bg-warning bg-opacity-10 text-warning me-3" style="width: 64px; height: 64px;">
-                    <i class="bi bi-cpu fs-2"></i>
-                </div>
-                <div class="w-100">
-                    <h6 class="text-uppercase text-muted small fw-bold mb-1">Load / RAM</h6>
-                    <div class="d-flex justify-content-between align-items-end">
-                        <span class="fw-bold">{{ $systemStats['cpu'] }}</span>
-                        <span class="text-muted small">CPU</span>
-                    </div>
-                    <div class="progress mt-2" style="height: 4px;">
-                        <div class="progress-bar bg-warning" role="progressbar" style="width: {{ $systemStats['ram']['percent'] }}%"></div>
-                    </div>
-                    <div class="d-flex justify-content-between mt-1">
-                        <span class="small text-muted">{{ $systemStats['ram']['percent'] }}%</span>
-                        <span class="small text-muted">RAM</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Disk Usage -->
-    <div class="col-md-6 col-lg-3">
-        <div class="card h-100 border-0 shadow-sm">
-            <div class="card-body d-flex align-items-center">
-                <div class="rounded-3 p-3 d-flex align-items-center justify-content-center bg-info bg-opacity-10 text-info me-3" style="width: 64px; height: 64px;">
-                    <i class="bi bi-hdd fs-2"></i>
-                </div>
-                <div class="w-100">
-                    <h6 class="text-uppercase text-muted small fw-bold mb-1">Disk Usage</h6>
-                    <h4 class="mb-0 fw-bold text-dark">{{ $systemStats['disk']['percent'] }}%</h4>
-                    <div class="progress mt-2" style="height: 4px;">
-                        <div class="progress-bar bg-info" role="progressbar" style="width: {{ $systemStats['disk']['percent'] }}%"></div>
-                    </div>
-                    <small class="text-muted mt-1 d-block">{{ $systemStats['disk']['used_gb'] }}GB / {{ $systemStats['disk']['total_gb'] }}GB</small>
-                </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between align-items-center py-3 border-0 border-bottom">
+                        <span class="text-muted"><i class="bi bi-display me-2"></i>Hostname</span>
+                        <span class="fw-bold text-dark">{{ $systemStats['hostname'] }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center py-3 border-0 border-bottom">
+                         <span class="text-muted"><i class="bi bi-clock me-2"></i>Server Time</span>
+                        <span class="fw-bold text-dark">{{ $systemStats['time'] }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center py-3 border-0 border-bottom">
+                         <span class="text-muted"><i class="bi bi-ethernet me-2"></i>IP Address(es)</span>
+                        <span class="fw-bold text-dark text-end" style="max-width: 200px;">{{ Str::limit($systemStats['ips'], 30) }}</span>
+                    </li>
+                     <li class="list-group-item d-flex justify-content-between align-items-center py-3 border-0 border-bottom">
+                         <span class="text-muted"><i class="bi bi-window me-2"></i>Operating System</span>
+                        <span class="fw-bold text-dark">{{ $systemStats['os'] }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center py-3 border-0">
+                         <span class="text-muted"><i class="bi bi-info-circle me-2"></i>Panel Version</span>
+                        <span class="badge bg-light text-dark border">v{{ $systemStats['panel_version'] }}</span>
+                    </li>
+                </ul>
             </div>
         </div>
     </div>
 </div>
 
+<!-- Service Control (Kept separate as it interacts with backend) -->
 <div class="card border-0 shadow-sm mb-5">
-    <div class="card-header bg-white py-3">
+    <div class="card-header bg-white py-3 border-0">
         <h5 class="fw-bold mb-0">System Services</h5>
     </div>
     <div class="card-body">
@@ -177,7 +213,6 @@
                 <div class="d-flex align-items-center mb-3 text-muted">
                     <i class="bi bi-hdd-network me-2"></i>
                     <span>Port: <span class="fw-medium text-dark">{{ $container['docker_id'] ? ($container['port'] ?? 'N/A') : 'N/A' }}</span> (Host)</span>
-                    <!-- Note: I should probably pass port from controller correctly if not in docker info -->
                 </div>
                 <div class="d-flex align-items-center text-muted">
                     <i class="bi bi-disc me-2"></i>
