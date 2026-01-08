@@ -83,7 +83,7 @@ class SystemStatusService
         // Load average for last 1 minute
         if (function_exists('sys_getloadavg')) {
             $load = sys_getloadavg();
-            return $load[0] ?? 0;
+            return round($load[0] ?? 0, 2);
         }
         return 0;
     }
