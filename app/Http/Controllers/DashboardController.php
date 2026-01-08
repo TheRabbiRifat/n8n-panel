@@ -71,6 +71,7 @@ class DashboardController extends Controller
                 'id' => $dbContainer->id, // Database ID for actions
                 'docker_id' => $dbContainer->docker_id,
                 'name' => $dbContainer->name,
+                'port' => $dbContainer->port,
                 'image' => $dockerInfo['image'] ?? 'Unknown',
                 'status' => $dockerInfo['status'] ?? 'Stopped/Unknown',
                 'state' => $dockerInfo['state'] ?? 'unknown',
