@@ -26,6 +26,13 @@ Route::middleware(['auth'])->group(function () {
     // Container Management
     Route::get('containers/create', [ContainerController::class, 'create'])->name('containers.create');
     Route::post('containers', [ContainerController::class, 'store'])->name('containers.store');
+
+    // Detailed Instance Management
+    Route::get('containers/{id}', [ContainerController::class, 'show'])->name('containers.show');
+    Route::put('containers/{id}', [ContainerController::class, 'update'])->name('containers.update');
+    Route::post('containers/{id}/restart', [ContainerController::class, 'restart'])->name('containers.restart');
+    Route::get('containers/{id}/logs', [ContainerController::class, 'logs'])->name('containers.logs');
+
     Route::post('containers/{id}/start', [ContainerController::class, 'start'])->name('containers.start');
     Route::post('containers/{id}/stop', [ContainerController::class, 'stop'])->name('containers.stop');
     Route::delete('containers/{id}', [ContainerController::class, 'destroy'])->name('containers.destroy');

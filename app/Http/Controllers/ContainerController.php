@@ -89,6 +89,7 @@ class ContainerController extends Controller
                 'docker_id' => $instance->getShortDockerIdentifier(),
                 'name' => $request->name,
                 'port' => $request->port,
+                'image_tag' => $request->version,
             ]);
 
             DB::commit();
@@ -189,9 +190,121 @@ class ContainerController extends Controller
             'docker_id' => $request->docker_id,
             'name' => $request->name,
             'port' => $request->port,
+            'image_tag' => 'latest', // Default for orphans unless we parse it
         ]);
 
         return redirect()->route('containers.orphans')->with('success', 'Container imported successfully.');
+    }
+
+    public function show($id)
+    {
+        $container = Container::findOrFail($id);
+        $this->authorizeAccess($container);
+
+        $stats = $this->dockerService->getContainer($container->docker_id);
+        $logs = $this->dockerService->getContainerLogs($container->docker_id);
+
+        $versions = [
+            'latest',
+            '1.25.1',
+            '1.24.1',
+            '1.22.6',
+            '1.21.1',
+            '0.236.3'
+        ];
+
+        return view('containers.show', compact('container', 'stats', 'logs', 'versions'));
+    }
+
+    public function restart($id)
+    {
+        $container = Container::findOrFail($id);
+        $this->authorizeAccess($container);
+
+        try {
+            $this->dockerService->restartContainer($container->docker_id);
+            return back()->with('success', 'Container restarted.');
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+
+    public function logs($id)
+    {
+        $container = Container::findOrFail($id);
+        $this->authorizeAccess($container);
+
+        $logs = $this->dockerService->getContainerLogs($container->docker_id);
+        return response()->json(['logs' => $logs]);
+    }
+
+    public function update(Request $request, $id)
+    {
+        $container = Container::findOrFail($id);
+        $this->authorizeAccess($container);
+
+        $request->validate([
+            'image_tag' => 'required|string',
+            'environment' => 'nullable|string', // Key=Value pair per line
+        ]);
+
+        // Process Env Vars
+        $envArray = [];
+        if ($request->environment) {
+            $lines = explode("\n", $request->environment);
+            foreach ($lines as $line) {
+                if (str_contains($line, '=')) {
+                    list($key, $value) = explode('=', trim($line), 2);
+                    $envArray[trim($key)] = trim($value);
+                }
+            }
+        }
+
+        DB::beginTransaction();
+        try {
+            // 1. Stop and Remove old container
+            try {
+                $this->dockerService->removeContainer($container->docker_id);
+            } catch (\Exception $e) {
+                // Ignore if already gone
+            }
+
+            // 2. Create New Container
+            $image = 'n8nio/n8n:' . $request->image_tag;
+            $package = $container->package; // Assume package exists
+
+            // Need to handle optional args for env
+            // DockerService needs update to support env vars?
+            // Or we can pass them. Spatie docker supports ->environment($key, $value)
+
+            // Wait, DockerService::createContainer wrapper needs update to accept envs.
+            // For now, I will modify DockerService::createContainer in next step to accept envs.
+            // Assuming I will do that:
+
+            $instance = $this->dockerService->createContainer(
+                $image,
+                $container->name,
+                $container->port,
+                5678,
+                $package ? $package->cpu_limit : null,
+                $package ? $package->ram_limit : null,
+                $envArray
+            );
+
+            // 3. Update DB
+            $container->update([
+                'image_tag' => $request->image_tag,
+                'environment' => $envArray,
+                'docker_id' => $instance->getShortDockerIdentifier(),
+            ]);
+
+            DB::commit();
+            return back()->with('success', 'Container updated and recreated successfully.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Update failed: ' . $e->getMessage());
+        }
     }
 
     public function deleteOrphan(Request $request)

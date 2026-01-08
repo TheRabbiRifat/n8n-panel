@@ -15,6 +15,12 @@ class Container extends Model
         'docker_id',
         'name',
         'port',
+        'environment',
+        'image_tag',
+    ];
+
+    protected $casts = [
+        'environment' => 'array',
     ];
 
     public function user()

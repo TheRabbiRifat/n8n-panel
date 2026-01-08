@@ -219,30 +219,26 @@
                     <span class="text-truncate" style="max-width: 200px;">{{ $container['image'] }}</span>
                 </div>
                 <hr class="my-3 opacity-10">
-                <div class="d-flex justify-content-between">
+                <div class="d-flex gap-2">
+                     <a href="{{ route('containers.show', $container['id']) }}" class="btn btn-primary btn-sm flex-grow-1">
+                        <i class="bi bi-gear-fill"></i> Manage
+                     </a>
+
                      @if(str_contains($container['status'], 'Up'))
                         <form action="{{ route('containers.stop', $container['id']) }}" method="POST">
                             @csrf
-                            <button type="submit" class="btn btn-outline-warning btn-sm d-flex align-items-center gap-1">
-                                <i class="bi bi-stop-fill"></i> Stop
+                            <button type="submit" class="btn btn-outline-warning btn-sm" title="Stop">
+                                <i class="bi bi-stop-fill"></i>
                             </button>
                         </form>
                     @else
                         <form action="{{ route('containers.start', $container['id']) }}" method="POST">
                             @csrf
-                            <button type="submit" class="btn btn-outline-success btn-sm d-flex align-items-center gap-1">
-                                <i class="bi bi-play-fill"></i> Start
+                            <button type="submit" class="btn btn-outline-success btn-sm" title="Start">
+                                <i class="bi bi-play-fill"></i>
                             </button>
                         </form>
                     @endif
-
-                    <form action="{{ route('containers.destroy', $container['id']) }}" method="POST">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="btn btn-outline-danger btn-sm d-flex align-items-center gap-1" onclick="return confirm('Are you sure you want to delete this container?')">
-                            <i class="bi bi-trash"></i> Remove
-                        </button>
-                    </form>
                 </div>
             </div>
         </div>
