@@ -5,14 +5,14 @@
     <div class="col-md-8 col-lg-6">
         <div class="card shadow-sm">
             <div class="card-header bg-white">
-                <h4 class="mb-0">Create New Container</h4>
+                <h4 class="mb-0">Create New n8n Instance</h4>
             </div>
             <div class="card-body">
                 <form action="{{ route('containers.store') }}" method="POST">
                     @csrf
 
                     <div class="mb-3">
-                        <label for="name" class="form-label">Container Name</label>
+                        <label for="name" class="form-label">Instance Name</label>
                         <input type="text" class="form-control" id="name" name="name" required placeholder="e.g. n8n-customer-1" value="{{ old('name') }}">
                         <div class="form-text">Use only letters, numbers, and dashes.</div>
                     </div>
@@ -37,7 +37,7 @@
                                 </option>
                             @endforeach
                         </select>
-                        <div class="form-text">Defines resource limits for this container.</div>
+                        <div class="form-text">Defines resource limits for this instance.</div>
                     </div>
 
                     <div class="mb-3">
@@ -48,7 +48,7 @@
 
                     <div class="d-flex justify-content-between">
                         <a href="{{ route('dashboard') }}" class="btn btn-secondary">Cancel</a>
-                        <button type="submit" class="btn btn-success">Create Container</button>
+                        <button type="submit" class="btn btn-success">Create Instance</button>
                     </div>
                 </form>
             </div>

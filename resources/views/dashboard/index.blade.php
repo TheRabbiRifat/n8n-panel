@@ -4,11 +4,11 @@
 <div class="d-flex justify-content-between align-items-center mb-5">
     <div>
         <h2 class="fw-bold text-dark mb-1">Dashboard</h2>
-        <p class="text-muted mb-0">Overview of your system and containers.</p>
+        <p class="text-muted mb-0">Overview of your system and n8n instances.</p>
     </div>
     @if(auth()->user()->hasRole('reseller'))
         <a href="{{ route('containers.create') }}" class="btn btn-primary shadow-sm">
-            <i class="bi bi-plus-lg me-1"></i> New Container
+            <i class="bi bi-plus-lg me-1"></i> New Instance
         </a>
     @endif
 </div>
@@ -174,9 +174,9 @@
 @endif
 
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h4 class="fw-bold text-dark mb-0">My Containers</h4>
+    <h4 class="fw-bold text-dark mb-0">My n8n Instances</h4>
     <a href="{{ route('containers.create') }}" class="btn btn-success shadow-sm">
-        <i class="bi bi-plus-lg me-1"></i> Create Container
+        <i class="bi bi-plus-lg me-1"></i> Create Instance
     </a>
 </div>
 
@@ -185,9 +185,9 @@
     <div class="mb-3 text-muted">
         <i class="bi bi-box-seam fs-1"></i>
     </div>
-    <h5 class="text-muted">No containers found</h5>
-    <p class="text-muted mb-4">Get started by creating your first n8n container.</p>
-    <a href="{{ route('containers.create') }}" class="btn btn-primary">Create Container</a>
+    <h5 class="text-muted">No n8n instances found</h5>
+    <p class="text-muted mb-4">Get started by creating your first n8n instance.</p>
+    <a href="{{ route('containers.create') }}" class="btn btn-primary">Create Instance</a>
 </div>
 @else
 <div class="row g-4">
