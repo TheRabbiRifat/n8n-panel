@@ -17,6 +17,7 @@
                         <th>Email</th>
                         <th>Roles</th>
                         <th>Joined</th>
+                        <th class="text-end">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -33,6 +34,18 @@
                             @endforeach
                         </td>
                         <td>{{ $user->created_at->format('M d, Y') }}</td>
+                        <td class="text-end">
+                            <a href="{{ route('users.edit', $user) }}" class="btn btn-sm btn-outline-primary me-1">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <form action="{{ route('users.destroy', $user) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this user?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </td>
                     </tr>
                     @endforeach
                 </tbody>
