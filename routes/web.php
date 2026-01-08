@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ContainerController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\ServiceController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -27,5 +28,8 @@ Route::middleware(['auth'])->group(function () {
     // User Management (Admin Only)
     Route::middleware(['role:admin'])->group(function () {
         Route::resource('users', UserController::class);
+
+        // Service Management
+        Route::post('services/{service}/{action}', [ServiceController::class, 'handle'])->name('services.handle');
     });
 });

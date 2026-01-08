@@ -91,6 +91,50 @@
         </div>
     </div>
 </div>
+
+<div class="card border-0 shadow-sm mb-5">
+    <div class="card-header bg-white py-3">
+        <h5 class="fw-bold mb-0">System Services</h5>
+    </div>
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-3">
+                <div class="p-2 rounded bg-light">
+                    <i class="bi bi-server fs-4 text-dark"></i>
+                </div>
+                <div>
+                    <h6 class="mb-0 fw-bold">Nginx Web Server</h6>
+                    <span class="badge {{ $nginxStatus === 'active' ? 'bg-success' : 'bg-secondary' }}">
+                        {{ $nginxStatus === 'active' ? 'Running' : 'Stopped' }}
+                    </span>
+                </div>
+            </div>
+            <div class="d-flex gap-2">
+                @if($nginxStatus === 'active')
+                    <form action="{{ route('services.handle', ['service' => 'nginx', 'action' => 'stop']) }}" method="POST">
+                        @csrf
+                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                            <i class="bi bi-stop-fill"></i> Stop
+                        </button>
+                    </form>
+                    <form action="{{ route('services.handle', ['service' => 'nginx', 'action' => 'restart']) }}" method="POST">
+                        @csrf
+                        <button type="submit" class="btn btn-sm btn-outline-warning">
+                            <i class="bi bi-arrow-clockwise"></i> Restart
+                        </button>
+                    </form>
+                @else
+                    <form action="{{ route('services.handle', ['service' => 'nginx', 'action' => 'start']) }}" method="POST">
+                        @csrf
+                        <button type="submit" class="btn btn-sm btn-outline-success">
+                            <i class="bi bi-play-fill"></i> Start
+                        </button>
+                    </form>
+                @endif
+            </div>
+        </div>
+    </div>
+</div>
 @endif
 
 <div class="d-flex justify-content-between align-items-center mb-4">

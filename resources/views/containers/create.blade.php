@@ -18,8 +18,13 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="image" class="form-label">Docker Image</label>
-                        <input type="text" class="form-control" id="image" name="image" required value="{{ old('image', 'n8nio/n8n:latest') }}">
+                        <label for="version" class="form-label">n8n Version</label>
+                        <select class="form-select" id="version" name="version" required>
+                            @foreach($versions as $version)
+                                <option value="{{ $version }}" {{ old('version') == $version ? 'selected' : '' }}>{{ $version }}</option>
+                            @endforeach
+                        </select>
+                        <div class="form-text">Select preferred n8n version.</div>
                     </div>
 
                     <div class="mb-3">

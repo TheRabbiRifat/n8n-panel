@@ -20,17 +20,22 @@ class ContainerController extends Controller
 
     public function create()
     {
-        // Only admin can create containers for any user, reseller for themselves or their users?
-        // README: "Create new containers with configurable options."
-        // Let's assume Admin/Reseller can create.
-        return view('containers.create');
+        $versions = [
+            'latest',
+            '1.25.1',
+            '1.24.1',
+            '1.22.6',
+            '1.21.1',
+            '0.236.3'
+        ];
+        return view('containers.create', compact('versions'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
             'name' => 'required|string|alpha_dash',
-            'image' => 'required|string',
+            'version' => 'required|string',
             'port' => 'required|integer',
         ]);
 
@@ -40,13 +45,15 @@ class ContainerController extends Controller
              return back()->withErrors(['name' => 'Container name already exists']);
         }
 
+        $image = 'n8nio/n8n:' . $request->version;
+
         $instance = null;
         DB::beginTransaction();
 
         try {
             // 1. Create Docker Container
             $instance = $this->dockerService->createContainer(
-                $request->image,
+                $image,
                 $request->name,
                 $request->port
             );
