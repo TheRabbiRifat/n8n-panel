@@ -4,21 +4,29 @@ namespace App\Http\Controllers;
 
 use App\Models\Container;
 use App\Services\DockerService;
+use App\Services\SystemStatusService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
 {
     protected $dockerService;
+    protected $systemStatusService;
 
-    public function __construct(DockerService $dockerService)
+    public function __construct(DockerService $dockerService, SystemStatusService $systemStatusService)
     {
         $this->dockerService = $dockerService;
+        $this->systemStatusService = $systemStatusService;
     }
 
     public function index()
     {
         $user = Auth::user();
+        $systemStats = null;
+
+        if ($user->hasRole('admin')) {
+            $systemStats = $this->systemStatusService->getSystemStats();
+        }
 
         // Fetch all docker containers once
         $dockerContainers = $this->dockerService->listContainers();
@@ -70,6 +78,6 @@ class DashboardController extends Controller
             ];
         });
 
-        return view('dashboard.index', compact('containers'));
+        return view('dashboard.index', compact('containers', 'systemStats'));
     }
 }
