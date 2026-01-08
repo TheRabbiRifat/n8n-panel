@@ -141,7 +141,7 @@
                     <i class="bi bi-people"></i> Users
                 </a>
                 <a href="{{ route('containers.orphans') }}" class="nav-link {{ request()->routeIs('containers.orphans') ? 'active' : '' }}">
-                    <i class="bi bi-search"></i> Container Discovery
+                    <i class="bi bi-search"></i> Instance Discovery
                 </a>
                 @endrole
             </nav>

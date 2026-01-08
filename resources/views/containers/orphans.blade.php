@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="h3">Container Discovery</h2>
+    <h2 class="h3">Instance Discovery</h2>
     <a href="{{ route('dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
 </div>
 
@@ -45,7 +45,7 @@
                                     data-ports="{{ $orphan['ports'] }}">
                                 <i class="bi bi-box-arrow-in-down"></i> Import
                             </button>
-                            <form action="{{ route('containers.deleteOrphan') }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this orphan container? This cannot be undone.');">
+                            <form action="{{ route('containers.deleteOrphan') }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this orphan instance? This cannot be undone.');">
                                 @csrf
                                 @method('DELETE')
                                 <input type="hidden" name="docker_id" value="{{ $orphan['id'] }}">
@@ -62,7 +62,7 @@
         @else
         <div class="p-5 text-center text-muted">
             <i class="bi bi-inbox fs-1 d-block mb-3"></i>
-            <p>No orphan containers found.</p>
+            <p>No orphan instances found.</p>
         </div>
         @endif
     </div>
@@ -75,14 +75,14 @@
             @csrf
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="importModalLabel">Import Container</h5>
+                    <h5 class="modal-title" id="importModalLabel">Import Instance</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <input type="hidden" name="docker_id" id="modalDockerId">
 
                     <div class="mb-3">
-                        <label for="modalName" class="form-label">Container Name</label>
+                        <label for="modalName" class="form-label">Instance Name</label>
                         <input type="text" class="form-control" id="modalName" name="name" required>
                     </div>
 
@@ -114,7 +114,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Import Container</button>
+                    <button type="submit" class="btn btn-primary">Import Instance</button>
                 </div>
             </div>
         </form>

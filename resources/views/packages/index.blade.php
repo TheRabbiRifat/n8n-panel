@@ -4,7 +4,7 @@
 <div class="d-flex justify-content-between align-items-center mb-5">
     <div>
         <h2 class="fw-bold text-dark mb-1">Package Management</h2>
-        <p class="text-muted mb-0">Define resource limits for your containers.</p>
+        <p class="text-muted mb-0">Define resource limits for your instances.</p>
     </div>
     <a href="{{ route('packages.create') }}" class="btn btn-primary shadow-sm">
         <i class="bi bi-plus-lg me-1"></i> Create Package
@@ -48,7 +48,7 @@
                             <form action="{{ route('packages.destroy', $package->id) }}" method="POST" style="display:inline;">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Are you sure? This will not delete containers using this package.')">
+                                <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Are you sure? This will not delete instances using this package.')">
                                     <i class="bi bi-trash"></i>
                                 </button>
                             </form>
