@@ -5,16 +5,16 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Container extends Model
+class Package extends Model
 {
     use HasFactory;
 
     protected $fillable = [
         'user_id',
-        'package_id',
-        'docker_id',
         'name',
-        'port',
+        'cpu_limit',
+        'ram_limit',
+        'disk_limit',
     ];
 
     public function user()
@@ -22,8 +22,8 @@ class Container extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function package()
+    public function containers()
     {
-        return $this->belongsTo(Package::class);
+        return $this->hasMany(Container::class);
     }
 }

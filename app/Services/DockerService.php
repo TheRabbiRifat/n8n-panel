@@ -44,7 +44,7 @@ class DockerService
         return $containers;
     }
 
-    public function createContainer(string $image, string $name, int $port, int $internalPort = 5678)
+    public function createContainer(string $image, string $name, int $port, int $internalPort = 5678, $cpu = null, $memory = null)
     {
         // Use Spatie Docker to create
         // We need to handle potential exceptions
@@ -54,6 +54,18 @@ class DockerService
                 ->mapPort($port, $internalPort)
                 ->daemonize()
                 ->doNotCleanUpAfterExit(); // We want it to persist so we can see it in list
+
+            $optionalArgs = [];
+            if ($cpu) {
+                $optionalArgs[] = "--cpus={$cpu}";
+            }
+            if ($memory) {
+                $optionalArgs[] = "--memory={$memory}";
+            }
+
+            if (!empty($optionalArgs)) {
+                $container->setOptionalArgs(...$optionalArgs);
+            }
 
             // start() returns a DockerContainerInstance
             $instance = $container->start();
