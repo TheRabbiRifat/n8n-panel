@@ -37,7 +37,7 @@ class DockerService
         return $containers;
     }
 
-    public function createContainer(string $image, string $name, int $port, int $internalPort = 5678, $cpu = null, $memory = null, array $environment = [], array $volumes = [])
+    public function createContainer(string $image, string $name, int $port, int $internalPort = 5678, $cpu = null, $memory = null, array $environment = [], array $volumes = [], array $labels = [])
     {
         // Manually construct sudo docker run command
         $command = ['sudo', 'docker', 'run', '-d', '--name', $name, '--restart', 'unless-stopped'];
@@ -56,6 +56,12 @@ class DockerService
         foreach ($volumes as $hostPath => $containerPath) {
             $command[] = '-v';
             $command[] = "{$hostPath}:{$containerPath}";
+        }
+
+        // Labels
+        foreach ($labels as $key => $value) {
+            $command[] = '-l';
+            $command[] = "{$key}={$value}";
         }
 
         // Resources

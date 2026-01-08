@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Process;
 
 class ServiceManager
 {
-    protected $allowedServices = ['nginx'];
+    protected $allowedServices = [];
 
     public function getStatus(string $service)
     {
