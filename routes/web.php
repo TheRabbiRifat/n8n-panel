@@ -34,6 +34,11 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['role:admin'])->group(function () {
         Route::resource('users', UserController::class);
 
+        // Container Discovery
+        Route::get('containers/orphans', [ContainerController::class, 'orphans'])->name('containers.orphans');
+        Route::post('containers/import', [ContainerController::class, 'import'])->name('containers.import');
+        Route::delete('containers/orphans', [ContainerController::class, 'deleteOrphan'])->name('containers.deleteOrphan');
+
         // Service Management
         Route::post('services/{service}/{action}', [ServiceController::class, 'handle'])->name('services.handle');
     });

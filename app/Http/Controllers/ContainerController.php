@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Container;
 use App\Models\Package;
+use App\Models\User;
 use App\Services\DockerService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -150,6 +151,57 @@ class ContainerController extends Controller
              // Or maybe force delete.
              $container->delete();
              return back()->with('warning', 'Container removed from database but Docker might have failed: ' . $e->getMessage());
+        }
+    }
+
+    public function orphans()
+    {
+        // Get all docker containers
+        $allContainers = $this->dockerService->listContainers();
+
+        // Get all managed container docker_ids
+        $managedIds = Container::pluck('docker_id')->toArray();
+
+        // Filter orphans
+        $orphans = array_filter($allContainers, function($c) use ($managedIds) {
+            return !in_array($c['id'], $managedIds);
+        });
+
+        $users = User::all();
+        $packages = Package::all();
+
+        return view('containers.orphans', compact('orphans', 'users', 'packages'));
+    }
+
+    public function import(Request $request)
+    {
+        $request->validate([
+            'docker_id' => 'required|string|unique:containers,docker_id',
+            'name' => 'required|string',
+            'user_id' => 'required|exists:users,id',
+            'package_id' => 'nullable|exists:packages,id',
+            'port' => 'required|integer',
+        ]);
+
+        Container::create([
+            'user_id' => $request->user_id,
+            'package_id' => $request->package_id,
+            'docker_id' => $request->docker_id,
+            'name' => $request->name,
+            'port' => $request->port,
+        ]);
+
+        return redirect()->route('containers.orphans')->with('success', 'Container imported successfully.');
+    }
+
+    public function deleteOrphan(Request $request)
+    {
+        $request->validate(['docker_id' => 'required|string']);
+        try {
+            $this->dockerService->removeContainer($request->docker_id);
+            return back()->with('success', 'Orphan container removed.');
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
         }
     }
 

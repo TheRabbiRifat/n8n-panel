@@ -16,7 +16,7 @@ class DockerService
         // Since we are simulating, I will assume `docker ps -a` works.
         // I will return an array of arrays.
 
-        $process = Process::run('docker ps -a --format "{{.ID}}|{{.Names}}|{{.Image}}|{{.Status}}|{{.State}}"');
+        $process = Process::run('sudo docker ps -a --format "{{.ID}}|{{.Names}}|{{.Image}}|{{.Status}}|{{.State}}|{{.Ports}}"');
 
         if ($process->failed()) {
             // If docker is not running or available, return empty
@@ -30,13 +30,14 @@ class DockerService
         foreach ($lines as $line) {
             if (empty($line)) continue;
             $parts = explode('|', $line);
-            if (count($parts) >= 5) {
+            if (count($parts) >= 6) {
                 $containers[] = [
                     'id' => $parts[0],
                     'name' => $parts[1],
                     'image' => $parts[2],
                     'status' => $parts[3],
                     'state' => $parts[4],
+                    'ports' => $parts[5],
                 ];
             }
         }

@@ -140,6 +140,9 @@
                 <a href="{{ route('users.index') }}" class="nav-link {{ request()->routeIs('users.*') ? 'active' : '' }}">
                     <i class="bi bi-people"></i> Users
                 </a>
+                <a href="{{ route('containers.orphans') }}" class="nav-link {{ request()->routeIs('containers.orphans') ? 'active' : '' }}">
+                    <i class="bi bi-search"></i> Container Discovery
+                </a>
                 @endrole
             </nav>
 
