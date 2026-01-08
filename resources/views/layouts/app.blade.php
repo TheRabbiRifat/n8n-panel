@@ -78,6 +78,11 @@
                                 <i class="bi bi-speedometer2 me-1"></i> Dashboard
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('packages.*') ? 'active' : '' }}" href="{{ route('packages.index') }}">
+                                <i class="bi bi-box me-1"></i> Packages
+                            </a>
+                        </li>
                         @role('admin')
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('users.*') ? 'active' : '' }}" href="{{ route('users.index') }}">

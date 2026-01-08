@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Container;
+use App\Models\Package;
 use App\Services\DockerService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -28,7 +29,16 @@ class ContainerController extends Controller
             '1.21.1',
             '0.236.3'
         ];
-        return view('containers.create', compact('versions'));
+
+        $user = Auth::user();
+        // Admins see all, Resellers see theirs
+        if ($user->hasRole('admin')) {
+             $packages = Package::all();
+        } else {
+             $packages = Package::where('user_id', $user->id)->get();
+        }
+
+        return view('containers.create', compact('versions', 'packages'));
     }
 
     public function store(Request $request)
@@ -37,6 +47,7 @@ class ContainerController extends Controller
             'name' => 'required|string|alpha_dash',
             'version' => 'required|string',
             'port' => 'required|integer',
+            'package_id' => 'required|exists:packages,id',
         ]);
 
         // Logic to start container
@@ -46,6 +57,15 @@ class ContainerController extends Controller
         }
 
         $image = 'n8nio/n8n:' . $request->version;
+        $package = Package::findOrFail($request->package_id);
+
+        // Check if user is authorized to use this package
+        if (!Auth::user()->hasRole('admin') && $package->user_id !== Auth::id()) {
+             // For simplicity, resellers can only use their own packages.
+             // If requirements imply they can use admin packages, remove this check.
+             // "admin own all, reseller own theirs" implies segregation.
+             abort(403, 'Unauthorized package.');
+        }
 
         $instance = null;
         DB::beginTransaction();
@@ -55,12 +75,16 @@ class ContainerController extends Controller
             $instance = $this->dockerService->createContainer(
                 $image,
                 $request->name,
-                $request->port
+                $request->port,
+                5678,
+                $package->cpu_limit,
+                $package->ram_limit
             );
 
             // 2. Create DB Record
             Container::create([
                 'user_id' => Auth::id(), // Assign to current user for now, or allow selecting user if Admin
+                'package_id' => $package->id,
                 'docker_id' => $instance->getShortDockerIdentifier(),
                 'name' => $request->name,
                 'port' => $request->port,

@@ -15,8 +15,13 @@ Route::get('login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('login', [LoginController::class, 'login']);
 Route::post('logout', [LoginController::class, 'logout'])->name('logout');
 
+use App\Http\Controllers\PackageController;
+
 Route::middleware(['auth'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    // Package Management
+    Route::resource('packages', PackageController::class)->except(['show']);
 
     // Container Management
     Route::get('containers/create', [ContainerController::class, 'create'])->name('containers.create');

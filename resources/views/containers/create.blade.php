@@ -28,6 +28,19 @@
                     </div>
 
                     <div class="mb-3">
+                        <label for="package_id" class="form-label">Resource Package</label>
+                        <select class="form-select" id="package_id" name="package_id" required>
+                            <option value="" disabled selected>Select a package...</option>
+                            @foreach($packages as $package)
+                                <option value="{{ $package->id }}" {{ old('package_id') == $package->id ? 'selected' : '' }}>
+                                    {{ $package->name }} (CPU: {{ $package->cpu_limit ?? 'Unl' }}, RAM: {{ $package->ram_limit ?? 'Unl' }}, Disk: {{ $package->disk_limit ?? 'Unl' }})
+                                </option>
+                            @endforeach
+                        </select>
+                        <div class="form-text">Defines resource limits for this container.</div>
+                    </div>
+
+                    <div class="mb-3">
                         <label for="port" class="form-label">Exposed Port (Host)</label>
                         <input type="number" class="form-control" id="port" name="port" required placeholder="e.g. 5678" value="{{ old('port') }}">
                         <div class="form-text">The port on the server that maps to n8n's internal port.</div>
