@@ -13,7 +13,7 @@
             Image: {{ $stats['Config']['Image'] ?? ($stats['image'] ?? 'Unknown') }}
         </div>
     </div>
-    <a href="{{ route('dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
+    <a href="{{ route('instances.index') }}" class="btn btn-secondary">Back to Instances</a>
 </div>
 
 <div class="card shadow-sm mb-4">
@@ -73,7 +73,7 @@
                                 </form>
                             @endif
 
-                            <form action="{{ route('containers.destroy', $container->id) }}" method="POST" onsubmit="return confirm('Delete this instance?');">
+                            <form action="{{ route('instances.destroy', $container->id) }}" method="POST" onsubmit="return confirm('Delete this instance?');">
                                 @csrf
                                 @method('DELETE')
                                 <button class="btn btn-danger"><i class="bi bi-trash"></i> Delete</button>
@@ -85,8 +85,18 @@
                         <h5 class="card-title mb-4">Configuration</h5>
                         <table class="table table-sm">
                             <tr>
-                                <th style="width: 150px;">Port:</th>
-                                <td><a href="http://{{ request()->getHost() }}:{{ $container->port }}" target="_blank">{{ $container->port }} <i class="bi bi-box-arrow-up-right small"></i></a></td>
+                                <th style="width: 150px;">Domain:</th>
+                                <td>
+                                    @if($container->domain)
+                                        <a href="https://{{ $container->domain }}" target="_blank" class="fw-bold">{{ $container->domain }} <i class="bi bi-box-arrow-up-right small"></i></a>
+                                    @else
+                                        <span class="text-muted">Not Assigned</span>
+                                    @endif
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Internal Port:</th>
+                                <td>{{ $container->port }}</td>
                             </tr>
                             <tr>
                                 <th>Package:</th>
@@ -132,17 +142,9 @@
                         </div>
                     </div>
 
-                    <div class="mb-4">
-                        <h5 class="card-title">Environment Variables</h5>
-                        <label for="environment" class="form-label">Key=Value (One per line)</label>
-                        <textarea class="form-control font-monospace" id="environment" name="environment" rows="10" placeholder="DB_HOST=localhost&#10;DB_PORT=5432">
-@if($container->environment)
-@foreach($container->environment as $key => $value)
-{{ $key }}={{ $value }}
-@endforeach
-@endif
-</textarea>
-                        <div class="form-text">These variables are permanent. Updating them will recreate the instance.</div>
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle-fill me-2"></i>
+                        Environment variables are managed globally by the administrator.
                     </div>
 
                     <button type="submit" class="btn btn-primary">Save & Apply Changes</button>

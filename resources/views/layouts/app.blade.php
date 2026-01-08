@@ -132,6 +132,10 @@
                     <i class="bi bi-speedometer2"></i> Dashboard
                 </a>
 
+                <a href="{{ route('instances.index') }}" class="nav-link {{ request()->routeIs('instances.*') ? 'active' : '' }}">
+                    <i class="bi bi-hdd-network"></i> Instances
+                </a>
+
                 <a href="{{ route('packages.index') }}" class="nav-link {{ request()->routeIs('packages.*') ? 'active' : '' }}">
                     <i class="bi bi-box"></i> Packages
                 </a>
@@ -139,6 +143,9 @@
                 @role('admin')
                 <a href="{{ route('users.index') }}" class="nav-link {{ request()->routeIs('users.*') ? 'active' : '' }}">
                     <i class="bi bi-people"></i> Users
+                </a>
+                <a href="{{ route('admin.environment.index') }}" class="nav-link {{ request()->routeIs('admin.environment.*') ? 'active' : '' }}">
+                    <i class="bi bi-sliders"></i> Global Settings
                 </a>
                 <a href="{{ route('containers.orphans') }}" class="nav-link {{ request()->routeIs('containers.orphans') ? 'active' : '' }}">
                     <i class="bi bi-search"></i> Instance Discovery

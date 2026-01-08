@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Container;
 use App\Models\Package;
 use App\Models\User;
+use App\Models\GlobalSetting;
 use App\Services\DockerService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -245,20 +246,23 @@ class ContainerController extends Controller
 
         $request->validate([
             'image_tag' => 'required|string',
-            'environment' => 'nullable|string', // Key=Value pair per line
         ]);
 
-        // Process Env Vars
-        $envArray = [];
-        if ($request->environment) {
-            $lines = explode("\n", $request->environment);
-            foreach ($lines as $line) {
-                if (str_contains($line, '=')) {
-                    list($key, $value) = explode('=', trim($line), 2);
-                    $envArray[trim($key)] = trim($value);
-                }
-            }
+        // Global Env
+        $globalEnv = GlobalSetting::where('key', 'n8n_env')->first();
+        $envArray = $globalEnv ? json_decode($globalEnv->value, true) : [];
+
+        // Add specific envs
+        if ($container->domain) {
+            $envArray['N8N_HOST'] = $container->domain;
+            $envArray['N8N_PORT'] = 5678;
+            $envArray['N8N_PROTOCOL'] = 'https';
+            $envArray['WEBHOOK_URL'] = "https://{$container->domain}/";
         }
+
+        // Volume Path
+        $volumeHostPath = "/var/lib/n8n/instances/{$container->name}";
+        $volumes = [$volumeHostPath => '/home/node/.n8n'];
 
         DB::beginTransaction();
         try {
@@ -271,15 +275,7 @@ class ContainerController extends Controller
 
             // 2. Create New Container
             $image = 'n8nio/n8n:' . $request->image_tag;
-            $package = $container->package; // Assume package exists
-
-            // Need to handle optional args for env
-            // DockerService needs update to support env vars?
-            // Or we can pass them. Spatie docker supports ->environment($key, $value)
-
-            // Wait, DockerService::createContainer wrapper needs update to accept envs.
-            // For now, I will modify DockerService::createContainer in next step to accept envs.
-            // Assuming I will do that:
+            $package = $container->package;
 
             $instance = $this->dockerService->createContainer(
                 $image,
@@ -288,18 +284,18 @@ class ContainerController extends Controller
                 5678,
                 $package ? $package->cpu_limit : null,
                 $package ? $package->ram_limit : null,
-                $envArray
+                $envArray,
+                $volumes
             );
 
             // 3. Update DB
             $container->update([
                 'image_tag' => $request->image_tag,
-                'environment' => $envArray,
                 'docker_id' => $instance->getShortDockerIdentifier(),
             ]);
 
             DB::commit();
-            return back()->with('success', 'Container updated and recreated successfully.');
+            return back()->with('success', 'Instance updated and recreated successfully.');
 
         } catch (\Exception $e) {
             DB::rollBack();
