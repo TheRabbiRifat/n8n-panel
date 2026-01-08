@@ -45,7 +45,7 @@ class DockerService
         return $containers;
     }
 
-    public function createContainer(string $image, string $name, int $port, int $internalPort = 5678, $cpu = null, $memory = null)
+    public function createContainer(string $image, string $name, int $port, int $internalPort = 5678, $cpu = null, $memory = null, array $environment = [])
     {
         // Use Spatie Docker to create
         // We need to handle potential exceptions
@@ -56,6 +56,10 @@ class DockerService
                 ->daemonize()
                 ->doNotCleanUpAfterExit() // We want it to persist so we can see it in list
                 ->setStartCommandTimeout(300); // Increase timeout to 5 mins for image pulling
+
+            foreach ($environment as $key => $value) {
+                $container->environment($key, $value);
+            }
 
             $optionalArgs = [];
             if ($cpu) {
@@ -93,6 +97,17 @@ class DockerService
     public function removeContainer(string $id)
     {
          Process::run("docker rm -f $id");
+    }
+
+    public function restartContainer(string $id)
+    {
+         Process::run("sudo docker restart $id");
+    }
+
+    public function getContainerLogs(string $id, int $lines = 100)
+    {
+         $process = Process::run("sudo docker logs --tail {$lines} $id");
+         return $process->successful() ? $process->output() : 'Could not retrieve logs.';
     }
 
     public function getContainer(string $id)
