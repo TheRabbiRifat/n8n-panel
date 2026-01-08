@@ -29,7 +29,6 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
         $systemStats = null;
-        $nginxStatus = 'Unknown';
 
         if ($user->hasRole('admin')) {
             $systemStats = $this->systemStatusService->getSystemStats();
@@ -37,8 +36,6 @@ class DashboardController extends Controller
             $systemStats['container_count'] = Container::count();
             $systemStats['user_count'] = \App\Models\User::count();
             $systemStats['panel_version'] = '1.0.0'; // Static for now
-
-            $nginxStatus = $this->serviceManager->getStatus('nginx');
         }
 
         // Fetch all docker containers once
@@ -92,6 +89,6 @@ class DashboardController extends Controller
             ];
         });
 
-        return view('dashboard.index', compact('containers', 'systemStats', 'nginxStatus'));
+        return view('dashboard.index', compact('containers', 'systemStats'));
     }
 }

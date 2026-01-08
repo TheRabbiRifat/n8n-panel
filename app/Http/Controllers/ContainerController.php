@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class ContainerController extends Controller
 {
@@ -277,6 +278,16 @@ class ContainerController extends Controller
             $image = 'n8nio/n8n:' . $request->image_tag;
             $package = $container->package;
 
+            // Traefik Labels
+            $cleanName = Str::slug($container->name);
+            $routerName = "n8n-" . $cleanName;
+            $labels = [
+                'traefik.enable' => 'true',
+                "traefik.http.routers.{$routerName}.rule" => "Host(`{$container->domain}`)",
+                "traefik.http.routers.{$routerName}.entrypoints" => 'websecure',
+                "traefik.http.routers.{$routerName}.tls.certresolver" => 'le',
+            ];
+
             $instance = $this->dockerService->createContainer(
                 $image,
                 $container->name,
@@ -285,7 +296,8 @@ class ContainerController extends Controller
                 $package ? $package->cpu_limit : null,
                 $package ? $package->ram_limit : null,
                 $envArray,
-                $volumes
+                $volumes,
+                $labels
             );
 
             // 3. Update DB
