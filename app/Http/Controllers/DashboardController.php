@@ -33,6 +33,10 @@ class DashboardController extends Controller
 
         if ($user->hasRole('admin')) {
             $systemStats = $this->systemStatusService->getSystemStats();
+            // Add counts
+            $systemStats['container_count'] = Container::count();
+            $systemStats['user_count'] = \App\Models\User::count();
+
             $nginxStatus = $this->serviceManager->getStatus('nginx');
         }
 

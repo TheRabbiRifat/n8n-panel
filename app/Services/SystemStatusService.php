@@ -14,7 +14,17 @@ class SystemStatusService
             'cpu' => $this->getCpuLoad(),
             'ram' => $this->getRamUsage(),
             'disk' => $this->getDiskUsage(),
+            'ips' => $this->getIps(),
         ];
+    }
+
+    protected function getIps()
+    {
+        $process = Process::run("hostname -I");
+        if ($process->successful()) {
+            return trim($process->output());
+        }
+        return 'Unknown';
     }
 
     protected function getDockerStatus()

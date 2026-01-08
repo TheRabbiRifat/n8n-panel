@@ -14,30 +14,27 @@
 </div>
 
 @if($systemStats)
-<div class="row g-4 mb-5">
-    <!-- Docker Status -->
+<div class="row g-4 mb-4">
+    <!-- Server Info & Status -->
     <div class="col-md-6 col-lg-3">
         <div class="card h-100 border-0 shadow-sm">
             <div class="card-body d-flex align-items-center">
-                <div class="rounded-3 p-3 d-flex align-items-center justify-content-center bg-primary bg-opacity-10 text-primary me-3" style="width: 64px; height: 64px;">
-                    <i class="bi bi-box-seam fs-2"></i>
+                <div class="rounded-3 p-3 d-flex align-items-center justify-content-center bg-primary bg-opacity-10 text-primary me-3" style="width: 56px; height: 56px;">
+                    <i class="bi bi-hdd-network fs-3"></i>
                 </div>
                 <div>
-                    <h6 class="text-uppercase text-muted small fw-bold mb-1">Docker Service</h6>
-                    <h4 class="mb-0 fw-bold {{ $systemStats['docker'] === 'Running' ? 'text-success' : 'text-danger' }}">
-                        {{ $systemStats['docker'] }}
-                    </h4>
+                    <h6 class="text-uppercase text-muted small fw-bold mb-1">Server IP</h6>
+                    <h5 class="mb-0 fw-bold text-dark fs-6">{{ Str::limit($systemStats['ips'], 20) }}</h5>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Uptime -->
     <div class="col-md-6 col-lg-3">
         <div class="card h-100 border-0 shadow-sm">
             <div class="card-body d-flex align-items-center">
-                <div class="rounded-3 p-3 d-flex align-items-center justify-content-center bg-success bg-opacity-10 text-success me-3" style="width: 64px; height: 64px;">
-                    <i class="bi bi-clock-history fs-2"></i>
+                <div class="rounded-3 p-3 d-flex align-items-center justify-content-center bg-success bg-opacity-10 text-success me-3" style="width: 56px; height: 56px;">
+                    <i class="bi bi-clock-history fs-3"></i>
                 </div>
                 <div>
                     <h6 class="text-uppercase text-muted small fw-bold mb-1">Uptime</h6>
@@ -47,90 +44,120 @@
         </div>
     </div>
 
-    <!-- CPU & RAM -->
     <div class="col-md-6 col-lg-3">
         <div class="card h-100 border-0 shadow-sm">
             <div class="card-body d-flex align-items-center">
-                <div class="rounded-3 p-3 d-flex align-items-center justify-content-center bg-warning bg-opacity-10 text-warning me-3" style="width: 64px; height: 64px;">
-                    <i class="bi bi-cpu fs-2"></i>
+                <div class="rounded-3 p-3 d-flex align-items-center justify-content-center bg-info bg-opacity-10 text-info me-3" style="width: 56px; height: 56px;">
+                    <i class="bi bi-people fs-3"></i>
                 </div>
-                <div class="w-100">
-                    <h6 class="text-uppercase text-muted small fw-bold mb-1">Load / RAM</h6>
-                    <div class="d-flex justify-content-between align-items-end">
-                        <span class="fw-bold">{{ $systemStats['cpu'] }}</span>
-                        <span class="text-muted small">CPU</span>
-                    </div>
-                    <div class="progress mt-2" style="height: 4px;">
-                        <div class="progress-bar bg-warning" role="progressbar" style="width: {{ $systemStats['ram']['percent'] }}%"></div>
-                    </div>
-                    <div class="d-flex justify-content-between mt-1">
-                        <span class="small text-muted">{{ $systemStats['ram']['percent'] }}%</span>
-                        <span class="small text-muted">RAM</span>
-                    </div>
+                <div>
+                    <h6 class="text-uppercase text-muted small fw-bold mb-1">Users</h6>
+                    <h3 class="mb-0 fw-bold text-dark">{{ $systemStats['user_count'] }}</h3>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Disk Usage -->
     <div class="col-md-6 col-lg-3">
         <div class="card h-100 border-0 shadow-sm">
             <div class="card-body d-flex align-items-center">
-                <div class="rounded-3 p-3 d-flex align-items-center justify-content-center bg-info bg-opacity-10 text-info me-3" style="width: 64px; height: 64px;">
-                    <i class="bi bi-hdd fs-2"></i>
+                <div class="rounded-3 p-3 d-flex align-items-center justify-content-center bg-indigo bg-opacity-10 text-indigo me-3" style="width: 56px; height: 56px; background-color: #e0e7ff; color: #4338ca;">
+                    <i class="bi bi-boxes fs-3"></i>
                 </div>
-                <div class="w-100">
-                    <h6 class="text-uppercase text-muted small fw-bold mb-1">Disk Usage</h6>
-                    <h4 class="mb-0 fw-bold text-dark">{{ $systemStats['disk']['percent'] }}%</h4>
-                    <div class="progress mt-2" style="height: 4px;">
-                        <div class="progress-bar bg-info" role="progressbar" style="width: {{ $systemStats['disk']['percent'] }}%"></div>
-                    </div>
-                    <small class="text-muted mt-1 d-block">{{ $systemStats['disk']['used_gb'] }}GB / {{ $systemStats['disk']['total_gb'] }}GB</small>
+                <div>
+                    <h6 class="text-uppercase text-muted small fw-bold mb-1">Containers</h6>
+                    <h3 class="mb-0 fw-bold text-dark">{{ $systemStats['container_count'] }}</h3>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<div class="card border-0 shadow-sm mb-5">
-    <div class="card-header bg-white py-3">
-        <h5 class="fw-bold mb-0">System Services</h5>
-    </div>
-    <div class="card-body">
-        <div class="d-flex justify-content-between align-items-center">
-            <div class="d-flex align-items-center gap-3">
-                <div class="p-2 rounded bg-light">
-                    <i class="bi bi-server fs-4 text-dark"></i>
+<div class="row g-4 mb-5">
+    <!-- Resources -->
+    <div class="col-md-4">
+        <div class="card h-100 border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-cpu text-warning"></i>
+                        <h6 class="fw-bold mb-0">CPU Load</h6>
+                    </div>
+                    <span class="fw-bold fs-5">{{ $systemStats['cpu'] }}</span>
                 </div>
-                <div>
-                    <h6 class="mb-0 fw-bold">Nginx Web Server</h6>
-                    <span class="badge {{ $nginxStatus === 'active' ? 'bg-success' : 'bg-secondary' }}">
-                        {{ $nginxStatus === 'active' ? 'Running' : 'Stopped' }}
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-memory text-danger"></i>
+                        <h6 class="fw-bold mb-0">RAM Usage</h6>
+                    </div>
+                    <span class="fw-bold fs-5">{{ $systemStats['ram']['percent'] }}%</span>
+                </div>
+                <div class="progress" style="height: 6px;">
+                    <div class="progress-bar bg-danger" role="progressbar" style="width: {{ $systemStats['ram']['percent'] }}%"></div>
+                </div>
+                <small class="text-muted mt-2 d-block text-end">{{ $systemStats['ram']['used'] }}MB / {{ $systemStats['ram']['total'] }}MB</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card h-100 border-0 shadow-sm">
+            <div class="card-body">
+                 <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-hdd text-primary"></i>
+                        <h6 class="fw-bold mb-0">Disk Storage</h6>
+                    </div>
+                    <span class="fw-bold fs-5">{{ $systemStats['disk']['percent'] }}%</span>
+                </div>
+                <div class="progress mt-4" style="height: 6px;">
+                    <div class="progress-bar bg-primary" role="progressbar" style="width: {{ $systemStats['disk']['percent'] }}%"></div>
+                </div>
+                <small class="text-muted mt-2 d-block text-end">{{ $systemStats['disk']['used_gb'] }}GB / {{ $systemStats['disk']['total_gb'] }}GB</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+         <div class="card h-100 border-0 shadow-sm">
+            <div class="card-body">
+                 <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-server text-secondary"></i>
+                        <h6 class="fw-bold mb-0">Services</h6>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2">
+                    <span class="text-muted">Docker</span>
+                    <span class="badge {{ $systemStats['docker'] === 'Running' ? 'bg-success' : 'bg-danger' }}">
+                        {{ $systemStats['docker'] }}
                     </span>
                 </div>
-            </div>
-            <div class="d-flex gap-2">
-                @if($nginxStatus === 'active')
-                    <form action="{{ route('services.handle', ['service' => 'nginx', 'action' => 'stop']) }}" method="POST">
-                        @csrf
-                        <button type="submit" class="btn btn-sm btn-outline-danger">
-                            <i class="bi bi-stop-fill"></i> Stop
-                        </button>
-                    </form>
-                    <form action="{{ route('services.handle', ['service' => 'nginx', 'action' => 'restart']) }}" method="POST">
-                        @csrf
-                        <button type="submit" class="btn btn-sm btn-outline-warning">
-                            <i class="bi bi-arrow-clockwise"></i> Restart
-                        </button>
-                    </form>
-                @else
-                    <form action="{{ route('services.handle', ['service' => 'nginx', 'action' => 'start']) }}" method="POST">
-                        @csrf
-                        <button type="submit" class="btn btn-sm btn-outline-success">
-                            <i class="bi bi-play-fill"></i> Start
-                        </button>
-                    </form>
-                @endif
+
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="text-muted">Nginx</span>
+                     <div class="d-flex align-items-center gap-2">
+                         <span class="badge {{ $nginxStatus === 'active' ? 'bg-success' : 'bg-secondary' }}">
+                            {{ $nginxStatus === 'active' ? 'Running' : 'Stopped' }}
+                        </span>
+                         @if($nginxStatus === 'active')
+                            <form action="{{ route('services.handle', ['service' => 'nginx', 'action' => 'restart']) }}" method="POST">
+                                @csrf
+                                <button type="submit" class="btn btn-link p-0 text-decoration-none" title="Restart Nginx">
+                                    <i class="bi bi-arrow-clockwise text-warning"></i>
+                                </button>
+                            </form>
+                        @else
+                             <form action="{{ route('services.handle', ['service' => 'nginx', 'action' => 'start']) }}" method="POST">
+                                @csrf
+                                <button type="submit" class="btn btn-link p-0 text-decoration-none" title="Start Nginx">
+                                    <i class="bi bi-play-fill text-success"></i>
+                                </button>
+                            </form>
+                        @endif
+                     </div>
+                </div>
             </div>
         </div>
     </div>
@@ -177,7 +204,6 @@
                 <div class="d-flex align-items-center mb-3 text-muted">
                     <i class="bi bi-hdd-network me-2"></i>
                     <span>Port: <span class="fw-medium text-dark">{{ $container['docker_id'] ? ($container['port'] ?? 'N/A') : 'N/A' }}</span> (Host)</span>
-                    <!-- Note: I should probably pass port from controller correctly if not in docker info -->
                 </div>
                 <div class="d-flex align-items-center text-muted">
                     <i class="bi bi-disc me-2"></i>
