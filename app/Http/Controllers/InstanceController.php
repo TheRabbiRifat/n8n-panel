@@ -39,12 +39,16 @@ class InstanceController extends Controller
         $allContainers = $this->dockerService->listContainers();
 
         foreach ($allContainers as $c) {
-            $statsMap[$c['id']] = $c;
+            // Normalize ID to 12 characters to match database storage
+            $shortId = substr($c['id'], 0, 12);
+            $statsMap[$shortId] = $c;
         }
 
         foreach ($instances as $instance) {
-            $instance->docker_status = $statsMap[$instance->docker_id]['status'] ?? 'Unknown';
-            $instance->docker_state = $statsMap[$instance->docker_id]['state'] ?? 'stopped';
+            // Ensure db ID is also normalized (it should be, but safe to clamp)
+            $dbShortId = substr($instance->docker_id, 0, 12);
+            $instance->docker_status = $statsMap[$dbShortId]['status'] ?? 'Unknown';
+            $instance->docker_state = $statsMap[$dbShortId]['state'] ?? 'stopped';
         }
 
         return view('instances.index', compact('instances'));
@@ -78,8 +82,12 @@ class InstanceController extends Controller
         $port = $this->portAllocator->allocate();
 
         // 2. Generate Domain
-        // Assume APP_DOMAIN from env, default to local
-        $baseDomain = env('APP_DOMAIN', 'n8n.local');
+        // Fully automated hostname detection if APP_DOMAIN is not explicitly set
+        $baseDomain = env('APP_DOMAIN');
+        if (empty($baseDomain) || $baseDomain === 'n8n.local') {
+             $hostname = gethostname();
+             $baseDomain = $hostname ?: 'n8n.local';
+        }
         $subdomain = Str::slug($request->name) . '.' . $baseDomain;
 
         // 3. Global Environment
