@@ -15,7 +15,45 @@ class SystemStatusService
             'ram' => $this->getRamUsage(),
             'disk' => $this->getDiskUsage(),
             'ips' => $this->getIps(),
+            'loads' => $this->getLoadAverages(),
+            'hostname' => $this->getHostname(),
+            'os' => $this->getOsInfo(),
+            'time' => $this->getServerTime(),
         ];
+    }
+
+    protected function getLoadAverages()
+    {
+        if (function_exists('sys_getloadavg')) {
+            $loads = sys_getloadavg();
+            return [
+                '1' => round($loads[0] ?? 0, 2),
+                '5' => round($loads[1] ?? 0, 2),
+                '15' => round($loads[2] ?? 0, 2),
+            ];
+        }
+        return ['1' => 0, '5' => 0, '15' => 0];
+    }
+
+    protected function getHostname()
+    {
+        return gethostname();
+    }
+
+    protected function getOsInfo()
+    {
+        $process = Process::run("cat /etc/os-release | grep PRETTY_NAME");
+        if ($process->successful()) {
+            // Output example: PRETTY_NAME="Ubuntu 22.04 LTS"
+            $output = trim($process->output());
+            return str_replace(['PRETTY_NAME=', '"'], '', $output);
+        }
+        return PHP_OS;
+    }
+
+    protected function getServerTime()
+    {
+        return date('Y-m-d H:i:s T');
     }
 
     protected function getIps()

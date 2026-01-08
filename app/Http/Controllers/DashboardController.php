@@ -36,6 +36,7 @@ class DashboardController extends Controller
             // Add counts
             $systemStats['container_count'] = Container::count();
             $systemStats['user_count'] = \App\Models\User::count();
+            $systemStats['panel_version'] = '1.0.0'; // Static for now
 
             $nginxStatus = $this->serviceManager->getStatus('nginx');
         }
