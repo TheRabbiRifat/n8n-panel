@@ -238,16 +238,6 @@ class ContainerController extends Controller
         return response()->json(['logs' => $logs]);
     }
 
-    public function exec(Request $request, $id)
-    {
-        $request->validate(['command' => 'required|string']);
-        $container = Container::findOrFail($id);
-        $this->authorizeAccess($container);
-
-        $output = $this->dockerService->execContainer($container->docker_id, $request->command);
-        return response()->json(['output' => $output]);
-    }
-
     public function update(Request $request, $id)
     {
         $container = Container::findOrFail($id);

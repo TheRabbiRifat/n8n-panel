@@ -110,12 +110,6 @@ class DockerService
          return $process->successful() ? $process->output() : 'Could not retrieve logs.';
     }
 
-    public function execContainer(string $id, string $command)
-    {
-         $process = Process::run("sudo docker exec $id $command");
-         return $process->output() . "\n" . $process->errorOutput();
-    }
-
     public function getContainer(string $id)
     {
          // Get details

@@ -28,9 +28,6 @@
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="logs-tab" data-bs-toggle="tab" data-bs-target="#logs" type="button" role="tab">Live Logs</button>
             </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="terminal-tab" data-bs-toggle="tab" data-bs-target="#terminal" type="button" role="tab">Terminal</button>
-            </li>
         </ul>
     </div>
     <div class="card-body">
@@ -156,18 +153,6 @@
             <div class="tab-pane fade" id="logs" role="tabpanel">
                 <div id="logs-terminal" style="height: 500px; width: 100%;"></div>
             </div>
-
-            <!-- Terminal Tab -->
-             <div class="tab-pane fade" id="terminal" role="tabpanel">
-                <div class="mb-2">
-                    <div class="input-group">
-                        <span class="input-group-text bg-dark text-white border-dark">$</span>
-                        <input type="text" id="terminal-input" class="form-control font-monospace bg-light" placeholder="Type command and press Enter (e.g. ls -la, env, id)">
-                        <button class="btn btn-primary" id="terminal-send">Send</button>
-                    </div>
-                </div>
-                <div id="exec-terminal" style="height: 500px; width: 100%;"></div>
-            </div>
         </div>
     </div>
 </div>
@@ -208,60 +193,6 @@
 
         logsTabBtn.addEventListener('hidden.bs.tab', function() {
             clearInterval(logsInterval);
-        });
-
-        // --- Exec Terminal (Xterm) ---
-        const execTerm = new Terminal({
-            cursorBlink: true,
-            theme: { background: '#1e1e1e' },
-            convertEol: true
-        });
-        const fitAddonExec = new FitAddon.FitAddon();
-        execTerm.loadAddon(fitAddonExec);
-        execTerm.open(document.getElementById('exec-terminal'));
-        fitAddonExec.fit();
-
-        execTerm.write("Welcome to n8n Interactive Shell (Simulated)\r\nType a command in the input box above.\r\n\r\n");
-
-        const terminalTabBtn = document.getElementById('terminal-tab');
-        terminalTabBtn.addEventListener('shown.bs.tab', function() {
-            fitAddonExec.fit();
-        });
-
-        const terminalInput = document.getElementById('terminal-input');
-        const terminalSend = document.getElementById('terminal-send');
-
-        function sendCommand() {
-            const cmd = terminalInput.value;
-            if(!cmd) return;
-
-            execTerm.write(`$ ${cmd}\r\n`);
-            terminalInput.value = '';
-
-            fetch(`/containers/${containerId}/exec`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                },
-                body: JSON.stringify({ command: cmd })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if(data.output) {
-                    execTerm.write(data.output.replace(/\n/g, '\r\n') + "\r\n");
-                } else {
-                    execTerm.write("(No output)\r\n");
-                }
-            })
-            .catch(err => {
-                execTerm.write(`Error: ${err}\r\n`);
-            });
-        }
-
-        terminalSend.addEventListener('click', sendCommand);
-        terminalInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') sendCommand();
         });
     });
 </script>
