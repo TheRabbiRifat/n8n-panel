@@ -2,8 +2,6 @@
 
 namespace App\Services;
 
-use Spatie\Docker\DockerContainer;
-use Spatie\Docker\DockerContainerInstance;
 use Illuminate\Support\Facades\Process;
 use Exception;
 
@@ -11,15 +9,9 @@ class DockerService
 {
     public function listContainers()
     {
-        // Spatie docker doesn't have a "list" command wrapper.
-        // We will implement it using Laravel's Process or shell_exec
-        // Since we are simulating, I will assume `docker ps -a` works.
-        // I will return an array of arrays.
-
         $process = Process::run('sudo docker ps -a --format "{{.ID}}|{{.Names}}|{{.Image}}|{{.Status}}|{{.State}}|{{.Ports}}"');
 
         if ($process->failed()) {
-            // If docker is not running or available, return empty
             return [];
         }
 
@@ -45,58 +37,67 @@ class DockerService
         return $containers;
     }
 
-    public function createContainer(string $image, string $name, int $port, int $internalPort = 5678, $cpu = null, $memory = null, array $environment = [])
+    public function createContainer(string $image, string $name, int $port, int $internalPort = 5678, $cpu = null, $memory = null, array $environment = [], array $volumes = [])
     {
-        // Use Spatie Docker to create
-        // We need to handle potential exceptions
-        try {
-            $container = DockerContainer::create($image)
-                ->name($name)
-                ->mapPort($port, $internalPort)
-                ->daemonize()
-                ->doNotCleanUpAfterExit() // We want it to persist so we can see it in list
-                ->setStartCommandTimeout(300); // Increase timeout to 5 mins for image pulling
+        // Manually construct sudo docker run command
+        $command = ['sudo', 'docker', 'run', '-d', '--name', $name, '--restart', 'unless-stopped'];
 
-            foreach ($environment as $key => $value) {
-                $container->environment($key, $value);
-            }
+        // Port
+        $command[] = '-p';
+        $command[] = "{$port}:{$internalPort}";
 
-            $optionalArgs = [];
-            if ($cpu) {
-                $optionalArgs[] = "--cpus={$cpu}";
-            }
-            if ($memory) {
-                $optionalArgs[] = "--memory={$memory}";
-            }
-
-            if (!empty($optionalArgs)) {
-                $container->setOptionalArgs(...$optionalArgs);
-            }
-
-            // start() returns a DockerContainerInstance
-            $instance = $container->start();
-            return $instance;
-        } catch (Exception $e) {
-            // Log error or rethrow
-            throw $e;
+        // Env
+        foreach ($environment as $key => $value) {
+            $command[] = '-e';
+            $command[] = "{$key}={$value}";
         }
+
+        // Volumes
+        foreach ($volumes as $hostPath => $containerPath) {
+            $command[] = '-v';
+            $command[] = "{$hostPath}:{$containerPath}";
+        }
+
+        // Resources
+        if ($cpu) {
+            $command[] = "--cpus={$cpu}";
+        }
+        if ($memory) {
+            $command[] = "--memory={$memory}";
+        }
+
+        $command[] = $image;
+
+        // Execute with timeout for pulling image
+        $process = Process::timeout(600)->run($command);
+
+        if (!$process->successful()) {
+            throw new Exception("Docker creation failed: " . $process->errorOutput() . " " . $process->output());
+        }
+
+        $containerId = trim($process->output());
+
+        // Return Mock Object
+        return new class($containerId) {
+            private $id;
+            public function __construct($id) { $this->id = $id; }
+            public function getShortDockerIdentifier() { return substr($this->id, 0, 12); }
+        };
     }
 
     public function stopContainer(string $id)
     {
-         // We use raw docker command because Spatie Docker Instance needs to be created from existing container which is not directly supported by "find"
-         // However, we can use `docker stop`
-         Process::run("docker stop $id");
+         Process::run("sudo docker stop $id");
     }
 
     public function startContainer(string $id)
     {
-         Process::run("docker start $id");
+         Process::run("sudo docker start $id");
     }
 
     public function removeContainer(string $id)
     {
-         Process::run("docker rm -f $id");
+         Process::run("sudo docker rm -f $id");
     }
 
     public function restartContainer(string $id)
@@ -110,16 +111,9 @@ class DockerService
          return $process->successful() ? $process->output() : 'Could not retrieve logs.';
     }
 
-    public function execContainer(string $id, string $command)
-    {
-         $process = Process::run("sudo docker exec $id $command");
-         return $process->output() . "\n" . $process->errorOutput();
-    }
-
     public function getContainer(string $id)
     {
-         // Get details
-         $process = Process::run("docker inspect $id");
+         $process = Process::run("sudo docker inspect $id");
          if ($process->successful()) {
              return json_decode($process->output(), true)[0] ?? null;
          }

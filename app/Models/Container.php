@@ -15,6 +15,7 @@ class Container extends Model
         'docker_id',
         'name',
         'port',
+        'domain',
         'environment',
         'image_tag',
     ];

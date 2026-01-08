@@ -7,7 +7,7 @@
         <p class="text-muted mb-0">Overview of your system and n8n instances.</p>
     </div>
     @if(auth()->user()->hasRole('reseller'))
-        <a href="{{ route('containers.create') }}" class="btn btn-primary shadow-sm">
+        <a href="{{ route('instances.create') }}" class="btn btn-primary shadow-sm">
             <i class="bi bi-plus-lg me-1"></i> New Instance
         </a>
     @endif
@@ -175,7 +175,7 @@
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h4 class="fw-bold text-dark mb-0">My n8n Instances</h4>
-    <a href="{{ route('containers.create') }}" class="btn btn-success shadow-sm">
+    <a href="{{ route('instances.create') }}" class="btn btn-success shadow-sm">
         <i class="bi bi-plus-lg me-1"></i> Create Instance
     </a>
 </div>
@@ -187,7 +187,7 @@
     </div>
     <h5 class="text-muted">No n8n instances found</h5>
     <p class="text-muted mb-4">Get started by creating your first n8n instance.</p>
-    <a href="{{ route('containers.create') }}" class="btn btn-primary">Create Instance</a>
+    <a href="{{ route('instances.create') }}" class="btn btn-primary">Create Instance</a>
 </div>
 @else
 <div class="row g-4">

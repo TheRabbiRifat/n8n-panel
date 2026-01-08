@@ -13,7 +13,7 @@
             Image: {{ $stats['Config']['Image'] ?? ($stats['image'] ?? 'Unknown') }}
         </div>
     </div>
-    <a href="{{ route('dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
+    <a href="{{ route('instances.index') }}" class="btn btn-secondary">Back to Instances</a>
 </div>
 
 <div class="card shadow-sm mb-4">
@@ -27,9 +27,6 @@
             </li>
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="logs-tab" data-bs-toggle="tab" data-bs-target="#logs" type="button" role="tab">Live Logs</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="terminal-tab" data-bs-toggle="tab" data-bs-target="#terminal" type="button" role="tab">Terminal</button>
             </li>
         </ul>
     </div>
@@ -76,7 +73,7 @@
                                 </form>
                             @endif
 
-                            <form action="{{ route('containers.destroy', $container->id) }}" method="POST" onsubmit="return confirm('Delete this instance?');">
+                            <form action="{{ route('instances.destroy', $container->id) }}" method="POST" onsubmit="return confirm('Delete this instance?');">
                                 @csrf
                                 @method('DELETE')
                                 <button class="btn btn-danger"><i class="bi bi-trash"></i> Delete</button>
@@ -88,8 +85,18 @@
                         <h5 class="card-title mb-4">Configuration</h5>
                         <table class="table table-sm">
                             <tr>
-                                <th style="width: 150px;">Port:</th>
-                                <td><a href="http://{{ request()->getHost() }}:{{ $container->port }}" target="_blank">{{ $container->port }} <i class="bi bi-box-arrow-up-right small"></i></a></td>
+                                <th style="width: 150px;">Domain:</th>
+                                <td>
+                                    @if($container->domain)
+                                        <a href="https://{{ $container->domain }}" target="_blank" class="fw-bold">{{ $container->domain }} <i class="bi bi-box-arrow-up-right small"></i></a>
+                                    @else
+                                        <span class="text-muted">Not Assigned</span>
+                                    @endif
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Internal Port:</th>
+                                <td>{{ $container->port }}</td>
                             </tr>
                             <tr>
                                 <th>Package:</th>
@@ -135,17 +142,9 @@
                         </div>
                     </div>
 
-                    <div class="mb-4">
-                        <h5 class="card-title">Environment Variables</h5>
-                        <label for="environment" class="form-label">Key=Value (One per line)</label>
-                        <textarea class="form-control font-monospace" id="environment" name="environment" rows="10" placeholder="DB_HOST=localhost&#10;DB_PORT=5432">
-@if($container->environment)
-@foreach($container->environment as $key => $value)
-{{ $key }}={{ $value }}
-@endforeach
-@endif
-</textarea>
-                        <div class="form-text">These variables are permanent. Updating them will recreate the instance.</div>
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle-fill me-2"></i>
+                        Environment variables are managed globally by the administrator.
                     </div>
 
                     <button type="submit" class="btn btn-primary">Save & Apply Changes</button>
@@ -155,18 +154,6 @@
             <!-- Logs Tab -->
             <div class="tab-pane fade" id="logs" role="tabpanel">
                 <div id="logs-terminal" style="height: 500px; width: 100%;"></div>
-            </div>
-
-            <!-- Terminal Tab -->
-             <div class="tab-pane fade" id="terminal" role="tabpanel">
-                <div class="mb-2">
-                    <div class="input-group">
-                        <span class="input-group-text bg-dark text-white border-dark">$</span>
-                        <input type="text" id="terminal-input" class="form-control font-monospace bg-light" placeholder="Type command and press Enter (e.g. ls -la, env, id)">
-                        <button class="btn btn-primary" id="terminal-send">Send</button>
-                    </div>
-                </div>
-                <div id="exec-terminal" style="height: 500px; width: 100%;"></div>
             </div>
         </div>
     </div>
@@ -208,60 +195,6 @@
 
         logsTabBtn.addEventListener('hidden.bs.tab', function() {
             clearInterval(logsInterval);
-        });
-
-        // --- Exec Terminal (Xterm) ---
-        const execTerm = new Terminal({
-            cursorBlink: true,
-            theme: { background: '#1e1e1e' },
-            convertEol: true
-        });
-        const fitAddonExec = new FitAddon.FitAddon();
-        execTerm.loadAddon(fitAddonExec);
-        execTerm.open(document.getElementById('exec-terminal'));
-        fitAddonExec.fit();
-
-        execTerm.write("Welcome to n8n Interactive Shell (Simulated)\r\nType a command in the input box above.\r\n\r\n");
-
-        const terminalTabBtn = document.getElementById('terminal-tab');
-        terminalTabBtn.addEventListener('shown.bs.tab', function() {
-            fitAddonExec.fit();
-        });
-
-        const terminalInput = document.getElementById('terminal-input');
-        const terminalSend = document.getElementById('terminal-send');
-
-        function sendCommand() {
-            const cmd = terminalInput.value;
-            if(!cmd) return;
-
-            execTerm.write(`$ ${cmd}\r\n`);
-            terminalInput.value = '';
-
-            fetch(`/containers/${containerId}/exec`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                },
-                body: JSON.stringify({ command: cmd })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if(data.output) {
-                    execTerm.write(data.output.replace(/\n/g, '\r\n') + "\r\n");
-                } else {
-                    execTerm.write("(No output)\r\n");
-                }
-            })
-            .catch(err => {
-                execTerm.write(`Error: ${err}\r\n`);
-            });
-        }
-
-        terminalSend.addEventListener('click', sendCommand);
-        terminalInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') sendCommand();
         });
     });
 </script>

@@ -4,6 +4,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ContainerController;
+use App\Http\Controllers\InstanceController;
+use App\Http\Controllers\GlobalEnvironmentController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ServiceController;
 
@@ -23,16 +25,14 @@ Route::middleware(['auth'])->group(function () {
     // Package Management
     Route::resource('packages', PackageController::class)->except(['show']);
 
-    // Container Management
-    Route::get('containers/create', [ContainerController::class, 'create'])->name('containers.create');
-    Route::post('containers', [ContainerController::class, 'store'])->name('containers.store');
+    // Instance Management (CRUD)
+    Route::resource('instances', InstanceController::class)->except(['show', 'edit', 'update']);
 
-    // Detailed Instance Management
+    // Detailed Instance Management (Actions)
     Route::get('containers/{id}', [ContainerController::class, 'show'])->name('containers.show');
     Route::put('containers/{id}', [ContainerController::class, 'update'])->name('containers.update');
     Route::post('containers/{id}/restart', [ContainerController::class, 'restart'])->name('containers.restart');
     Route::get('containers/{id}/logs', [ContainerController::class, 'logs'])->name('containers.logs');
-    Route::post('containers/{id}/exec', [ContainerController::class, 'exec'])->name('containers.exec');
 
     Route::post('containers/{id}/start', [ContainerController::class, 'start'])->name('containers.start');
     Route::post('containers/{id}/stop', [ContainerController::class, 'stop'])->name('containers.stop');
@@ -41,6 +41,10 @@ Route::middleware(['auth'])->group(function () {
     // User Management (Admin Only)
     Route::middleware(['role:admin'])->group(function () {
         Route::resource('users', UserController::class);
+
+        // Global Environment
+        Route::get('settings/environment', [GlobalEnvironmentController::class, 'index'])->name('admin.environment.index');
+        Route::put('settings/environment', [GlobalEnvironmentController::class, 'update'])->name('admin.environment.update');
 
         // Container Discovery
         Route::get('containers/orphans', [ContainerController::class, 'orphans'])->name('containers.orphans');
