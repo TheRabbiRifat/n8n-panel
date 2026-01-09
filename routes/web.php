@@ -27,6 +27,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('profile', [ProfileController::class, 'update'])->name('profile.update');
 
+    // API Tokens
+    Route::get('profile/api-tokens', [App\Http\Controllers\ApiTokenController::class, 'index'])->name('api-tokens.index');
+    Route::post('profile/api-tokens', [App\Http\Controllers\ApiTokenController::class, 'store'])->name('api-tokens.store');
+    Route::delete('profile/api-tokens/{id}', [App\Http\Controllers\ApiTokenController::class, 'destroy'])->name('api-tokens.destroy');
+
     // Package Management
     Route::resource('packages', PackageController::class)->except(['show']);
 
@@ -50,6 +55,10 @@ Route::middleware(['auth'])->group(function () {
         // Global Environment
         Route::get('settings/environment', [GlobalEnvironmentController::class, 'index'])->name('admin.environment.index');
         Route::put('settings/environment', [GlobalEnvironmentController::class, 'update'])->name('admin.environment.update');
+
+        // Panel Settings
+        Route::get('settings/panel', [App\Http\Controllers\AdminSettingsController::class, 'index'])->name('admin.settings.index');
+        Route::put('settings/panel', [App\Http\Controllers\AdminSettingsController::class, 'update'])->name('admin.settings.update');
 
         // Container Discovery
         Route::get('containers/orphans', [ContainerController::class, 'orphans'])->name('containers.orphans');
