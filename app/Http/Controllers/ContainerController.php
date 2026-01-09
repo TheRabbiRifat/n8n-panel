@@ -99,7 +99,13 @@ class ContainerController extends Controller
                  \Illuminate\Support\Facades\Process::run("sudo rm -rf $volumePath");
             }
 
+            $containerName = $container->name;
             $container->delete();
+
+            try {
+                \Illuminate\Support\Facades\Mail::to(Auth::user()->email)->send(new \App\Mail\InstanceDeleted($containerName));
+            } catch (\Exception $e) {}
+
             return back()->with('success', 'Container and volume removed.');
         } catch (\Exception $e) {
              $container->delete();
@@ -250,6 +256,9 @@ class ContainerController extends Controller
 
         // Merge with Global for Docker creation
         $envArray = array_merge($envArray, $finalInstanceEnv);
+
+        // Enforce Block Env Access (Security)
+        $envArray['N8N_BLOCK_ENV_ACCESS_IN_NODE'] = 'true';
 
         // Volume Path
         $volumeHostPath = "/var/lib/n8n/instances/{$container->name}";

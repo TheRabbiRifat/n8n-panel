@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\GlobalSetting;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 
 class GlobalEnvironmentController extends Controller
 {
@@ -45,7 +46,7 @@ class GlobalEnvironmentController extends Controller
             'smtp_user' => 'nullable|string',
             'smtp_pass' => 'nullable|string',
             'smtp_sender' => 'nullable|email',
-            'smtp_ssl' => 'nullable|boolean', // checkbox
+            'smtp_ssl' => 'nullable|boolean',
         ]);
 
         $envArray = [];
@@ -62,9 +63,6 @@ class GlobalEnvironmentController extends Controller
         }
 
         // 2. Merge SMTP Settings
-        // Only if Host is provided do we enable SMTP mode?
-        // Or if the user explicitly wants SMTP.
-        // Let's assume if host is set, we set variables.
         if ($request->filled('smtp_host')) {
             $envArray['N8N_EMAIL_MODE'] = 'smtp';
             $envArray['N8N_SMTP_HOST'] = $request->smtp_host;
@@ -73,10 +71,19 @@ class GlobalEnvironmentController extends Controller
             $envArray['N8N_SMTP_PASS'] = $request->smtp_pass;
             $envArray['N8N_SMTP_SENDER'] = $request->smtp_sender;
             $envArray['N8N_SMTP_SSL'] = $request->has('smtp_ssl') ? 'true' : 'false';
-        } else {
-            // If cleared, maybe remove? Or keep existing logic if not in request?
-            // Since we override $envArray, if they are not in textarea, they are gone unless added here.
-            // So if fields are empty, we don't set them.
+
+            // Update Local Laravel .env
+            $this->updateEnvironmentFile([
+                'MAIL_MAILER' => 'smtp',
+                'MAIL_HOST' => $request->smtp_host,
+                'MAIL_PORT' => $request->smtp_port ?? 587,
+                'MAIL_USERNAME' => $request->smtp_user,
+                'MAIL_PASSWORD' => $request->smtp_pass,
+                'MAIL_ENCRYPTION' => $request->has('smtp_ssl') ? 'tls' : 'null',
+                'MAIL_FROM_ADDRESS' => $request->smtp_sender,
+            ]);
+
+            Artisan::call('config:clear');
         }
 
         GlobalSetting::updateOrCreate(
@@ -84,6 +91,31 @@ class GlobalEnvironmentController extends Controller
             ['value' => json_encode($envArray)]
         );
 
-        return back()->with('success', 'Global environment updated successfully. Future instances will use these settings.');
+        return back()->with('success', 'Global environment and Panel SMTP updated successfully.');
+    }
+
+    protected function updateEnvironmentFile(array $data)
+    {
+        $path = base_path('.env');
+        if (file_exists($path)) {
+            $env = file_get_contents($path);
+
+            foreach ($data as $key => $value) {
+                // Quote value if needed (simple check)
+                $valStr = (str_contains($value, ' ') || str_contains($value, '#'))
+                    ? '"' . str_replace('"', '\"', $value) . '"'
+                    : $value;
+
+                // If key exists, replace it
+                if (preg_match("/^{$key}=.*/m", $env)) {
+                    $env = preg_replace("/^{$key}=.*/m", "{$key}={$valStr}", $env);
+                } else {
+                    // Append it
+                    $env .= "\n{$key}={$valStr}";
+                }
+            }
+
+            file_put_contents($path, $env);
+        }
     }
 }
