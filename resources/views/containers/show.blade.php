@@ -38,6 +38,23 @@
                 <div class="row">
                     <div class="col-md-6">
                         <h5 class="card-title mb-4">Status & Actions</h5>
+
+                        <!-- Live Stats -->
+                        <div class="card bg-light border-0 mb-4">
+                            <div class="card-body py-2">
+                                <div class="row text-center">
+                                    <div class="col-6 border-end">
+                                        <small class="text-muted text-uppercase fw-bold" style="font-size: 0.7rem;">CPU Usage</small>
+                                        <div class="h5 mb-0" id="stat-cpu">--%</div>
+                                    </div>
+                                    <div class="col-6">
+                                        <small class="text-muted text-uppercase fw-bold" style="font-size: 0.7rem;">RAM Usage</small>
+                                        <div class="h5 mb-0" id="stat-mem">--</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="mb-4">
                             @php
                                 $isRunning = false;
@@ -120,8 +137,8 @@
                         <div class="col-md-6 mb-3">
                             <label for="image_tag" class="form-label">n8n Version</label>
                             <select class="form-select" name="image_tag" id="image_tag">
-                                @foreach($versions as $v)
-                                    <option value="{{ $v }}" {{ ($container->image_tag ?? 'latest') == $v ? 'selected' : '' }}>{{ $v }}</option>
+                                @foreach($versions as $key => $label)
+                                    <option value="{{ $key }}" {{ ($container->image_tag ?? 'latest') == $key ? 'selected' : '' }}>{{ $label }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -211,6 +228,22 @@
         logsTabBtn.addEventListener('hidden.bs.tab', function() {
             clearInterval(logsInterval);
         });
+
+        // Live Stats
+        function fetchStats() {
+            fetch(`/containers/${containerId}/stats`)
+                .then(r => r.json())
+                .then(data => {
+                    if(data) {
+                        document.getElementById('stat-cpu').innerText = data.CPUPerc || '--%';
+                        document.getElementById('stat-mem').innerText = data.MemUsage || '--';
+                    }
+                })
+                .catch(e => console.log('Stats error', e));
+        }
+        // Poll every 3 seconds
+        setInterval(fetchStats, 3000);
+        fetchStats();
 
         // AJAX Action Handler
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');

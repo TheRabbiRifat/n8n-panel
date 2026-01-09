@@ -125,4 +125,13 @@ class DockerService
          }
          return null;
     }
+
+    public function getContainerStats(string $id)
+    {
+         $process = Process::run("sudo docker stats --no-stream --format \"{{json .}}\" $id");
+         if ($process->successful()) {
+             return json_decode($process->output(), true);
+         }
+         return null;
+    }
 }

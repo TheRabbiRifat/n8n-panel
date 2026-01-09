@@ -25,12 +25,8 @@ class ContainerController extends Controller
     public function create()
     {
         $versions = [
-            'latest',
-            '1.25.1',
-            '1.24.1',
-            '1.22.6',
-            '1.21.1',
-            '0.236.3'
+            'latest' => 'Stable',
+            'next' => 'Beta',
         ];
 
         $user = Auth::user();
@@ -155,7 +151,10 @@ class ContainerController extends Controller
         $stats = $this->dockerService->getContainer($container->docker_id);
         $logs = $this->dockerService->getContainerLogs($container->docker_id);
 
-        $versions = ['latest', '1.25.1', '1.24.1', '1.22.6'];
+        $versions = [
+            'latest' => 'Stable',
+            'next' => 'Beta',
+        ];
 
         // Fetch packages for dropdown
         $user = Auth::user();
@@ -194,6 +193,15 @@ class ContainerController extends Controller
 
         $logs = $this->dockerService->getContainerLogs($container->docker_id);
         return response()->json(['logs' => $logs]);
+    }
+
+    public function stats($id)
+    {
+        $container = Container::findOrFail($id);
+        $this->authorizeAccess($container);
+
+        $stats = $this->dockerService->getContainerStats($container->docker_id);
+        return response()->json($stats);
     }
 
     public function update(Request $request, $id)

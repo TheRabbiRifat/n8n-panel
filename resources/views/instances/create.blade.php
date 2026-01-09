@@ -20,8 +20,8 @@
                     <div class="mb-3">
                         <label for="version" class="form-label">n8n Version</label>
                         <select class="form-select" id="version" name="version" required>
-                            @foreach($versions as $version)
-                                <option value="{{ $version }}" {{ old('version') == $version ? 'selected' : '' }}>{{ $version }}</option>
+                            @foreach($versions as $key => $label)
+                                <option value="{{ $key }}" {{ old('version') == $key ? 'selected' : '' }}>{{ $label }}</option>
                             @endforeach
                         </select>
                     </div>
