@@ -127,24 +127,50 @@
                     @csrf
                     @method('PUT')
 
-                    <div class="mb-4">
-                        <h5 class="card-title">General</h5>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <label for="image_tag" class="form-label">n8n Version</label>
-                                <select class="form-select" name="image_tag" id="image_tag">
-                                    @foreach($versions as $v)
-                                        <option value="{{ $v }}" {{ ($container->image_tag ?? 'latest') == $v ? 'selected' : '' }}>{{ $v }}</option>
-                                    @endforeach
-                                </select>
-                                <div class="form-text">Changing version will recreate the instance.</div>
-                            </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="image_tag" class="form-label">n8n Version</label>
+                            <select class="form-select" name="image_tag" id="image_tag">
+                                @foreach($versions as $v)
+                                    <option value="{{ $v }}" {{ ($container->image_tag ?? 'latest') == $v ? 'selected' : '' }}>{{ $v }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="package_id" class="form-label">Resource Package</label>
+                            <select class="form-select" name="package_id" id="package_id">
+                                @foreach($packages as $pkg)
+                                    <option value="{{ $pkg->id }}" {{ $container->package_id == $pkg->id ? 'selected' : '' }}>
+                                        {{ $pkg->name }} ({{ $pkg->cpu_limit }} CPU, {{ $pkg->ram_limit }} MB)
+                                    </option>
+                                @endforeach
+                            </select>
                         </div>
                     </div>
 
-                    <div class="alert alert-info">
-                        <i class="bi bi-info-circle-fill me-2"></i>
-                        Environment variables are managed globally by the administrator.
+                    @php
+                        $currentEnv = '';
+                        if ($container->environment) {
+                            $decoded = json_decode($container->environment, true);
+                            if (is_array($decoded)) {
+                                foreach ($decoded as $k => $v) {
+                                    $currentEnv .= "{$k}={$v}\n";
+                                }
+                            }
+                        }
+                    @endphp
+
+                    <div class="mb-3">
+                        <label for="custom_env" class="form-label">Custom Environment Variables</label>
+                        <div class="form-text mb-2">Overrides global variables. Key=Value (One per line).</div>
+                        <textarea class="form-control font-monospace" name="custom_env" id="custom_env" rows="5" placeholder="MY_API_KEY=12345">{{ $currentEnv }}</textarea>
+                    </div>
+
+                    <div class="alert alert-warning d-flex align-items-center">
+                        <i class="bi bi-exclamation-triangle-fill me-2 fs-4"></i>
+                        <div>
+                            Saving changes will <strong>recreate</strong> the instance container. A brief downtime will occur.
+                        </div>
                     </div>
 
                     <button type="submit" class="btn btn-primary">Save & Apply Changes</button>

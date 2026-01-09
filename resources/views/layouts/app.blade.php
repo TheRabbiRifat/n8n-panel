@@ -145,7 +145,10 @@
                     <i class="bi bi-people"></i> Users
                 </a>
                 <a href="{{ route('admin.environment.index') }}" class="nav-link {{ request()->routeIs('admin.environment.*') ? 'active' : '' }}">
-                    <i class="bi bi-sliders"></i> Global Settings
+                    <i class="bi bi-sliders"></i> Global Environment
+                </a>
+                <a href="{{ route('admin.settings.index') }}" class="nav-link {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
+                    <i class="bi bi-gear-wide-connected"></i> Panel Settings
                 </a>
                 <a href="{{ route('containers.orphans') }}" class="nav-link {{ request()->routeIs('containers.orphans') ? 'active' : '' }}">
                     <i class="bi bi-search"></i> Instance Discovery
@@ -162,6 +165,14 @@
                         <div class="fw-bold text-white text-truncate">{{ Auth::user()->name }}</div>
                         <div class="small text-muted text-truncate">{{ ucfirst(Auth::user()->roles->first()->name ?? 'User') }}</div>
                     </div>
+                </div>
+                <div class="d-flex gap-2 mb-2">
+                    <a href="{{ route('profile.edit') }}" class="btn btn-outline-light flex-grow-1 d-flex align-items-center justify-content-center gap-2 btn-sm border-secondary text-secondary-emphasis">
+                        <i class="bi bi-person-gear"></i> Profile
+                    </a>
+                    <a href="{{ route('api-tokens.index') }}" class="btn btn-outline-light d-flex align-items-center justify-content-center btn-sm border-secondary text-secondary-emphasis" title="API Tokens">
+                        <i class="bi bi-key"></i>
+                    </a>
                 </div>
                 <form action="{{ route('logout') }}" method="POST">
                     @csrf
