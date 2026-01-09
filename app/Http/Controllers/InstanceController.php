@@ -6,6 +6,7 @@ use App\Models\Container;
 use App\Models\Package;
 use App\Models\GlobalSetting;
 use App\Services\DockerService;
+use App\Services\NginxService;
 use App\Services\PortAllocator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -15,13 +16,16 @@ use Illuminate\Support\Str;
 class InstanceController extends Controller
 {
     protected $dockerService;
+    protected $nginxService;
     protected $portAllocator;
 
     public function __construct(
         DockerService $dockerService,
+        NginxService $nginxService,
         PortAllocator $portAllocator
     ) {
         $this->dockerService = $dockerService;
+        $this->nginxService = $nginxService;
         $this->portAllocator = $portAllocator;
     }
 
@@ -104,20 +108,6 @@ class InstanceController extends Controller
         $volumeHostPath = "/var/lib/n8n/instances/{$request->name}";
         $volumes = [$volumeHostPath => '/home/node/.n8n'];
 
-        // 5. Traefik Labels
-        // Sanitize name for router usage (remove special chars if any, but slug is safe)
-        $cleanName = Str::slug($request->name);
-        // Traefik router name should be unique. Using cleanName + random or just cleanName if unique.
-        // Since name is unique in DB, cleanName should be unique enough.
-        $routerName = "n8n-" . $cleanName;
-
-        $labels = [
-            'traefik.enable' => 'true',
-            "traefik.http.routers.{$routerName}.rule" => "Host(`{$subdomain}`)",
-            "traefik.http.routers.{$routerName}.entrypoints" => 'websecure',
-            "traefik.http.routers.{$routerName}.tls.certresolver" => 'le',
-        ];
-
         $image = 'n8nio/n8n:' . $request->version;
 
         DB::beginTransaction();
@@ -133,8 +123,7 @@ class InstanceController extends Controller
                 $package->cpu_limit,
                 $package->ram_limit,
                 $envArray,
-                $volumes,
-                $labels
+                $volumes
             );
 
             // Create DB Record
@@ -149,10 +138,20 @@ class InstanceController extends Controller
                 'environment' => null, // Managed globally
             ]);
 
-            // No Nginx steps needed
+            // Nginx & Certbot
+            $this->nginxService->createVhost($subdomain, $port);
+
+            // Attempt to secure via Certbot (Best effort)
+            $sslSuccess = $this->nginxService->secureVhost($subdomain);
 
             DB::commit();
-            return redirect()->route('instances.index')->with('success', "Instance created. Domain: https://{$subdomain} (Propagation may take time)");
+
+            $msg = "Instance created. Domain: https://{$subdomain}";
+            if (!$sslSuccess) {
+                $msg .= " (SSL Certificate could not be obtained automatically, please check logs or DNS).";
+            }
+
+            return redirect()->route('instances.index')->with('success', $msg);
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -173,7 +172,12 @@ class InstanceController extends Controller
         }
 
         try {
-            // Remove Container (Traefik automatically detects removal)
+            // Remove Nginx Vhost
+            if ($container->domain) {
+                $this->nginxService->removeVhost($container->domain);
+            }
+
+            // Remove Container
             $this->dockerService->removeContainer($container->docker_id);
 
             // Remove DB

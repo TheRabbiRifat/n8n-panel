@@ -29,7 +29,7 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
         $systemStats = null;
-        $traefikStatus = 'Unknown';
+        $nginxStatus = 'Unknown';
         $mysqlStatus = 'Unknown';
 
         // Fetch all docker containers once
@@ -48,14 +48,7 @@ class DashboardController extends Controller
             $systemStats['panel_version'] = '1.0.0';
 
             $mysqlStatus = $this->serviceManager->getStatus('mysql');
-
-            $traefikStatus = 'stopped';
-            foreach ($dockerContainers as $dc) {
-                if ((str_contains($dc['image'], 'traefik') || str_contains($dc['name'], 'traefik')) && str_contains(strtolower($dc['state']), 'running')) {
-                    $traefikStatus = 'active';
-                    break;
-                }
-            }
+            $nginxStatus = $this->serviceManager->getStatus('nginx');
         }
 
         if ($user->hasRole('admin')) {
@@ -82,6 +75,6 @@ class DashboardController extends Controller
             ];
         });
 
-        return view('dashboard.index', compact('containers', 'systemStats', 'traefikStatus', 'mysqlStatus'));
+        return view('dashboard.index', compact('containers', 'systemStats', 'nginxStatus', 'mysqlStatus'));
     }
 }
