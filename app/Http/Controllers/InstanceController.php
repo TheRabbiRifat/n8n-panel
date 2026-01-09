@@ -120,6 +120,7 @@ class InstanceController extends Controller
         $instanceEnv = [
             'N8N_ENCRYPTION_KEY' => Str::random(32),
             'GENERIC_TIMEZONE' => 'UTC',
+            'N8N_BLOCK_ENV_ACCESS_IN_NODE' => 'true',
         ];
         $envArray = array_merge($envArray, $instanceEnv);
 
@@ -160,6 +161,13 @@ class InstanceController extends Controller
             $sslSuccess = $this->nginxService->secureVhost($subdomain);
 
             DB::commit();
+
+            // Send Email
+            try {
+                \Illuminate\Support\Facades\Mail::to(Auth::user()->email)->send(new \App\Mail\InstanceCreated($container));
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error("Failed to send creation email: " . $e->getMessage());
+            }
 
             $msg = "Instance created. Domain: https://{$subdomain}";
             if (!$sslSuccess) {
@@ -202,7 +210,13 @@ class InstanceController extends Controller
             }
 
             // Remove DB
+            $containerName = $container->name;
             $container->delete();
+
+            // Send Email
+            try {
+                \Illuminate\Support\Facades\Mail::to(Auth::user()->email)->send(new \App\Mail\InstanceDeleted($containerName));
+            } catch (\Exception $e) {}
 
             return redirect()->route('instances.index')->with('success', 'Instance deleted.');
         } catch (\Exception $e) {
