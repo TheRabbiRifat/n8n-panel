@@ -106,7 +106,19 @@ class InstanceController extends Controller
 
         // 4. Volume Path
         $volumeHostPath = "/var/lib/n8n/instances/{$request->name}";
+
+        // Ensure volume exists and has correct permissions (n8n runs as node:1000)
+        \Illuminate\Support\Facades\Process::run("sudo mkdir -p $volumeHostPath");
+        \Illuminate\Support\Facades\Process::run("sudo chown -R 1000:1000 $volumeHostPath");
+
         $volumes = [$volumeHostPath => '/home/node/.n8n'];
+
+        // Generate Instance Specific Envs (Important for n8n persistence)
+        $instanceEnv = [
+            'N8N_ENCRYPTION_KEY' => Str::random(32),
+            'GENERIC_TIMEZONE' => 'UTC',
+        ];
+        $envArray = array_merge($envArray, $instanceEnv);
 
         $image = 'n8nio/n8n:' . $request->version;
 
@@ -135,7 +147,7 @@ class InstanceController extends Controller
                 'port' => $port,
                 'domain' => $subdomain,
                 'image_tag' => $request->version,
-                'environment' => null, // Managed globally
+                'environment' => json_encode($instanceEnv),
             ]);
 
             // Nginx & Certbot
