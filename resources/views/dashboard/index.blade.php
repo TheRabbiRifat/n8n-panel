@@ -156,12 +156,12 @@
                      <div class="d-flex align-items-center">
                          <i class="bi bi-signpost-split-fill fs-3 text-secondary me-3"></i>
                          <div>
-                             <h6 class="mb-0 fw-bold">Traefik Proxy</h6>
-                             <small class="text-muted">Docker Container</small>
+                             <h6 class="mb-0 fw-bold">Nginx Web Server</h6>
+                             <small class="text-muted">System Service</small>
                          </div>
                      </div>
-                     <span class="badge {{ $traefikStatus === 'active' ? 'bg-success' : 'bg-danger' }}">
-                         {{ $traefikStatus === 'active' ? 'Running' : 'Stopped' }}
+                     <span class="badge {{ $nginxStatus === 'active' ? 'bg-success' : 'bg-danger' }}">
+                         {{ $nginxStatus === 'active' ? 'Running' : 'Stopped' }}
                      </span>
                  </div>
             </div>
