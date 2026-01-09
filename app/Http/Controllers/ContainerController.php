@@ -147,8 +147,15 @@ class ContainerController extends Controller
 
         try {
             $this->dockerService->removeContainer($container->docker_id);
+
+            // DELETE VOLUME
+            $volumePath = "/var/lib/n8n/instances/{$container->name}";
+            if (Str::startsWith($volumePath, '/var/lib/n8n/instances/') && strlen($volumePath) > 23) {
+                 \Illuminate\Support\Facades\Process::run("sudo rm -rf $volumePath");
+            }
+
             $container->delete();
-            return back()->with('success', 'Container removed.');
+            return back()->with('success', 'Container and volume removed.');
         } catch (\Exception $e) {
              // If docker remove fails (maybe already gone), still delete from DB?
              // Or maybe force delete.

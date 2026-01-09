@@ -180,6 +180,12 @@ class InstanceController extends Controller
             // Remove Container
             $this->dockerService->removeContainer($container->docker_id);
 
+            // DELETE VOLUME (Permanent removal as requested)
+            $volumePath = "/var/lib/n8n/instances/{$container->name}";
+            if (Str::startsWith($volumePath, '/var/lib/n8n/instances/') && strlen($volumePath) > 23) {
+                 \Illuminate\Support\Facades\Process::run("sudo rm -rf $volumePath");
+            }
+
             // Remove DB
             $container->delete();
 
