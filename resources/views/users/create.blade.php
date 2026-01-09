@@ -27,6 +27,12 @@
                     </div>
 
                     <div class="mb-3">
+                        <label for="instance_limit" class="form-label">Instance Limit</label>
+                        <input type="number" class="form-control" id="instance_limit" name="instance_limit" required value="{{ old('instance_limit', 5) }}" min="1">
+                        <div class="form-text">Maximum number of n8n instances this user can create.</div>
+                    </div>
+
+                    <div class="mb-3">
                         <label for="role" class="form-label">Role</label>
                         <select class="form-select" id="role" name="role" required>
                             <option value="" disabled selected>Select a role...</option>

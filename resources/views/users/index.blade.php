@@ -16,6 +16,7 @@
                         <th>Name</th>
                         <th>Email</th>
                         <th>Roles</th>
+                        <th>Instances</th>
                         <th>Joined</th>
                         <th class="text-end">Actions</th>
                     </tr>
@@ -32,6 +33,9 @@
                             @foreach($user->roles as $role)
                                 <span class="badge bg-info text-dark">{{ ucfirst($role->name) }}</span>
                             @endforeach
+                        </td>
+                        <td>
+                            {{ $user->instances()->count() }} / {{ $user->instance_limit }}
                         </td>
                         <td>{{ $user->created_at->format('M d, Y') }}</td>
                         <td class="text-end">
