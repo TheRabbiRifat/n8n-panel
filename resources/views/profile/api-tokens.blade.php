@@ -21,6 +21,11 @@
                         <label for="token_name" class="form-label">Token Name</label>
                         <input type="text" class="form-control" name="token_name" placeholder="e.g. CI/CD Pipeline" required>
                     </div>
+                    <div class="mb-3">
+                        <label for="allowed_ips" class="form-label">Allowed IPs <small class="text-muted">(Optional, Max 5)</small></label>
+                        <input type="text" class="form-control" name="allowed_ips" placeholder="192.168.1.1, 10.0.0.1">
+                        <div class="form-text">Comma separated IPv4 or IPv6 addresses. Leave blank to allow all.</div>
+                    </div>
                     <div class="text-end">
                         <button type="submit" class="btn btn-primary">Create Token</button>
                     </div>
@@ -53,6 +58,7 @@
                         <thead>
                             <tr>
                                 <th class="ps-4">Name</th>
+                                <th>Allowed IPs</th>
                                 <th>Last Used</th>
                                 <th class="text-end pe-4">Actions</th>
                             </tr>
@@ -61,6 +67,15 @@
                             @forelse ($tokens as $token)
                             <tr>
                                 <td class="ps-4 fw-bold">{{ $token->name }}</td>
+                                <td>
+                                    @if(!empty($token->allowed_ips))
+                                        @foreach($token->allowed_ips as $ip)
+                                            <span class="badge bg-light text-dark border">{{ $ip }}</span>
+                                        @endforeach
+                                    @else
+                                        <span class="text-muted small">Any</span>
+                                    @endif
+                                </td>
                                 <td class="text-muted small">
                                     @if ($token->last_used_at)
                                         {{ $token->last_used_at->diffForHumans() }}
@@ -69,16 +84,46 @@
                                     @endif
                                 </td>
                                 <td class="text-end pe-4">
-                                    <form action="{{ route('api-tokens.destroy', $token->id) }}" method="POST" onsubmit="return confirm('Revoke this token?');">
+                                    <button class="btn btn-sm btn-outline-primary me-1" data-bs-toggle="modal" data-bs-target="#editToken{{ $token->id }}">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <form action="{{ route('api-tokens.destroy', $token->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Revoke this token?');">
                                         @csrf
                                         @method('DELETE')
-                                        <button class="btn btn-sm btn-outline-danger">Revoke</button>
+                                        <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
                                     </form>
                                 </td>
                             </tr>
+
+                            <!-- Edit Modal -->
+                            <div class="modal fade" id="editToken{{ $token->id }}" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <form action="{{ route('api-tokens.update', $token->id) }}" method="POST">
+                                            @csrf
+                                            @method('PUT')
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Edit Token: {{ $token->name }}</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <div class="mb-3">
+                                                    <label class="form-label">Allowed IPs</label>
+                                                    <input type="text" class="form-control" name="allowed_ips" value="{{ $token->allowed_ips ? implode(', ', $token->allowed_ips) : '' }}">
+                                                    <div class="form-text">Comma separated. Max 5. Leave empty to allow all.</div>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                <button type="submit" class="btn btn-primary">Save Changes</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
                             @empty
                             <tr>
-                                <td colspan="3" class="text-center py-4 text-muted">No active API tokens.</td>
+                                <td colspan="4" class="text-center py-4 text-muted">No active API tokens.</td>
                             </tr>
                             @endforelse
                         </tbody>
