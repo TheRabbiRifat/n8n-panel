@@ -58,8 +58,14 @@ class ContainerController extends Controller
 
         try {
             $this->dockerService->startContainer($container->docker_id);
+            if (request()->wantsJson()) {
+                return response()->json(['success' => true, 'message' => 'Container started.']);
+            }
             return back()->with('success', 'Container started.');
         } catch (\Exception $e) {
+            if (request()->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+            }
             return back()->with('error', $e->getMessage());
         }
     }
@@ -71,8 +77,14 @@ class ContainerController extends Controller
 
         try {
             $this->dockerService->stopContainer($container->docker_id);
+            if (request()->wantsJson()) {
+                return response()->json(['success' => true, 'message' => 'Container stopped.']);
+            }
             return back()->with('success', 'Container stopped.');
         } catch (\Exception $e) {
+            if (request()->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+            }
             return back()->with('error', $e->getMessage());
         }
     }
@@ -163,8 +175,14 @@ class ContainerController extends Controller
 
         try {
             $this->dockerService->restartContainer($container->docker_id);
+            if (request()->wantsJson()) {
+                return response()->json(['success' => true, 'message' => 'Container restarted.']);
+            }
             return back()->with('success', 'Container restarted.');
         } catch (\Exception $e) {
+            if (request()->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+            }
             return back()->with('error', $e->getMessage());
         }
     }
@@ -202,6 +220,11 @@ class ContainerController extends Controller
             $envArray['WEBHOOK_URL'] = "https://{$container->domain}/";
         }
 
+        // Preserve critical envs from existing record (e.g. Encryption Key)
+        $existingEnv = $container->environment ? json_decode($container->environment, true) : [];
+        $criticalKeys = ['N8N_ENCRYPTION_KEY', 'GENERIC_TIMEZONE'];
+        $preservedEnv = array_intersect_key($existingEnv, array_flip($criticalKeys));
+
         // Custom Envs (Merge and Override)
         $customEnvArray = [];
         if ($request->custom_env) {
@@ -212,8 +235,13 @@ class ContainerController extends Controller
                     $customEnvArray[trim($k)] = trim($v);
                 }
             }
-            $envArray = array_merge($envArray, $customEnvArray);
         }
+
+        // Final Instance Env (Preserved + Custom)
+        $finalInstanceEnv = array_merge($preservedEnv, $customEnvArray);
+
+        // Merge with Global for Docker creation
+        $envArray = array_merge($envArray, $finalInstanceEnv);
 
         // Volume Path
         $volumeHostPath = "/var/lib/n8n/instances/{$container->name}";
@@ -254,7 +282,7 @@ class ContainerController extends Controller
                 'image_tag' => $request->image_tag,
                 'docker_id' => $instance->getShortDockerIdentifier(),
                 'package_id' => $package->id,
-                'environment' => $customEnvArray ? json_encode($customEnvArray) : null,
+                'environment' => $finalInstanceEnv ? json_encode($finalInstanceEnv) : null,
             ]);
 
             DB::commit();

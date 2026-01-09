@@ -48,32 +48,21 @@
                                 }
                             @endphp
 
-                            @if($isRunning)
-                                <span class="badge bg-success fs-6 px-3 py-2">Running</span>
-                            @else
-                                <span class="badge bg-danger fs-6 px-3 py-2">Stopped</span>
-                            @endif
+                            <span id="status-badge" class="badge {{ $isRunning ? 'bg-success' : 'bg-danger' }} fs-6 px-3 py-2">
+                                {{ $isRunning ? 'Running' : 'Stopped' }}
+                            </span>
                             <span class="ms-2 text-muted">Since {{ $container->updated_at->diffForHumans() }}</span>
                         </div>
 
-                        <div class="d-flex gap-2 mb-4">
+                        <div class="d-flex gap-2 mb-4" id="actions-wrapper">
                             @if($isRunning)
-                                <form action="{{ route('containers.stop', $container->id) }}" method="POST">
-                                    @csrf
-                                    <button class="btn btn-warning"><i class="bi bi-stop-circle"></i> Stop</button>
-                                </form>
-                                <form action="{{ route('containers.restart', $container->id) }}" method="POST">
-                                    @csrf
-                                    <button class="btn btn-info text-white"><i class="bi bi-arrow-clockwise"></i> Restart</button>
-                                </form>
+                                <button class="btn btn-warning" onclick="performAction('stop')"><i class="bi bi-stop-circle"></i> Stop</button>
+                                <button class="btn btn-info text-white" onclick="performAction('restart')"><i class="bi bi-arrow-clockwise"></i> Restart</button>
                             @else
-                                <form action="{{ route('containers.start', $container->id) }}" method="POST">
-                                    @csrf
-                                    <button class="btn btn-success"><i class="bi bi-play-circle"></i> Start</button>
-                                </form>
+                                <button class="btn btn-success" onclick="performAction('start')"><i class="bi bi-play-circle"></i> Start</button>
                             @endif
 
-                            <form action="{{ route('instances.destroy', $container->id) }}" method="POST" onsubmit="return confirm('Delete this instance?');">
+                            <form action="{{ route('instances.destroy', $container->id) }}" method="POST" onsubmit="return confirm('Delete this instance?');" class="d-inline">
                                 @csrf
                                 @method('DELETE')
                                 <button class="btn btn-danger"><i class="bi bi-trash"></i> Delete</button>
@@ -222,6 +211,73 @@
         logsTabBtn.addEventListener('hidden.bs.tab', function() {
             clearInterval(logsInterval);
         });
+
+        // AJAX Action Handler
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+        window.performAction = function(action) {
+            // Disable buttons
+            const wrapper = document.getElementById('actions-wrapper');
+            const buttons = wrapper.querySelectorAll('button');
+            buttons.forEach(btn => btn.disabled = true);
+
+            fetch(`/containers/${containerId}/${action}`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update UI based on action
+                    const isRunning = (action === 'start' || action === 'restart');
+                    updateUI(isRunning);
+                } else {
+                    alert('Error: ' + data.message);
+                    buttons.forEach(btn => btn.disabled = false);
+                }
+            })
+            .catch(error => {
+                console.error(error);
+                alert('An unexpected error occurred.');
+                buttons.forEach(btn => btn.disabled = false);
+            });
+        };
+
+        function updateUI(isRunning) {
+            const badge = document.getElementById('status-badge');
+            const wrapper = document.getElementById('actions-wrapper');
+
+            if (isRunning) {
+                badge.className = 'badge bg-success fs-6 px-3 py-2';
+                badge.innerText = 'Running';
+
+                wrapper.innerHTML = `
+                    <button class="btn btn-warning" onclick="performAction('stop')"><i class="bi bi-stop-circle"></i> Stop</button>
+                    <button class="btn btn-info text-white" onclick="performAction('restart')"><i class="bi bi-arrow-clockwise"></i> Restart</button>
+                    <form action="{{ route('instances.destroy', $container->id) }}" method="POST" onsubmit="return confirm('Delete this instance?');" class="d-inline">
+                        @csrf
+                        @method('DELETE')
+                        <button class="btn btn-danger"><i class="bi bi-trash"></i> Delete</button>
+                    </form>
+                `;
+            } else {
+                badge.className = 'badge bg-danger fs-6 px-3 py-2';
+                badge.innerText = 'Stopped';
+
+                wrapper.innerHTML = `
+                    <button class="btn btn-success" onclick="performAction('start')"><i class="bi bi-play-circle"></i> Start</button>
+                    <form action="{{ route('instances.destroy', $container->id) }}" method="POST" onsubmit="return confirm('Delete this instance?');" class="d-inline">
+                        @csrf
+                        @method('DELETE')
+                        <button class="btn btn-danger"><i class="bi bi-trash"></i> Delete</button>
+                    </form>
+                `;
+            }
+        }
     });
 </script>
 @endsection
