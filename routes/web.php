@@ -30,6 +30,7 @@ Route::middleware(['auth'])->group(function () {
     // API Tokens
     Route::get('profile/api-tokens', [App\Http\Controllers\ApiTokenController::class, 'index'])->name('api-tokens.index');
     Route::post('profile/api-tokens', [App\Http\Controllers\ApiTokenController::class, 'store'])->name('api-tokens.store');
+    Route::put('profile/api-tokens/{id}', [App\Http\Controllers\ApiTokenController::class, 'update'])->name('api-tokens.update');
     Route::delete('profile/api-tokens/{id}', [App\Http\Controllers\ApiTokenController::class, 'destroy'])->name('api-tokens.destroy');
 
     // Package Management
