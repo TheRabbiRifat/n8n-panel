@@ -37,6 +37,11 @@
             </div>
 
             <div class="mb-3">
+                <label for="instance_limit" class="form-label">Instance Limit</label>
+                <input type="number" class="form-control" id="instance_limit" name="instance_limit" required value="{{ old('instance_limit', $user->instance_limit ?? 5) }}" min="1">
+            </div>
+
+            <div class="mb-3">
                 <label for="role" class="form-label">Role</label>
                 <select class="form-select @error('role') is-invalid @enderror" id="role" name="role" required>
                     @foreach($roles as $role)

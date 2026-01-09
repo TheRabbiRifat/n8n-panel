@@ -83,6 +83,15 @@ class InstanceController extends Controller
             'package_id' => 'required|exists:packages,id',
         ]);
 
+        // Check Instance Limit
+        $user = Auth::user();
+        if (!$user->hasRole('admin')) {
+            $count = $user->instances()->count();
+            if ($count >= $user->instance_limit) {
+                return back()->with('error', "Instance limit reached ({$user->instance_limit}). Please contact admin to increase limit.");
+            }
+        }
+
         $package = Package::findOrFail($request->package_id);
 
         // 1. Assign Port
