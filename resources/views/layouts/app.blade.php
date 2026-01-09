@@ -163,6 +163,9 @@
                         <div class="small text-muted text-truncate">{{ ucfirst(Auth::user()->roles->first()->name ?? 'User') }}</div>
                     </div>
                 </div>
+                <a href="{{ route('profile.edit') }}" class="btn btn-outline-light w-100 d-flex align-items-center justify-content-center gap-2 mb-2 btn-sm border-secondary text-secondary-emphasis">
+                    <i class="bi bi-person-gear"></i> Manage Profile
+                </a>
                 <form action="{{ route('logout') }}" method="POST">
                     @csrf
                     <button type="submit" class="btn btn-outline-secondary w-100 d-flex align-items-center justify-content-center gap-2">
