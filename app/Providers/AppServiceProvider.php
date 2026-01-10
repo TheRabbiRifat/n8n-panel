@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\View;
+use App\Services\SystemStatusService;
 use Laravel\Sanctum\Sanctum;
 use App\Models\PersonalAccessToken;
 
@@ -19,8 +21,17 @@ class AppServiceProvider extends ServiceProvider
     /**
      * Bootstrap any application services.
      */
-    public function boot(): void
+    public function boot(SystemStatusService $systemStatusService): void
     {
         Sanctum::usePersonalAccessTokenModel(PersonalAccessToken::class);
+
+        // Share system info with the main layout
+        View::composer('layouts.app', function ($view) use ($systemStatusService) {
+            // Only fetch if authenticated to avoid overhead on login page if it used app layout (it doesn't, but good practice)
+            // But app.blade.php checks @auth.
+            // Let's caching this? For now, real-time is requested.
+            $stats = $systemStatusService->getSystemStats();
+            $view->with('serverInfo', $stats);
+        });
     }
 }
