@@ -205,6 +205,11 @@
                     <i class="bi bi-box"></i> Feature Manager
                 </a>
 
+                <div class="nav-group-title">Integration</div>
+                <a href="{{ route('api-tokens.index') }}" class="nav-link {{ request()->routeIs('api-tokens.*') ? 'active' : '' }}">
+                    <i class="bi bi-key"></i> Manage API Tokens
+                </a>
+
                 @role('admin')
                 <div class="nav-group-title">System Administration</div>
                 <a href="{{ route('users.index') }}" class="nav-link {{ request()->routeIs('users.*') ? 'active' : '' }}">
