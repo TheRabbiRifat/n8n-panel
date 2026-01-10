@@ -38,6 +38,15 @@
                         </select>
                     </div>
 
+                    <div class="mb-3">
+                        <label for="generic_timezone" class="form-label">Timezone</label>
+                        <select class="form-select" id="generic_timezone" name="generic_timezone" required>
+                            @foreach(\DateTimeZone::listIdentifiers() as $tz)
+                                <option value="{{ $tz }}" {{ $tz == 'Asia/Dhaka' ? 'selected' : '' }}>{{ $tz }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
                     <div class="alert alert-light border">
                         <i class="bi bi-hdd-fill me-2"></i> <strong>Volume:</strong> A persistent volume will be automatically created at <code>/var/lib/n8n/instances/[name]</code>.
                     </div>
@@ -51,4 +60,29 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        try {
+            const userTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            const tzSelect = document.getElementById('generic_timezone');
+            if (tzSelect && userTz) {
+                // Check if option exists
+                let found = false;
+                for (let i = 0; i < tzSelect.options.length; i++) {
+                    if (tzSelect.options[i].value === userTz) {
+                        tzSelect.selectedIndex = i;
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    console.log('User timezone not found in list:', userTz);
+                }
+            }
+        } catch (e) {
+            console.error('Timezone detection failed', e);
+        }
+    });
+</script>
 @endsection

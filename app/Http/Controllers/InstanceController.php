@@ -81,6 +81,7 @@ class InstanceController extends Controller
             'name' => 'required|string|alpha_dash|unique:containers,name',
             'version' => 'required|string',
             'package_id' => 'required|exists:packages,id',
+            'generic_timezone' => 'required|string',
         ]);
 
         // Check Instance Limit
@@ -128,7 +129,7 @@ class InstanceController extends Controller
         // Generate Instance Specific Envs (Important for n8n persistence)
         $instanceEnv = [
             'N8N_ENCRYPTION_KEY' => Str::random(32),
-            'GENERIC_TIMEZONE' => 'UTC',
+            'GENERIC_TIMEZONE' => $request->generic_timezone ?: 'Asia/Dhaka',
             'N8N_BLOCK_ENV_ACCESS_IN_NODE' => 'true',
         ];
         $envArray = array_merge($envArray, $instanceEnv);
