@@ -49,7 +49,7 @@
                         </td>
                         <td>
                             <small class="d-block">CPU: {{ $instance->package->cpu_limit ?? 'Unl' }}</small>
-                            <small class="d-block">RAM: {{ $instance->package->ram_limit ?? 'Unl' }}</small>
+                            <small class="d-block">RAM: {{ $instance->package->ram_limit ? $instance->package->ram_limit . ' GB' : 'Unl' }}</small>
                         </td>
                         @role('admin')
                         <td>{{ $instance->user->name }}</td>
