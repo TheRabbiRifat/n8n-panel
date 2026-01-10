@@ -149,8 +149,8 @@
                     <div class="mb-3">
                         <label class="small text-muted text-uppercase fw-bold">Base URL</label>
                         <div class="input-group input-group-sm">
-                            <span class="input-group-text bg-light">{{ url('/api/integration') }}</span>
-                            <button class="btn btn-outline-secondary" type="button" onclick="navigator.clipboard.writeText('{{ url('/api/integration') }}')"><i class="bi bi-clipboard"></i></button>
+                            <span class="input-group-text bg-light">{{ 'https://' . gethostname() . '/api/integration' }}</span>
+                            <button class="btn btn-outline-secondary" type="button" onclick="navigator.clipboard.writeText('{{ 'https://' . gethostname() . '/api/integration' }}')"><i class="bi bi-clipboard"></i></button>
                         </div>
                     </div>
 
@@ -164,33 +164,95 @@
                         <div id="api-create" class="accordion-collapse collapse" data-bs-parent="#apiDocs">
                             <div class="accordion-body bg-light">
                                 <p class="small">Create a new n8n instance.</p>
-                                <pre class="small bg-dark text-white p-3 rounded mb-0">curl -X POST "{{ url('/api/integration/instances/create') }}" \
+                                <pre class="small bg-dark text-white p-3 rounded mb-0">curl -X POST "{{ 'https://' . gethostname() . '/api/integration/instances/create' }}" \
   -H "Authorization: Bearer YOUR_API_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
     "email": "user@example.com",
     "password": "secretpassword",
     "package_id": 1,
-    "name": "my-instance",
-    "domain": "custom.domain.com"
+    "name": "my-instance"
   }'</pre>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Instance Actions -->
+                    <!-- Start Instance -->
                     <div class="accordion-item">
                         <h2 class="accordion-header">
-                            <button class="accordion-button collapsed py-2" type="button" data-bs-toggle="collapse" data-bs-target="#api-actions">
-                                <span class="badge bg-success me-2">POST</span> /instances/{id}/{action}
+                            <button class="accordion-button collapsed py-2" type="button" data-bs-toggle="collapse" data-bs-target="#api-start">
+                                <span class="badge bg-success me-2">POST</span> /instances/{id}/start
                             </button>
                         </h2>
-                        <div id="api-actions" class="accordion-collapse collapse" data-bs-parent="#apiDocs">
+                        <div id="api-start" class="accordion-collapse collapse" data-bs-parent="#apiDocs">
                             <div class="accordion-body bg-light">
-                                <p class="small">Perform actions: <code>start</code>, <code>stop</code>, <code>suspend</code>, <code>unsuspend</code>, <code>terminate</code>.</p>
-                                <pre class="small bg-dark text-white p-3 rounded mb-0">curl -X POST "{{ url('/api/integration/instances/1/start') }}" \
-  -H "Authorization: Bearer YOUR_API_TOKEN" \
-  -H "Content-Type: application/json"</pre>
+                                <p class="small">Start an instance.</p>
+                                <pre class="small bg-dark text-white p-3 rounded mb-0">curl -X POST "{{ 'https://' . gethostname() . '/api/integration/instances/1/start' }}" \
+  -H "Authorization: Bearer YOUR_API_TOKEN"</pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stop Instance -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed py-2" type="button" data-bs-toggle="collapse" data-bs-target="#api-stop">
+                                <span class="badge bg-success me-2">POST</span> /instances/{id}/stop
+                            </button>
+                        </h2>
+                        <div id="api-stop" class="accordion-collapse collapse" data-bs-parent="#apiDocs">
+                            <div class="accordion-body bg-light">
+                                <p class="small">Stop an instance.</p>
+                                <pre class="small bg-dark text-white p-3 rounded mb-0">curl -X POST "{{ 'https://' . gethostname() . '/api/integration/instances/1/stop' }}" \
+  -H "Authorization: Bearer YOUR_API_TOKEN"</pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Suspend Instance -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed py-2" type="button" data-bs-toggle="collapse" data-bs-target="#api-suspend">
+                                <span class="badge bg-success me-2">POST</span> /instances/{id}/suspend
+                            </button>
+                        </h2>
+                        <div id="api-suspend" class="accordion-collapse collapse" data-bs-parent="#apiDocs">
+                            <div class="accordion-body bg-light">
+                                <p class="small">Suspend an instance (Stops and marks as suspended).</p>
+                                <pre class="small bg-dark text-white p-3 rounded mb-0">curl -X POST "{{ 'https://' . gethostname() . '/api/integration/instances/1/suspend' }}" \
+  -H "Authorization: Bearer YOUR_API_TOKEN"</pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Unsuspend Instance -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed py-2" type="button" data-bs-toggle="collapse" data-bs-target="#api-unsuspend">
+                                <span class="badge bg-success me-2">POST</span> /instances/{id}/unsuspend
+                            </button>
+                        </h2>
+                        <div id="api-unsuspend" class="accordion-collapse collapse" data-bs-parent="#apiDocs">
+                            <div class="accordion-body bg-light">
+                                <p class="small">Unsuspend an instance (Unmarks and starts).</p>
+                                <pre class="small bg-dark text-white p-3 rounded mb-0">curl -X POST "{{ 'https://' . gethostname() . '/api/integration/instances/1/unsuspend' }}" \
+  -H "Authorization: Bearer YOUR_API_TOKEN"</pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Terminate Instance -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed py-2" type="button" data-bs-toggle="collapse" data-bs-target="#api-terminate">
+                                <span class="badge bg-success me-2">POST</span> /instances/{id}/terminate
+                            </button>
+                        </h2>
+                        <div id="api-terminate" class="accordion-collapse collapse" data-bs-parent="#apiDocs">
+                            <div class="accordion-body bg-light">
+                                <p class="small text-danger fw-bold">Permanently delete an instance and its data.</p>
+                                <pre class="small bg-dark text-white p-3 rounded mb-0">curl -X POST "{{ 'https://' . gethostname() . '/api/integration/instances/1/terminate' }}" \
+  -H "Authorization: Bearer YOUR_API_TOKEN"</pre>
                             </div>
                         </div>
                     </div>
@@ -205,7 +267,39 @@
                         <div id="api-stats" class="accordion-collapse collapse" data-bs-parent="#apiDocs">
                             <div class="accordion-body bg-light">
                                 <p class="small">Get real-time resource usage.</p>
-                                <pre class="small bg-dark text-white p-3 rounded mb-0">curl -X GET "{{ url('/api/integration/instances/1/stats') }}" \
+                                <pre class="small bg-dark text-white p-3 rounded mb-0">curl -X GET "{{ 'https://' . gethostname() . '/api/integration/instances/1/stats' }}" \
+  -H "Authorization: Bearer YOUR_API_TOKEN"</pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- List Packages -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed py-2" type="button" data-bs-toggle="collapse" data-bs-target="#api-packages">
+                                <span class="badge bg-primary me-2">GET</span> /packages
+                            </button>
+                        </h2>
+                        <div id="api-packages" class="accordion-collapse collapse" data-bs-parent="#apiDocs">
+                            <div class="accordion-body bg-light">
+                                <p class="small">List all available packages.</p>
+                                <pre class="small bg-dark text-white p-3 rounded mb-0">curl -X GET "{{ 'https://' . gethostname() . '/api/integration/packages' }}" \
+  -H "Authorization: Bearer YOUR_API_TOKEN"</pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Get Package -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed py-2" type="button" data-bs-toggle="collapse" data-bs-target="#api-package-detail">
+                                <span class="badge bg-primary me-2">GET</span> /packages/{id}
+                            </button>
+                        </h2>
+                        <div id="api-package-detail" class="accordion-collapse collapse" data-bs-parent="#apiDocs">
+                            <div class="accordion-body bg-light">
+                                <p class="small">Get details of a specific package.</p>
+                                <pre class="small bg-dark text-white p-3 rounded mb-0">curl -X GET "{{ 'https://' . gethostname() . '/api/integration/packages/1' }}" \
   -H "Authorization: Bearer YOUR_API_TOKEN"</pre>
                             </div>
                         </div>

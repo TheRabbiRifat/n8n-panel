@@ -42,7 +42,6 @@ class WhmcsController extends Controller
             'package_id' => 'required|exists:packages,id',
             'name' => 'required|string|alpha_dash|unique:containers,name', // Instance Name
             'version' => 'nullable|string', // Default 'latest'
-            'domain' => 'nullable|string', // Custom domain or generated
             'password' => 'nullable|string', // For new user creation
         ]);
 
