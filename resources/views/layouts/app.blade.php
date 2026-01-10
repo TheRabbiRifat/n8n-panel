@@ -187,23 +187,23 @@
                 <input type="text" class="search-input" placeholder="Search features...">
             </div>
 
-            <nav class="flex-grow-1 overflow-y-auto pb-4">
-                <div class="nav-group-title">Platform Information</div>
+            <nav class="flex-grow-1 overflow-y-auto pb-4" id="sidebar-nav">
+                <div class="nav-group-title">Server Information</div>
                 <a href="{{ route('dashboard') }}" class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
                     <i class="bi bi-speedometer2"></i> Server Status
                 </a>
 
-                <div class="nav-group-title">Account Functions</div>
+                <div class="nav-group-title">Account Management</div>
                 <a href="{{ route('instances.index') }}" class="nav-link {{ request()->routeIs('instances.*') ? 'active' : '' }}">
                     <i class="bi bi-hdd-network"></i> List Accounts
                 </a>
                 <a href="{{ route('instances.create') }}" class="nav-link">
-                    <i class="bi bi-plus-circle"></i> Create New Account
+                    <i class="bi bi-plus-circle"></i> Create Account
                 </a>
 
                 <div class="nav-group-title">Packages</div>
                 <a href="{{ route('packages.index') }}" class="nav-link {{ request()->routeIs('packages.*') ? 'active' : '' }}">
-                    <i class="bi bi-box"></i> Feature Manager
+                    <i class="bi bi-box"></i> Packages
                 </a>
 
                 <div class="nav-group-title">Integration</div>
@@ -212,15 +212,15 @@
                 </a>
 
                 @role('admin')
-                <div class="nav-group-title">System Administration</div>
+                <div class="nav-group-title">Administration</div>
                 <a href="{{ route('users.index') }}" class="nav-link {{ request()->routeIs('users.*') ? 'active' : '' }}">
                     <i class="bi bi-people"></i> Manage Users
                 </a>
                 <a href="{{ route('admin.environment.index') }}" class="nav-link {{ request()->routeIs('admin.environment.*') ? 'active' : '' }}">
-                    <i class="bi bi-sliders"></i> Tweak Settings
+                    <i class="bi bi-sliders"></i> Settings
                 </a>
                 <a href="{{ route('containers.orphans') }}" class="nav-link {{ request()->routeIs('containers.orphans') ? 'active' : '' }}">
-                    <i class="bi bi-search"></i> Orphan Discovery
+                    <i class="bi bi-search"></i> Docker Discovery
                 </a>
                 <a href="{{ route('admin.api_logs.index') }}" class="nav-link {{ request()->routeIs('admin.api_logs.*') ? 'active' : '' }}">
                     <i class="bi bi-journal-text"></i> API Logs
@@ -331,6 +331,40 @@
                 const close = () => { sidebar.classList.remove('show'); overlay.classList.remove('show'); };
                 toggle.addEventListener('click', () => { sidebar.classList.add('show'); overlay.classList.add('show'); });
                 overlay.addEventListener('click', close);
+            }
+
+            // Sidebar Search
+            const searchInput = document.querySelector('.search-input');
+            const navLinks = document.querySelectorAll('#sidebar-nav .nav-link');
+            const navGroups = document.querySelectorAll('#sidebar-nav .nav-group-title');
+
+            if(searchInput) {
+                searchInput.addEventListener('input', (e) => {
+                    const term = e.target.value.toLowerCase();
+
+                    navLinks.forEach(link => {
+                        const text = link.textContent.trim().toLowerCase();
+                        if(text.includes(term)) {
+                            link.style.display = 'flex';
+                        } else {
+                            link.style.display = 'none';
+                        }
+                    });
+
+                    // Hide empty groups
+                    navGroups.forEach(group => {
+                        let hasVisible = false;
+                        let next = group.nextElementSibling;
+                        while(next && !next.classList.contains('nav-group-title')) {
+                            if(next.classList.contains('nav-link') && next.style.display !== 'none') {
+                                hasVisible = true;
+                                break;
+                            }
+                            next = next.nextElementSibling;
+                        }
+                        group.style.display = hasVisible ? 'block' : 'none';
+                    });
+                });
             }
         });
     </script>

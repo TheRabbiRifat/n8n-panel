@@ -13,6 +13,10 @@
         margin-bottom: 1rem;
         transition: all 0.2s;
     }
+    [data-bs-theme="dark"] .whm-panel-icon {
+        color: var(--bs-body-color);
+        border-color: rgba(255,255,255,0.1);
+    }
     .whm-card:hover .whm-panel-icon {
         background: var(--bs-primary);
         color: white;
@@ -126,12 +130,6 @@
         <div class="whm-card h-100 d-flex flex-column justify-content-center">
             <div class="text-secondary small text-uppercase fw-bold mb-1">IP Address</div>
             <div class="fw-bold fs-5">{{ $systemStats['ips'] }}</div>
-        </div>
-    </div>
-    <div class="col-md-6 col-lg-3">
-        <div class="whm-card h-100 d-flex flex-column justify-content-center">
-            <div class="text-secondary small text-uppercase fw-bold mb-1">Uptime</div>
-            <div class="fw-bold fs-5">{{ $systemStats['uptime'] }}</div>
         </div>
     </div>
 </div>
