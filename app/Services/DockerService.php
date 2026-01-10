@@ -69,7 +69,14 @@ class DockerService
             $command[] = "--cpus={$cpu}";
         }
         if ($memory) {
-            $command[] = "--memory={$memory}";
+            // Assume memory is passed as float GB, so append 'g'
+            // If it's already a string with suffix, this might break, but we are standardizing on float GB.
+            // Check if it's numeric before appending.
+            if (is_numeric($memory)) {
+                $command[] = "--memory={$memory}g";
+            } else {
+                $command[] = "--memory={$memory}";
+            }
         }
 
         $command[] = $image;

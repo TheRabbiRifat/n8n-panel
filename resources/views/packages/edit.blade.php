@@ -24,15 +24,15 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="ram_limit" class="form-label">RAM Limit</label>
-                        <input type="text" class="form-control" id="ram_limit" name="ram_limit" placeholder="e.g. 512m or 1g" value="{{ old('ram_limit', $package->ram_limit) }}">
-                        <div class="form-text">Memory limit (suffix with b, k, m, g). Leave blank for unlimited.</div>
+                        <label for="ram_limit" class="form-label">RAM Limit (GB)</label>
+                        <input type="number" step="0.1" class="form-control" id="ram_limit" name="ram_limit" placeholder="e.g. 1.0 or 0.5" value="{{ old('ram_limit', $package->ram_limit) }}">
+                        <div class="form-text">Memory limit in Gigabytes (GB). Leave blank for unlimited.</div>
                     </div>
 
                     <div class="mb-3">
-                        <label for="disk_limit" class="form-label">Disk Limit</label>
-                        <input type="text" class="form-control" id="disk_limit" name="disk_limit" placeholder="e.g. 10g" value="{{ old('disk_limit', $package->disk_limit) }}">
-                        <div class="form-text">Disk storage limit. Leave blank for unlimited.</div>
+                        <label for="disk_limit" class="form-label">Disk Limit (GB)</label>
+                        <input type="number" step="0.1" class="form-control" id="disk_limit" name="disk_limit" placeholder="e.g. 10 or 2.5" value="{{ old('disk_limit', $package->disk_limit) }}">
+                        <div class="form-text">Disk storage limit in Gigabytes (GB). Leave blank for unlimited.</div>
                     </div>
 
                     <div class="d-flex justify-content-between mt-4">

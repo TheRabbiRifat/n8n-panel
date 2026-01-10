@@ -32,8 +32,8 @@ class PackageController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'cpu_limit' => 'nullable|numeric|min:0.1',
-            'ram_limit' => 'nullable|string', // e.g. 512m, 1g
-            'disk_limit' => 'nullable|string', // e.g. 10g
+            'ram_limit' => 'nullable|numeric|min:0.1', // GB
+            'disk_limit' => 'nullable|numeric|min:0.1', // GB
         ]);
 
         Package::create([
@@ -67,8 +67,8 @@ class PackageController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'cpu_limit' => 'nullable|numeric|min:0.1',
-            'ram_limit' => 'nullable|string',
-            'disk_limit' => 'nullable|string',
+            'ram_limit' => 'nullable|numeric|min:0.1',
+            'disk_limit' => 'nullable|numeric|min:0.1',
         ]);
 
         $package->update([
