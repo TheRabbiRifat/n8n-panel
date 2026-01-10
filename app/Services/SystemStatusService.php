@@ -18,8 +18,15 @@ class SystemStatusService
             'loads' => $this->getLoadAverages(),
             'hostname' => $this->getHostname(),
             'os' => $this->getOsInfo(),
+            'kernel' => $this->getKernelVersion(),
             'time' => $this->getServerTime(),
         ];
+    }
+
+    protected function getKernelVersion()
+    {
+        $process = Process::run('uname -r');
+        return $process->successful() ? trim($process->output()) : 'Unknown';
     }
 
     protected function getLoadAverages()
