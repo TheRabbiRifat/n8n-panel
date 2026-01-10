@@ -24,10 +24,7 @@ class ContainerController extends Controller
 
     public function create()
     {
-        $versions = [
-            'latest' => 'Stable',
-            'next' => 'Beta',
-        ];
+        $versions = ['latest', 'next'];
 
         $user = Auth::user();
         if ($user->hasRole('admin')) {
@@ -157,10 +154,7 @@ class ContainerController extends Controller
         $stats = $this->dockerService->getContainer($container->docker_id);
         $logs = $this->dockerService->getContainerLogs($container->docker_id);
 
-        $versions = [
-            'latest' => 'Stable',
-            'next' => 'Beta',
-        ];
+        $versions = ['latest', 'next'];
 
         // Fetch packages for dropdown
         $user = Auth::user();

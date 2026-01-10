@@ -120,7 +120,7 @@
                             @endif
                             <tr>
                                 <th>Version:</th>
-                                <td>{{ $versions[$container->image_tag ?? 'latest'] ?? ($container->image_tag ?? 'latest') }}</td>
+                                <td>{{ $container->image_tag ?? 'latest' }}</td>
                             </tr>
                         </table>
                     </div>
@@ -137,8 +137,8 @@
                         <div class="col-md-6 mb-3">
                             <label for="image_tag" class="form-label">n8n Version</label>
                             <select class="form-select" name="image_tag" id="image_tag">
-                                @foreach($versions as $key => $label)
-                                    <option value="{{ $key }}" {{ ($container->image_tag ?? 'latest') == $key ? 'selected' : '' }}>{{ $label }}</option>
+                                @foreach($versions as $version)
+                                    <option value="{{ $version }}" {{ ($container->image_tag ?? 'latest') == $version ? 'selected' : '' }}>{{ $version }}</option>
                                 @endforeach
                             </select>
                         </div>
