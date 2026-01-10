@@ -340,7 +340,10 @@
                                     <h6 class="small fw-bold text-muted">Response</h6>
                                     <pre class="small bg-light border p-3 rounded mb-0 text-muted">{
   "status": "success",
-  "raw": "0.10%, 150MiB / 1GiB"
+  "cpu_percent": 0.10,
+  "memory_usage": "150MiB",
+  "memory_limit": "1GiB",
+  "memory_percent": 14.65
 }</pre>
                                 </div>
                             </div>
