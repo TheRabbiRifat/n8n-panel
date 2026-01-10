@@ -1,258 +1,188 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="d-flex justify-content-between align-items-center mb-5">
-    <div>
-        <h2 class="fw-bold mb-1">Dashboard</h2>
-        <p class="text-secondary mb-0">Overview of your system and n8n instances.</p>
-    </div>
-    @if(auth()->user()->hasRole('reseller'))
-        <a href="{{ route('instances.create') }}" class="btn btn-primary shadow-sm">
-            <i class="bi bi-plus-lg me-1"></i> New Instance
-        </a>
-    @endif
+<style>
+    .whm-panel-icon {
+        width: 60px; height: 60px;
+        display: flex; align-items: center; justify-content: center;
+        background: var(--bs-body-bg);
+        border: 1px solid var(--bs-border-color);
+        border-radius: 8px;
+        font-size: 1.75rem;
+        color: var(--whm-sidebar-bg);
+        margin-bottom: 1rem;
+        transition: all 0.2s;
+    }
+    .whm-card:hover .whm-panel-icon {
+        background: var(--bs-primary);
+        color: white;
+        border-color: var(--bs-primary);
+    }
+    .whm-card {
+        text-decoration: none;
+        color: inherit;
+        display: block;
+        height: 100%;
+        padding: 1.5rem;
+        background: var(--bs-body-bg);
+        border: 1px solid var(--bs-border-color);
+        border-radius: 4px;
+        transition: all 0.2s;
+    }
+    .whm-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        border-color: var(--bs-primary);
+    }
+</style>
+
+<div class="mb-4">
+    <h3 class="fw-bold mb-1">Server Status</h3>
+    <p class="text-secondary">Overview of the system and hosted accounts.</p>
 </div>
 
+<!-- Top Stats Bar -->
 @if($systemStats)
-<div class="row g-4 mb-4">
-    <!-- Card 1: System Resources & Activity -->
-    <div class="col-lg-6">
-        <div class="card h-100 shadow-sm">
-            <div class="card-header bg-transparent py-3 border-0">
-                <h5 class="fw-bold mb-0"><i class="bi bi-activity me-2 text-primary"></i>System Resources</h5>
-            </div>
+<div class="row g-4 mb-5">
+    <div class="col-md-3">
+        <div class="card border-top border-4 border-primary h-100">
             <div class="card-body">
-                <div class="row g-4">
-                    <!-- CPU -->
-                    <div class="col-md-6 border-end-md">
-                        <div class="d-flex align-items-center mb-2">
-                            <i class="bi bi-cpu fs-4 text-secondary me-2"></i>
-                            <h6 class="fw-bold text-secondary mb-0">CPU Load</h6>
-                        </div>
-                         <h4 class="mb-3 fw-bold">{{ $systemStats['cpu'] }}</h4>
-
-                         <div class="d-flex justify-content-between text-secondary small mt-2">
-                             <div>
-                                 <span class="d-block fw-bold text-body">{{ $systemStats['loads']['1'] }}</span>
-                                 1 min
-                             </div>
-                             <div>
-                                 <span class="d-block fw-bold text-body">{{ $systemStats['loads']['5'] }}</span>
-                                 5 min
-                             </div>
-                             <div>
-                                 <span class="d-block fw-bold text-body">{{ $systemStats['loads']['15'] }}</span>
-                                 15 min
-                             </div>
-                         </div>
-                    </div>
-
-                    <!-- RAM -->
-                    <div class="col-md-6">
-                         <div class="d-flex align-items-center mb-2">
-                            <i class="bi bi-memory fs-4 text-secondary me-2"></i>
-                            <h6 class="fw-bold text-secondary mb-0">RAM Usage</h6>
-                        </div>
-                        <h4 class="mb-1 fw-bold">{{ $systemStats['ram']['percent'] }}%</h4>
-                        <div class="progress" style="height: 6px;">
-                            <div class="progress-bar bg-primary" role="progressbar" style="width: {{ $systemStats['ram']['percent'] }}%"></div>
-                        </div>
-                        <small class="text-secondary mt-1 d-block">{{ $systemStats['ram']['used'] }}MB / {{ $systemStats['ram']['total'] }}MB</small>
-                    </div>
-
-                    <!-- Storage -->
-                    <div class="col-12"><hr class="my-0 opacity-10"></div>
-
-                    <div class="col-md-6 border-end-md">
-                         <div class="d-flex align-items-center mb-2">
-                            <i class="bi bi-hdd fs-4 text-secondary me-2"></i>
-                            <h6 class="fw-bold text-secondary mb-0">Storage</h6>
-                        </div>
-                        <h4 class="mb-1 fw-bold">{{ $systemStats['disk']['percent'] }}%</h4>
-                         <div class="progress" style="height: 6px;">
-                            <div class="progress-bar bg-info" role="progressbar" style="width: {{ $systemStats['disk']['percent'] }}%"></div>
-                        </div>
-                        <small class="text-secondary mt-1 d-block">{{ $systemStats['disk']['used_gb'] }}GB / {{ $systemStats['disk']['total_gb'] }}GB</small>
-                    </div>
-
-                    <!-- Uptime & Users -->
-                    <div class="col-md-6">
-                        <div class="row">
-                            <div class="col-6 mb-3">
-                                 <h6 class="text-uppercase text-secondary small fw-bold mb-1">Uptime</h6>
-                                 <span class="fw-bold">{{ $systemStats['uptime'] }}</span>
-                            </div>
-                             <div class="col-6 mb-3">
-                                 <h6 class="text-uppercase text-secondary small fw-bold mb-1">Users</h6>
-                                 <span class="fw-bold">{{ $systemStats['user_count'] }}</span>
-                            </div>
-                        </div>
-                    </div>
+                <div class="text-uppercase small fw-bold text-secondary mb-1">CPU Load</div>
+                <h3 class="fw-bold mb-0">{{ $systemStats['cpu'] }}</h3>
+                <div class="small text-muted mt-2">
+                    {{ $systemStats['loads']['1'] }} (1m) &bull; {{ $systemStats['loads']['5'] }} (5m)
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- Card 2: Server Information -->
-    <div class="col-lg-6">
-        <div class="card h-100 shadow-sm">
-             <div class="card-header bg-transparent py-3 border-0">
-                <h5 class="fw-bold mb-0"><i class="bi bi-server me-2 text-success"></i>Server Information</h5>
-            </div>
+    <div class="col-md-3">
+        <div class="card border-top border-4 border-info h-100">
             <div class="card-body">
-                <ul class="list-group list-group-flush">
-                    <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center py-3 border-0 border-bottom">
-                        <span class="text-secondary"><i class="bi bi-display me-2"></i>Hostname</span>
-                        <span class="fw-bold">{{ $systemStats['hostname'] }}</span>
-                    </li>
-                    <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center py-3 border-0 border-bottom">
-                         <span class="text-secondary"><i class="bi bi-clock me-2"></i>Server Time</span>
-                        <span class="fw-bold">{{ $systemStats['time'] }}</span>
-                    </li>
-                    <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center py-3 border-0 border-bottom">
-                         <span class="text-secondary"><i class="bi bi-ethernet me-2"></i>IP Address(es)</span>
-                        <span class="fw-bold text-end" style="max-width: 200px;">{{ Str::limit($systemStats['ips'], 30) }}</span>
-                    </li>
-                     <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center py-3 border-0 border-bottom">
-                         <span class="text-secondary"><i class="bi bi-window me-2"></i>Operating System</span>
-                        <span class="fw-bold">{{ $systemStats['os'] }}</span>
-                    </li>
-                    <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center py-3 border-0">
-                         <span class="text-secondary"><i class="bi bi-info-circle me-2"></i>Panel Version</span>
-                        <span class="badge bg-body-secondary text-body border">v{{ $systemStats['panel_version'] }}</span>
-                    </li>
-                </ul>
+                <div class="text-uppercase small fw-bold text-secondary mb-1">Memory Usage</div>
+                <h3 class="fw-bold mb-0">{{ $systemStats['ram']['percent'] }}%</h3>
+                <div class="progress mt-2" style="height: 4px;">
+                    <div class="progress-bar bg-info" style="width: {{ $systemStats['ram']['percent'] }}%"></div>
+                </div>
+                <div class="small text-muted mt-2">{{ $systemStats['ram']['used'] }}MB / {{ $systemStats['ram']['total'] }}MB</div>
             </div>
         </div>
     </div>
-</div>
-
-@endif
-
-<!-- Core Services Status (Admin Only) -->
-@if(auth()->user()->hasRole('admin'))
-<div class="card shadow-sm mb-5">
-    <div class="card-header bg-transparent py-3 border-0">
-        <h5 class="fw-bold mb-0"><i class="bi bi-shield-check me-2 text-primary"></i>Core Services</h5>
+    <div class="col-md-3">
+        <div class="card border-top border-4 border-warning h-100">
+            <div class="card-body">
+                <div class="text-uppercase small fw-bold text-secondary mb-1">Disk Usage</div>
+                <h3 class="fw-bold mb-0">{{ $systemStats['disk']['percent'] }}%</h3>
+                <div class="progress mt-2" style="height: 4px;">
+                    <div class="progress-bar bg-warning" style="width: {{ $systemStats['disk']['percent'] }}%"></div>
+                </div>
+                <div class="small text-muted mt-2">{{ $systemStats['disk']['used_gb'] }}GB / {{ $systemStats['disk']['total_gb'] }}GB</div>
+            </div>
+        </div>
     </div>
-    <div class="card-body">
-        <div class="row g-3">
-            <div class="col-md-4">
-                 <div class="d-flex align-items-center justify-content-between p-3 rounded bg-body-tertiary h-100">
-                     <div class="d-flex align-items-center">
-                         <i class="bi bi-database-fill fs-3 text-secondary me-3"></i>
-                         <div>
-                             <h6 class="mb-0 fw-bold">MySQL Database</h6>
-                             <small class="text-secondary">System Service</small>
-                         </div>
-                     </div>
-                     <span class="badge {{ $mysqlStatus === 'active' ? 'bg-success' : 'bg-danger' }}">
-                         {{ $mysqlStatus === 'active' ? 'Running' : 'Stopped' }}
-                     </span>
-                 </div>
-            </div>
-            <div class="col-md-4">
-                 <div class="d-flex align-items-center justify-content-between p-3 rounded bg-body-tertiary h-100">
-                     <div class="d-flex align-items-center">
-                         <i class="bi bi-signpost-split-fill fs-3 text-secondary me-3"></i>
-                         <div>
-                             <h6 class="mb-0 fw-bold">Nginx Web Server</h6>
-                             <small class="text-secondary">System Service</small>
-                         </div>
-                     </div>
-                     <span class="badge {{ $nginxStatus === 'active' ? 'bg-success' : 'bg-danger' }}">
-                         {{ $nginxStatus === 'active' ? 'Running' : 'Stopped' }}
-                     </span>
-                 </div>
-            </div>
-            <div class="col-md-4">
-                 <div class="d-flex align-items-center justify-content-between p-3 rounded bg-body-tertiary h-100">
-                     <div class="d-flex align-items-center">
-                         <i class="bi bi-box-fill fs-3 text-secondary me-3"></i>
-                         <div>
-                             <h6 class="mb-0 fw-bold">Docker Engine</h6>
-                             <small class="text-secondary">System Service</small>
-                         </div>
-                     </div>
-                     <span class="badge bg-success">Running</span>
-                 </div>
+    <div class="col-md-3">
+        <div class="card border-top border-4 border-success h-100">
+            <div class="card-body">
+                <div class="text-uppercase small fw-bold text-secondary mb-1">Service Status</div>
+                <div class="d-flex flex-column gap-1 mt-2">
+                    <div class="d-flex justify-content-between small">
+                        <span>MySQL</span>
+                        <span class="badge {{ $mysqlStatus === 'active' ? 'bg-success' : 'bg-danger' }}">
+                             {{ $mysqlStatus === 'active' ? 'UP' : 'DOWN' }}
+                        </span>
+                    </div>
+                    <div class="d-flex justify-content-between small">
+                        <span>Nginx</span>
+                        <span class="badge {{ $nginxStatus === 'active' ? 'bg-success' : 'bg-danger' }}">
+                             {{ $nginxStatus === 'active' ? 'UP' : 'DOWN' }}
+                        </span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 @endif
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h4 class="fw-bold mb-0">My n8n Instances</h4>
-    <a href="{{ route('instances.create') }}" class="btn btn-success shadow-sm">
-        <i class="bi bi-plus-lg me-1"></i> Create Instance
-    </a>
+<h4 class="fw-bold mb-4">Common Tasks</h4>
+<div class="row g-4 mb-5">
+    <div class="col-md-6 col-lg-3">
+        <a href="{{ route('instances.create') }}" class="whm-card">
+            <div class="whm-panel-icon"><i class="bi bi-plus-circle"></i></div>
+            <h5 class="fw-bold">Create a New Account</h5>
+            <p class="small text-secondary mb-0">Provision a new n8n instance on the server.</p>
+        </a>
+    </div>
+    <div class="col-md-6 col-lg-3">
+        <a href="{{ route('instances.index') }}" class="whm-card">
+            <div class="whm-panel-icon"><i class="bi bi-list-ul"></i></div>
+            <h5 class="fw-bold">List Accounts</h5>
+            <p class="small text-secondary mb-0">View and manage all hosted instances.</p>
+        </a>
+    </div>
+    <div class="col-md-6 col-lg-3">
+        <a href="{{ route('packages.index') }}" class="whm-card">
+            <div class="whm-panel-icon"><i class="bi bi-box-seam"></i></div>
+            <h5 class="fw-bold">Feature Manager</h5>
+            <p class="small text-secondary mb-0">Define resource packages and limits.</p>
+        </a>
+    </div>
+    @role('admin')
+    <div class="col-md-6 col-lg-3">
+        <a href="{{ route('admin.settings.index') }}" class="whm-card">
+            <div class="whm-panel-icon"><i class="bi bi-gear"></i></div>
+            <h5 class="fw-bold">Server Configuration</h5>
+            <p class="small text-secondary mb-0">Configure basic setup and environment.</p>
+        </a>
+    </div>
+    @endrole
 </div>
 
-@if($containers->isEmpty())
-<div class="text-center py-5">
-    <div class="mb-3 text-secondary">
-        <i class="bi bi-box-seam fs-1"></i>
+<h4 class="fw-bold mb-3">Recent Accounts</h4>
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr class="text-secondary text-uppercase small">
+                    <th class="ps-4">Domain</th>
+                    <th>User</th>
+                    <th>Date Setup</th>
+                    <th>Package</th>
+                    <th>Status</th>
+                    <th class="text-end pe-4">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($containers->take(5) as $container)
+                <tr>
+                    <td class="ps-4 fw-bold">
+                        @if(isset($container['domain']) && $container['domain'])
+                            <a href="https://{{ $container['domain'] }}" target="_blank" class="text-decoration-none">{{ $container['domain'] }}</a>
+                        @else
+                            {{ $container['name'] }}
+                        @endif
+                    </td>
+                    <td>{{ $container['user'] ?? 'System' }}</td>
+                    <td>{{ \Carbon\Carbon::parse($container['created_at'] ?? now())->format('M d, Y') }}</td>
+                    <td>{{ $container['package'] ?? 'Default' }}</td>
+                    <td>
+                        @if(str_contains($container['status'], 'Up'))
+                            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25">Active</span>
+                        @else
+                            <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25">Suspended</span>
+                        @endif
+                    </td>
+                    <td class="text-end pe-4">
+                        <a href="{{ route('containers.show', $container['id']) }}" class="btn btn-sm btn-outline-secondary">Manage</a>
+                    </td>
+                </tr>
+                @empty
+                <tr><td colspan="6" class="text-center py-4 text-secondary">No accounts found.</td></tr>
+                @endforelse
+            </tbody>
+        </table>
     </div>
-    <h5 class="text-secondary">No n8n instances found</h5>
-    <p class="text-secondary mb-4">Get started by creating your first n8n instance.</p>
-    <a href="{{ route('instances.create') }}" class="btn btn-primary">Create Instance</a>
-</div>
-@else
-<div class="row g-4">
-    @foreach($containers as $container)
-    <div class="col-md-6 col-lg-4">
-        <div class="card h-100 shadow-sm container-card">
-            <div class="card-header bg-transparent border-0 pt-3 pb-0 d-flex justify-content-between align-items-start">
-                <div>
-                    <h5 class="fw-bold mb-1">{{ $container['name'] }}</h5>
-                    <small class="text-secondary">ID: {{ substr($container['docker_id'], 0, 12) }}</small>
-                </div>
-                @if(str_contains($container['status'], 'Up'))
-                    <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill d-flex align-items-center gap-1">
-                        <i class="bi bi-circle-fill" style="font-size: 0.5rem;"></i> Running
-                    </span>
-                @else
-                    <span class="badge bg-danger bg-opacity-10 text-danger px-3 py-2 rounded-pill d-flex align-items-center gap-1">
-                        <i class="bi bi-circle-fill" style="font-size: 0.5rem;"></i> Stopped
-                    </span>
-                @endif
-            </div>
-            <div class="card-body">
-                <div class="d-flex align-items-center mb-3 text-secondary">
-                    <i class="bi bi-hdd-network me-2"></i>
-                    <span>Port: <span class="fw-medium text-body">{{ $container['docker_id'] ? ($container['port'] ?? 'N/A') : 'N/A' }}</span> (Host)</span>
-                </div>
-                <div class="d-flex align-items-center text-secondary">
-                    <i class="bi bi-disc me-2"></i>
-                    <span class="text-truncate" style="max-width: 200px;">{{ $container['image'] }}</span>
-                </div>
-                <hr class="my-3 opacity-10">
-                <div class="d-flex gap-2">
-                     <a href="{{ route('containers.show', $container['id']) }}" class="btn btn-primary btn-sm flex-grow-1">
-                        <i class="bi bi-gear-fill"></i> Manage
-                     </a>
-
-                     @if(str_contains($container['status'], 'Up'))
-                        <form action="{{ route('containers.stop', $container['id']) }}" method="POST">
-                            @csrf
-                            <button type="submit" class="btn btn-outline-warning btn-sm" title="Stop">
-                                <i class="bi bi-stop-fill"></i>
-                            </button>
-                        </form>
-                    @else
-                        <form action="{{ route('containers.start', $container['id']) }}" method="POST">
-                            @csrf
-                            <button type="submit" class="btn btn-outline-success btn-sm" title="Start">
-                                <i class="bi bi-play-fill"></i>
-                            </button>
-                        </form>
-                    @endif
-                </div>
-            </div>
-        </div>
+    <div class="card-footer bg-transparent border-top p-3 text-center">
+        <a href="{{ route('instances.index') }}" class="text-decoration-none fw-bold small">View All Accounts &rarr;</a>
     </div>
-    @endforeach
 </div>
-@endif
 @endsection
