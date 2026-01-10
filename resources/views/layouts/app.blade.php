@@ -216,6 +216,9 @@
                 <a href="{{ route('containers.orphans') }}" class="nav-link {{ request()->routeIs('containers.orphans') ? 'active' : '' }}">
                     <i class="bi bi-search"></i> Orphan Discovery
                 </a>
+                <a href="{{ route('admin.api_logs.index') }}" class="nav-link {{ request()->routeIs('admin.api_logs.*') ? 'active' : '' }}">
+                    <i class="bi bi-journal-text"></i> API Logs
+                </a>
                 @endrole
             </nav>
         </aside>
