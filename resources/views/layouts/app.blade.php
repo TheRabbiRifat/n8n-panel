@@ -55,10 +55,10 @@
 
         [data-bs-theme="dark"] {
             --whm-sidebar-bg: #1a1d20;
-            --whm-sidebar-text: #adb5bd;
-            --whm-sidebar-hover: #212529;
-            --whm-header-bg: #212529;
-            --whm-header-text: #ffffff;
+            --whm-sidebar-text: #e9ecef;
+            --whm-sidebar-hover: #2b3035;
+            --whm-header-bg: #2b3035;
+            --whm-header-text: #f8f9fa;
         }
 
         body {
@@ -67,7 +67,7 @@
             font-size: 0.9rem;
         }
 
-        #wrapper { display: flex; min-height: 100vh; }
+        #wrapper { display: flex; min-height: 100vh; overflow-x: hidden; }
 
         /* Sidebar */
         #sidebar {
@@ -78,6 +78,7 @@
             display: flex;
             flex-direction: column;
             z-index: 1040;
+            transition: margin-left 0.3s ease-in-out;
         }
 
         #sidebar .brand {
@@ -165,9 +166,9 @@
 
         /* Mobile */
         @media (max-width: 768px) {
-            #sidebar { position: fixed; height: 100%; transform: translateX(-100%); transition: transform 0.3s; }
-            #sidebar.show { transform: translateX(0); }
-            #sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1030; }
+            #sidebar { position: fixed; height: 100%; transform: translateX(-100%); transition: transform 0.3s ease-in-out; box-shadow: none; }
+            #sidebar.show { transform: translateX(0); box-shadow: 0 0 15px rgba(0,0,0,0.5); }
+            #sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1030; transition: opacity 0.3s; }
             #sidebar-overlay.show { display: block; }
         }
     </style>
