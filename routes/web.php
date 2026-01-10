@@ -69,5 +69,8 @@ Route::middleware(['auth'])->group(function () {
 
         // Service Management
         Route::post('services/{service}/{action}', [ServiceController::class, 'handle'])->name('services.handle');
+
+        // API Logs
+        Route::get('api-logs', [App\Http\Controllers\ApiLogController::class, 'index'])->name('admin.api_logs.index');
     });
 });

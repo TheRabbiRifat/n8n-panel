@@ -106,6 +106,12 @@
 <div class="row g-4 mb-5">
     <div class="col-md-6 col-lg-3">
         <div class="whm-card h-100 d-flex flex-column justify-content-center">
+            <div class="text-secondary small text-uppercase fw-bold mb-1">Hostname</div>
+            <div class="fw-bold fs-5">{{ $systemStats['hostname'] }}</div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-3">
+        <div class="whm-card h-100 d-flex flex-column justify-content-center">
             <div class="text-secondary small text-uppercase fw-bold mb-1">Operating System</div>
             <div class="fw-bold fs-5">{{ $systemStats['os'] }}</div>
         </div>
