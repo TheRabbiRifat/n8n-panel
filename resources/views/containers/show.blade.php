@@ -115,7 +115,11 @@
                             </tr>
                             <tr>
                                 <th>RAM Limit:</th>
-                                <td>{{ $container->package->ram_limit }} MB</td>
+                                <td>{{ $container->package->ram_limit }} GB</td>
+                            </tr>
+                            <tr>
+                                <th>Disk Limit:</th>
+                                <td>{{ $container->package->disk_limit ?? 'Unl' }} GB</td>
                             </tr>
                             @endif
                             <tr>
@@ -147,7 +151,7 @@
                             <select class="form-select" name="package_id" id="package_id">
                                 @foreach($packages as $pkg)
                                     <option value="{{ $pkg->id }}" {{ $container->package_id == $pkg->id ? 'selected' : '' }}>
-                                        {{ $pkg->name }} ({{ $pkg->cpu_limit }} CPU, {{ $pkg->ram_limit }} MB)
+                                        {{ $pkg->name }} ({{ $pkg->cpu_limit }} CPU, {{ $pkg->ram_limit }} GB, {{ $pkg->disk_limit ?? 'Unl' }} GB)
                                     </option>
                                 @endforeach
                             </select>
