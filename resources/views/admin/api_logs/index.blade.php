@@ -49,11 +49,11 @@
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <h6 class="small fw-bold">Request</h6>
-                                                <pre class="small bg-white p-2 border rounded" style="max-height: 200px; overflow-y: auto;">{{ json_encode($log->request_payload, JSON_PRETTY_PRINT) }}</pre>
+                                                <pre class="small bg-white p-2 border rounded text-break" style="max-height: 200px; overflow-y: auto; white-space: pre-wrap;">{{ json_encode($log->request_payload, JSON_PRETTY_PRINT) }}</pre>
                                             </div>
                                             <div class="col-md-6">
                                                 <h6 class="small fw-bold">Response</h6>
-                                                <pre class="small bg-white p-2 border rounded" style="max-height: 200px; overflow-y: auto;">{{ json_encode($log->response_payload, JSON_PRETTY_PRINT) }}</pre>
+                                                <pre class="small bg-white p-2 border rounded text-break" style="max-height: 200px; overflow-y: auto; white-space: pre-wrap;">{{ json_encode($log->response_payload, JSON_PRETTY_PRINT) }}</pre>
                                             </div>
                                         </div>
                                     </div>
