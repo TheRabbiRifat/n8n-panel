@@ -35,6 +35,7 @@ Route::middleware(['auth:sanctum', 'role:admin', 'log.api'])->prefix('integratio
     Route::post('/instances/{id}/terminate', [App\Http\Controllers\Api\WhmcsController::class, 'terminate']);
     Route::post('/instances/{id}/suspend', [App\Http\Controllers\Api\WhmcsController::class, 'suspend']);
     Route::post('/instances/{id}/unsuspend', [App\Http\Controllers\Api\WhmcsController::class, 'unsuspend']);
+    Route::post('/instances/{id}/upgrade', [App\Http\Controllers\Api\WhmcsController::class, 'upgrade']);
     Route::get('/instances/{id}/stats', [App\Http\Controllers\Api\WhmcsController::class, 'stats']);
 
     // Packages

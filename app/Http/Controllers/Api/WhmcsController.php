@@ -235,6 +235,43 @@ class WhmcsController extends Controller
         }
     }
 
+    // UPGRADE PACKAGE
+    public function upgrade(Request $request, $id)
+    {
+        $request->validate([
+            'package_id' => 'required|exists:packages,id',
+        ]);
+
+        $container = Container::findOrFail($id);
+        $package = Package::findOrFail($request->package_id);
+
+        try {
+            // Update DB
+            $container->package_id = $package->id;
+            $container->save();
+
+            // Apply limits immediately via Docker Update
+            // Converting RAM to bytes or string format as needed by DockerService or CLI
+            // DockerService->create uses '512m' or '1g'. Package stores 'ram_limit' as int/float (GB usually).
+            // Let's assume standard 'docker update' accepts --memory and --cpus
+
+            // Logic similar to DockerService creation but updating
+            $memory = intval($package->ram_limit * 1024) . 'm'; // Convert GB to MB
+            $cpus = $package->cpu_limit;
+
+            Process::run("sudo docker update --memory={$memory} --memory-swap={$memory} --cpus={$cpus} " . $container->docker_id);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Package updated and resources applied.',
+                'new_package' => $package->name
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
+        }
+    }
+
     // STATS
     public function stats($id)
     {

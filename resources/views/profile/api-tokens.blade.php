@@ -173,6 +173,15 @@
     "package_id": 1,
     "name": "my-instance"
   }'</pre>
+                                <div class="mt-3">
+                                    <h6 class="small fw-bold text-muted">Response</h6>
+                                    <pre class="small bg-light border p-3 rounded mb-0 text-muted">{
+  "status": "success",
+  "instance_id": 1,
+  "domain": "my-instance.n8n.local",
+  "user_id": 2
+}</pre>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -189,6 +198,12 @@
                                 <p class="small">Start an instance.</p>
                                 <pre class="small bg-dark text-white p-3 rounded mb-0">curl -X POST "{{ 'https://' . gethostname() . '/api/integration/instances/1/start' }}" \
   -H "Authorization: Bearer YOUR_API_TOKEN"</pre>
+                                <div class="mt-3">
+                                    <h6 class="small fw-bold text-muted">Response</h6>
+                                    <pre class="small bg-light border p-3 rounded mb-0 text-muted">{
+  "status": "success"
+}</pre>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -205,6 +220,12 @@
                                 <p class="small">Stop an instance.</p>
                                 <pre class="small bg-dark text-white p-3 rounded mb-0">curl -X POST "{{ 'https://' . gethostname() . '/api/integration/instances/1/stop' }}" \
   -H "Authorization: Bearer YOUR_API_TOKEN"</pre>
+                                <div class="mt-3">
+                                    <h6 class="small fw-bold text-muted">Response</h6>
+                                    <pre class="small bg-light border p-3 rounded mb-0 text-muted">{
+  "status": "success"
+}</pre>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -221,6 +242,12 @@
                                 <p class="small">Suspend an instance (Stops and marks as suspended).</p>
                                 <pre class="small bg-dark text-white p-3 rounded mb-0">curl -X POST "{{ 'https://' . gethostname() . '/api/integration/instances/1/suspend' }}" \
   -H "Authorization: Bearer YOUR_API_TOKEN"</pre>
+                                <div class="mt-3">
+                                    <h6 class="small fw-bold text-muted">Response</h6>
+                                    <pre class="small bg-light border p-3 rounded mb-0 text-muted">{
+  "status": "success"
+}</pre>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -237,6 +264,40 @@
                                 <p class="small">Unsuspend an instance (Unmarks and starts).</p>
                                 <pre class="small bg-dark text-white p-3 rounded mb-0">curl -X POST "{{ 'https://' . gethostname() . '/api/integration/instances/1/unsuspend' }}" \
   -H "Authorization: Bearer YOUR_API_TOKEN"</pre>
+                                <div class="mt-3">
+                                    <h6 class="small fw-bold text-muted">Response</h6>
+                                    <pre class="small bg-light border p-3 rounded mb-0 text-muted">{
+  "status": "success"
+}</pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Upgrade Instance -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed py-2" type="button" data-bs-toggle="collapse" data-bs-target="#api-upgrade">
+                                <span class="badge bg-success me-2">POST</span> /instances/{id}/upgrade
+                            </button>
+                        </h2>
+                        <div id="api-upgrade" class="accordion-collapse collapse" data-bs-parent="#apiDocs">
+                            <div class="accordion-body bg-light">
+                                <p class="small">Change the package (Upgrade/Downgrade) and apply resources immediately.</p>
+                                <pre class="small bg-dark text-white p-3 rounded mb-0">curl -X POST "{{ 'https://' . gethostname() . '/api/integration/instances/1/upgrade' }}" \
+  -H "Authorization: Bearer YOUR_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "package_id": 2
+  }'</pre>
+                                <div class="mt-3">
+                                    <h6 class="small fw-bold text-muted">Response</h6>
+                                    <pre class="small bg-light border p-3 rounded mb-0 text-muted">{
+  "status": "success",
+  "message": "Package updated and resources applied.",
+  "new_package": "Gold Plan"
+}</pre>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -253,6 +314,12 @@
                                 <p class="small text-danger fw-bold">Permanently delete an instance and its data.</p>
                                 <pre class="small bg-dark text-white p-3 rounded mb-0">curl -X POST "{{ 'https://' . gethostname() . '/api/integration/instances/1/terminate' }}" \
   -H "Authorization: Bearer YOUR_API_TOKEN"</pre>
+                                <div class="mt-3">
+                                    <h6 class="small fw-bold text-muted">Response</h6>
+                                    <pre class="small bg-light border p-3 rounded mb-0 text-muted">{
+  "status": "success"
+}</pre>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -269,6 +336,13 @@
                                 <p class="small">Get real-time resource usage.</p>
                                 <pre class="small bg-dark text-white p-3 rounded mb-0">curl -X GET "{{ 'https://' . gethostname() . '/api/integration/instances/1/stats' }}" \
   -H "Authorization: Bearer YOUR_API_TOKEN"</pre>
+                                <div class="mt-3">
+                                    <h6 class="small fw-bold text-muted">Response</h6>
+                                    <pre class="small bg-light border p-3 rounded mb-0 text-muted">{
+  "status": "success",
+  "raw": "0.10%, 150MiB / 1GiB"
+}</pre>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -285,6 +359,21 @@
                                 <p class="small">List all available packages.</p>
                                 <pre class="small bg-dark text-white p-3 rounded mb-0">curl -X GET "{{ 'https://' . gethostname() . '/api/integration/packages' }}" \
   -H "Authorization: Bearer YOUR_API_TOKEN"</pre>
+                                <div class="mt-3">
+                                    <h6 class="small fw-bold text-muted">Response</h6>
+                                    <pre class="small bg-light border p-3 rounded mb-0 text-muted">{
+  "status": "success",
+  "packages": [
+    {
+      "id": 1,
+      "name": "Starter",
+      "cpu_limit": 1.0,
+      "ram_limit": 1.0,
+      "disk_limit": 10
+    }
+  ]
+}</pre>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -301,6 +390,19 @@
                                 <p class="small">Get details of a specific package.</p>
                                 <pre class="small bg-dark text-white p-3 rounded mb-0">curl -X GET "{{ 'https://' . gethostname() . '/api/integration/packages/1' }}" \
   -H "Authorization: Bearer YOUR_API_TOKEN"</pre>
+                                <div class="mt-3">
+                                    <h6 class="small fw-bold text-muted">Response</h6>
+                                    <pre class="small bg-light border p-3 rounded mb-0 text-muted">{
+  "status": "success",
+  "package": {
+    "id": 1,
+    "name": "Starter",
+    "cpu_limit": 1.0,
+    "ram_limit": 1.0,
+    "disk_limit": 10
+  }
+}</pre>
+                                </div>
                             </div>
                         </div>
                     </div>
