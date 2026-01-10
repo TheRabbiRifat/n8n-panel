@@ -279,6 +279,21 @@ class WhmcsController extends Controller
 
         // Return resource usage
         try {
+             // Fetch Status
+             $statusProcess = Process::run("sudo docker inspect --format '{{.State.Status}}' " . $container->docker_id);
+             $status = 'unknown';
+             if ($statusProcess->successful()) {
+                 $rawStatus = trim($statusProcess->output());
+                 // Map docker status to user friendly status
+                 $status = match ($rawStatus) {
+                     'running' => 'running',
+                     'exited' => 'stopped',
+                     'paused' => 'paused',
+                     'restarting' => 'restarting',
+                     default => $rawStatus,
+                 };
+             }
+
              // Fetch stats: CPU%, MemUsage, MemPerc
              $process = Process::run("sudo docker stats --no-stream --format \"{{.CPUPerc}};{{.MemUsage}};{{.MemPerc}}\" " . $container->docker_id);
 
@@ -296,6 +311,8 @@ class WhmcsController extends Controller
 
                      return response()->json([
                          'status' => 'success',
+                         'domain' => $container->domain,
+                         'instance_status' => $status,
                          'cpu_percent' => $cpu,
                          'memory_usage' => $memUsage,
                          'memory_limit' => $memLimit,
@@ -303,9 +320,25 @@ class WhmcsController extends Controller
                      ]);
                  }
 
-                 return response()->json(['status' => 'success', 'raw' => $output]);
+                 return response()->json([
+                     'status' => 'success',
+                     'domain' => $container->domain,
+                     'instance_status' => $status,
+                     'raw' => $output
+                 ]);
              }
-             return response()->json(['status' => 'error', 'message' => 'Could not fetch stats'], 500);
+
+             // If stats failed (e.g. container stopped), still return status and domain
+             return response()->json([
+                 'status' => 'success',
+                 'domain' => $container->domain,
+                 'instance_status' => $status,
+                 'cpu_percent' => 0,
+                 'memory_usage' => '0B',
+                 'memory_limit' => '0B',
+                 'memory_percent' => 0
+             ]);
+
         } catch (\Exception $e) {
              return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
         }
