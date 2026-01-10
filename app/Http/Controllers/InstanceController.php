@@ -60,7 +60,7 @@ class InstanceController extends Controller
 
     public function create()
     {
-        $versions = ['latest', 'next'];
+        $versions = ['stable', 'latest', 'beta'];
 
         $user = Auth::user();
         if ($user->hasRole('admin')) {
