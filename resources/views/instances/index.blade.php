@@ -14,6 +14,7 @@
                     <tr>
                         <th>Name</th>
                         <th>Domain</th>
+                        <th>Version</th>
                         <th>Status</th>
                         <th>Resources</th>
                         @role('admin')
@@ -35,6 +36,9 @@
                             @else
                                 <span class="text-muted">No Domain</span>
                             @endif
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-dark border">{{ $versions[$instance->image_tag] ?? $instance->image_tag }}</span>
                         </td>
                         <td>
                             @if(isset($instance->docker_state) && str_contains($instance->docker_state, 'running'))
