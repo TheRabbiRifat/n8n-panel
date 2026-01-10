@@ -9,10 +9,10 @@
 <div class="card shadow-sm">
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-striped table-hover mb-0">
+            <table class="table table-striped table-hover mb-0 align-middle">
                 <thead class="table-light">
                     <tr>
-                        <th>Name</th>
+                        <th class="ps-3">Name</th>
                         <th>Domain</th>
                         <th>Version</th>
                         <th>Status</th>
@@ -26,19 +26,19 @@
                 <tbody>
                     @forelse($instances as $instance)
                     <tr>
-                        <td>
+                        <td class="ps-3">
                             <div class="fw-bold">{{ $instance->name }}</div>
-                            <small class="text-muted">{{ substr($instance->docker_id, 0, 12) }}</small>
+                            <small class="text-secondary">{{ substr($instance->docker_id, 0, 12) }}</small>
                         </td>
                         <td>
                             @if($instance->domain)
-                                <a href="https://{{ $instance->domain }}" target="_blank">{{ $instance->domain }} <i class="bi bi-box-arrow-up-right small"></i></a>
+                                <a href="https://{{ $instance->domain }}" target="_blank" class="text-decoration-none">{{ $instance->domain }} <i class="bi bi-box-arrow-up-right small"></i></a>
                             @else
-                                <span class="text-muted">No Domain</span>
+                                <span class="text-secondary">No Domain</span>
                             @endif
                         </td>
                         <td>
-                            <span class="badge bg-light text-dark border">{{ $versions[$instance->image_tag] ?? $instance->image_tag }}</span>
+                            <span class="badge bg-body-secondary text-body border">{{ $instance->image_tag }}</span>
                         </td>
                         <td>
                             @if(isset($instance->docker_state) && str_contains($instance->docker_state, 'running'))
