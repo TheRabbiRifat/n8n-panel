@@ -170,7 +170,9 @@ class ContainerController extends Controller
              $packages = Package::where('user_id', $user->id)->get();
         }
 
-        return view('containers.show', compact('container', 'stats', 'logs', 'versions', 'packages'));
+        $timezones = \DateTimeZone::listIdentifiers();
+
+        return view('containers.show', compact('container', 'stats', 'logs', 'versions', 'packages', 'timezones'));
     }
 
     public function restart($id)
@@ -218,7 +220,7 @@ class ContainerController extends Controller
         $request->validate([
             'image_tag' => 'required|string',
             'package_id' => 'required|exists:packages,id',
-            'custom_env' => 'nullable|string', // Key=Value format
+            'generic_timezone' => 'required|string',
         ]);
 
         // 1. Prepare Configuration
@@ -226,39 +228,32 @@ class ContainerController extends Controller
         $globalEnv = GlobalSetting::where('key', 'n8n_env')->first();
         $envArray = $globalEnv ? json_decode($globalEnv->value, true) : [];
 
-        // Essential Envs
-        if ($container->domain) {
-            $envArray['N8N_HOST'] = $container->domain;
-            $envArray['N8N_PORT'] = 5678;
-            $envArray['N8N_PROTOCOL'] = 'https';
-            $envArray['WEBHOOK_URL'] = "https://{$container->domain}/";
-        }
+        // Fixed & Dynamic Envs (Not editable by user)
+        $fixedAndDynamic = [
+            'N8N_HOST' => $container->domain,
+            'N8N_PORT' => 5678,
+            'N8N_PROTOCOL' => 'https',
+            'WEBHOOK_URL' => "https://{$container->domain}/",
+            'N8N_SECURE_COOKIE' => 'false',
+            'N8N_VERSION_NOTIFICATIONS_ENABLED' => 'false',
+            'N8N_TELEMETRY_ENABLED' => 'false',
+            'EXECUTIONS_PROCESS' => 'main',
+            'N8N_BLOCK_ENV_ACCESS_IN_NODE' => 'true',
+        ];
 
-        // Preserve critical envs from existing record (e.g. Encryption Key)
+        $envArray = array_merge($envArray, $fixedAndDynamic);
+
+        // User Configurable: Timezone + Preserve Encryption Key
         $existingEnv = $container->environment ? json_decode($container->environment, true) : [];
-        $criticalKeys = ['N8N_ENCRYPTION_KEY', 'GENERIC_TIMEZONE'];
-        $preservedEnv = array_intersect_key($existingEnv, array_flip($criticalKeys));
-
-        // Custom Envs (Merge and Override)
-        $customEnvArray = [];
-        if ($request->custom_env) {
-            $lines = explode("\n", $request->custom_env);
-            foreach ($lines as $line) {
-                if (str_contains($line, '=')) {
-                    list($k, $v) = explode('=', trim($line), 2);
-                    $customEnvArray[trim($k)] = trim($v);
-                }
-            }
+        $userEnv = [
+            'GENERIC_TIMEZONE' => $request->generic_timezone,
+        ];
+        if (isset($existingEnv['N8N_ENCRYPTION_KEY'])) {
+            $userEnv['N8N_ENCRYPTION_KEY'] = $existingEnv['N8N_ENCRYPTION_KEY'];
         }
-
-        // Final Instance Env (Preserved + Custom)
-        $finalInstanceEnv = array_merge($preservedEnv, $customEnvArray);
 
         // Merge with Global for Docker creation
-        $envArray = array_merge($envArray, $finalInstanceEnv);
-
-        // Enforce Block Env Access (Security)
-        $envArray['N8N_BLOCK_ENV_ACCESS_IN_NODE'] = 'true';
+        $envArray = array_merge($envArray, $userEnv);
 
         // Volume Path
         $volumeHostPath = "/var/lib/n8n/instances/{$container->name}";
@@ -299,7 +294,7 @@ class ContainerController extends Controller
                 'image_tag' => $request->image_tag,
                 'docker_id' => $instance->getShortDockerIdentifier(),
                 'package_id' => $package->id,
-                'environment' => $finalInstanceEnv ? json_encode($finalInstanceEnv) : null,
+                'environment' => json_encode($userEnv),
             ]);
 
             DB::commit();
