@@ -131,6 +131,88 @@
                 </div>
             </div>
         </div>
+
+        <!-- API Documentation -->
+        <div class="card shadow-sm mt-4">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">API Documentation</h5>
+            </div>
+            <div class="card-body">
+                <p>Use your generated API Token to authenticate requests. Include the token in the <code>Authorization</code> header.</p>
+                <div class="alert alert-info py-2 small">
+                    <i class="bi bi-info-circle me-1"></i> Ensure your IP is whitelisted if you have configured IP restrictions for your token.
+                </div>
+
+                <h6 class="fw-bold mt-4">Endpoint Reference</h6>
+                <div class="accordion" id="apiDocs">
+                    <!-- Base URL -->
+                    <div class="mb-3">
+                        <label class="small text-muted text-uppercase fw-bold">Base URL</label>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-light">{{ url('/api/integration') }}</span>
+                            <button class="btn btn-outline-secondary" type="button" onclick="navigator.clipboard.writeText('{{ url('/api/integration') }}')"><i class="bi bi-clipboard"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- Create Instance -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed py-2" type="button" data-bs-toggle="collapse" data-bs-target="#api-create">
+                                <span class="badge bg-success me-2">POST</span> /instances/create
+                            </button>
+                        </h2>
+                        <div id="api-create" class="accordion-collapse collapse" data-bs-parent="#apiDocs">
+                            <div class="accordion-body bg-light">
+                                <p class="small">Create a new n8n instance.</p>
+                                <pre class="small bg-dark text-white p-3 rounded mb-0">curl -X POST "{{ url('/api/integration/instances/create') }}" \
+  -H "Authorization: Bearer YOUR_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "user@example.com",
+    "password": "secretpassword",
+    "package_id": 1,
+    "name": "my-instance",
+    "domain": "custom.domain.com"
+  }'</pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Instance Actions -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed py-2" type="button" data-bs-toggle="collapse" data-bs-target="#api-actions">
+                                <span class="badge bg-success me-2">POST</span> /instances/{id}/{action}
+                            </button>
+                        </h2>
+                        <div id="api-actions" class="accordion-collapse collapse" data-bs-parent="#apiDocs">
+                            <div class="accordion-body bg-light">
+                                <p class="small">Perform actions: <code>start</code>, <code>stop</code>, <code>suspend</code>, <code>unsuspend</code>, <code>terminate</code>.</p>
+                                <pre class="small bg-dark text-white p-3 rounded mb-0">curl -X POST "{{ url('/api/integration/instances/1/start') }}" \
+  -H "Authorization: Bearer YOUR_API_TOKEN" \
+  -H "Content-Type: application/json"</pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Get Stats -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed py-2" type="button" data-bs-toggle="collapse" data-bs-target="#api-stats">
+                                <span class="badge bg-primary me-2">GET</span> /instances/{id}/stats
+                            </button>
+                        </h2>
+                        <div id="api-stats" class="accordion-collapse collapse" data-bs-parent="#apiDocs">
+                            <div class="accordion-body bg-light">
+                                <p class="small">Get real-time resource usage.</p>
+                                <pre class="small bg-dark text-white p-3 rounded mb-0">curl -X GET "{{ url('/api/integration/instances/1/stats') }}" \
+  -H "Authorization: Bearer YOUR_API_TOKEN"</pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 @endsection
