@@ -115,7 +115,7 @@
                             </tr>
                             <tr>
                                 <th>RAM Limit:</th>
-                                <td>{{ $container->package->ram_limit }} MB</td>
+                                <td>{{ $container->package->ram_limit }} GB</td>
                             </tr>
                             @endif
                             <tr>
