@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>WHM Login</title>
+    <title>n8n Panel Login</title>
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
     <!-- Bootstrap -->
@@ -99,7 +99,7 @@
 
     <div class="login-card">
         <div class="login-logo">
-            <span style="color: var(--bs-body-color);">n8n</span> Host Manager
+            n8n Panel
         </div>
 
         @if ($errors->any())

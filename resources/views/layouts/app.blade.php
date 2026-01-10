@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>n8n Host Manager</title>
+    <title>n8n Panel</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -85,7 +85,7 @@
             display: flex;
             align-items: center;
             padding: 0 1.5rem;
-            font-size: 1.25rem;
+            font-size: 1.4rem;
             font-weight: 700;
             color: #fff;
             background-color: rgba(0,0,0,0.1);
@@ -179,7 +179,7 @@
         <!-- Sidebar -->
         <aside id="sidebar">
             <a href="{{ route('dashboard') }}" class="brand">
-                <span class="text-warning me-2">WHM</span> n8n Manager
+                n8n Panel
             </a>
 
             <div class="search-wrapper">
@@ -223,23 +223,32 @@
         <div id="content-wrapper">
             <!-- Top Bar -->
             <header id="topbar">
-                <div class="d-flex align-items-center gap-3">
-                    <button id="sidebarToggle" class="btn btn-link p-0 text-decoration-none d-md-none text-reset">
+                <div class="d-flex align-items-center gap-3 overflow-hidden">
+                    <button id="sidebarToggle" class="btn btn-link p-0 text-decoration-none d-md-none text-reset me-2">
                         <i class="bi bi-list fs-4"></i>
                     </button>
-                    <span class="fw-bold d-none d-md-inline">Server Time: {{ now()->format('H:i T') }}</span>
+
+                    <div class="d-none d-lg-flex flex-column small lh-1">
+                        <div class="fw-bold">{{ $serverInfo['hostname'] ?? 'localhost' }}</div>
+                        <div class="text-muted" style="font-size: 0.75rem;">{{ $serverInfo['ips'] ?? '127.0.0.1' }}</div>
+                    </div>
+
+                    <div class="vr mx-2 d-none d-lg-block"></div>
+
+                    <div class="d-none d-md-block small text-muted">
+                        <span class="fw-bold">Uptime:</span> {{ $serverInfo['uptime'] ?? 'Unknown' }}
+                    </div>
                 </div>
 
                 <div class="d-flex align-items-center gap-3">
-                    <div class="d-none d-md-flex align-items-center gap-2 small">
+                    <div class="d-none d-xl-flex align-items-center gap-2 small">
                         <span class="text-muted text-uppercase fw-bold" style="font-size: 0.7rem;">Load Averages</span>
-                        @php $load = sys_getloadavg(); @endphp
-                        <span class="badge bg-light text-dark border">{{ number_format($load[0], 2) }}</span>
-                        <span class="badge bg-light text-dark border">{{ number_format($load[1], 2) }}</span>
-                        <span class="badge bg-light text-dark border">{{ number_format($load[2], 2) }}</span>
+                        <span class="badge bg-light text-dark border">{{ $serverInfo['loads']['1'] ?? '0.00' }}</span>
+                        <span class="badge bg-light text-dark border">{{ $serverInfo['loads']['5'] ?? '0.00' }}</span>
+                        <span class="badge bg-light text-dark border">{{ $serverInfo['loads']['15'] ?? '0.00' }}</span>
                     </div>
 
-                    <div class="vr mx-1"></div>
+                    <div class="vr mx-1 d-none d-xl-block"></div>
 
                     <button onclick="window.toggleTheme()" class="btn btn-link text-reset p-1" title="Toggle Theme">
                          <i class="bi bi-moon-stars"></i>
