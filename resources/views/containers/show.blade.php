@@ -155,21 +155,18 @@
                     </div>
 
                     @php
-                        $currentEnv = '';
-                        if ($container->environment) {
-                            $decoded = json_decode($container->environment, true);
-                            if (is_array($decoded)) {
-                                foreach ($decoded as $k => $v) {
-                                    $currentEnv .= "{$k}={$v}\n";
-                                }
-                            }
-                        }
+                        $currentEnv = $container->environment ? json_decode($container->environment, true) : [];
+                        $currentTimezone = $currentEnv['GENERIC_TIMEZONE'] ?? 'Asia/Dhaka';
                     @endphp
 
                     <div class="mb-3">
-                        <label for="custom_env" class="form-label">Custom Environment Variables</label>
-                        <div class="form-text mb-2">Overrides global variables. Key=Value (One per line).</div>
-                        <textarea class="form-control font-monospace" name="custom_env" id="custom_env" rows="5" placeholder="MY_API_KEY=12345">{{ $currentEnv }}</textarea>
+                        <label for="generic_timezone" class="form-label">Timezone</label>
+                        <select class="form-select" name="generic_timezone" id="generic_timezone">
+                            @foreach($timezones as $tz)
+                                <option value="{{ $tz }}" {{ $currentTimezone == $tz ? 'selected' : '' }}>{{ $tz }}</option>
+                            @endforeach
+                        </select>
+                        <div class="form-text">Select the timezone for this n8n instance.</div>
                     </div>
 
                     <div class="alert alert-warning d-flex align-items-center">
