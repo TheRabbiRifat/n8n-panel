@@ -101,6 +101,34 @@
         </div>
     </div>
 </div>
+
+<h4 class="fw-bold mb-4">System Information</h4>
+<div class="row g-4 mb-5">
+    <div class="col-md-6 col-lg-3">
+        <div class="whm-card h-100 d-flex flex-column justify-content-center">
+            <div class="text-secondary small text-uppercase fw-bold mb-1">Operating System</div>
+            <div class="fw-bold fs-5">{{ $systemStats['os'] }}</div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-3">
+        <div class="whm-card h-100 d-flex flex-column justify-content-center">
+            <div class="text-secondary small text-uppercase fw-bold mb-1">Kernel Version</div>
+            <div class="fw-bold fs-5">{{ $systemStats['kernel'] }}</div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-3">
+        <div class="whm-card h-100 d-flex flex-column justify-content-center">
+            <div class="text-secondary small text-uppercase fw-bold mb-1">IP Address</div>
+            <div class="fw-bold fs-5">{{ $systemStats['ips'] }}</div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-3">
+        <div class="whm-card h-100 d-flex flex-column justify-content-center">
+            <div class="text-secondary small text-uppercase fw-bold mb-1">Uptime</div>
+            <div class="fw-bold fs-5">{{ $systemStats['uptime'] }}</div>
+        </div>
+    </div>
+</div>
 @endif
 
 <h4 class="fw-bold mb-4">Common Tasks</h4>
