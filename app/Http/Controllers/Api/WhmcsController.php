@@ -279,14 +279,30 @@ class WhmcsController extends Controller
 
         // Return resource usage
         try {
-             // Docker stats logic is usually via stream or momentary snapshot.
-             // DockerService has no getStats method visible in context, but Dashboard calls it via AJAX.
-             // Let's implement a simple stats fetch via DockerService logic replication.
-             $process = Process::run("sudo docker stats --no-stream --format \"{{.CPUPerc}},{{.MemUsage}}\" " . $container->docker_id);
+             // Fetch stats: CPU%, MemUsage, MemPerc
+             $process = Process::run("sudo docker stats --no-stream --format \"{{.CPUPerc}};{{.MemUsage}};{{.MemPerc}}\" " . $container->docker_id);
 
              if ($process->successful()) {
                  $output = trim($process->output());
-                 // Output example: 0.10%, 150MiB / 1GiB
+                 // Output example: 0.10%; 150MiB / 1GiB; 14.65%
+
+                 $parts = explode(';', $output);
+                 if (count($parts) === 3) {
+                     $cpu = floatval(str_replace('%', '', $parts[0]));
+                     $memParts = explode('/', $parts[1]);
+                     $memUsage = trim($memParts[0] ?? '0B');
+                     $memLimit = trim($memParts[1] ?? '0B');
+                     $memPerc = floatval(str_replace('%', '', $parts[2]));
+
+                     return response()->json([
+                         'status' => 'success',
+                         'cpu_percent' => $cpu,
+                         'memory_usage' => $memUsage,
+                         'memory_limit' => $memLimit,
+                         'memory_percent' => $memPerc
+                     ]);
+                 }
+
                  return response()->json(['status' => 'success', 'raw' => $output]);
              }
              return response()->json(['status' => 'error', 'message' => 'Could not fetch stats'], 500);
