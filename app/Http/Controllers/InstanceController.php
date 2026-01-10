@@ -55,7 +55,12 @@ class InstanceController extends Controller
             $instance->docker_state = $statsMap[$dbShortId]['state'] ?? 'stopped';
         }
 
-        return view('instances.index', compact('instances'));
+        $versions = [
+            'latest' => 'Stable',
+            'next' => 'Beta',
+        ];
+
+        return view('instances.index', compact('instances', 'versions'));
     }
 
     public function create()

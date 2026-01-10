@@ -32,6 +32,12 @@ class InstanceCreated extends Mailable
     {
         return new Content(
             view: 'emails.instances.created',
+            with: [
+                'versions' => [
+                    'latest' => 'Stable',
+                    'next' => 'Beta',
+                ],
+            ],
         );
     }
 }

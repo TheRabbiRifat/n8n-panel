@@ -120,7 +120,7 @@
                             @endif
                             <tr>
                                 <th>Version:</th>
-                                <td>{{ $container->image_tag ?? 'latest' }}</td>
+                                <td>{{ $versions[$container->image_tag ?? 'latest'] ?? ($container->image_tag ?? 'latest') }}</td>
                             </tr>
                         </table>
                     </div>

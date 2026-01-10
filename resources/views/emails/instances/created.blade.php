@@ -8,7 +8,7 @@
     <p><strong>Details:</strong></p>
     <ul>
         <li>Domain: <a href="https://{{ $container->domain }}">https://{{ $container->domain }}</a></li>
-        <li>Version: {{ $container->image_tag }}</li>
+        <li>Version: {{ $versions[$container->image_tag] ?? $container->image_tag }}</li>
     </ul>
 
     <p>You can manage your instance from the <a href="{{ route('instances.index') }}">Control Panel</a>.</p>
