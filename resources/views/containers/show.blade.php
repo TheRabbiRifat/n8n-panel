@@ -14,9 +14,6 @@
         </div>
     </div>
     <div>
-        <a href="{{ route('containers.logs.download', $container->id) }}" class="btn btn-outline-secondary me-2">
-            <i class="bi bi-download"></i> Download Logs
-        </a>
         <a href="{{ route('instances.index') }}" class="btn btn-secondary">Back to Instances</a>
     </div>
 </div>
@@ -191,8 +188,13 @@
 
             <!-- Logs Tab -->
             <div class="tab-pane fade" id="logs" role="tabpanel">
-                <div class="d-flex justify-content-end mb-2">
-                    <button class="btn btn-sm btn-outline-primary" id="copy-logs-btn"><i class="bi bi-clipboard"></i> Copy All Logs</button>
+                <div class="d-flex justify-content-end gap-2 mb-2">
+                    <a href="{{ route('containers.logs.download', $container->id) }}" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-download"></i> Download
+                    </a>
+                    <button class="btn btn-sm btn-outline-primary" id="copy-logs-btn">
+                        <i class="bi bi-clipboard"></i> Copy
+                    </button>
                 </div>
                 <div id="logs-terminal" style="height: 500px; width: 100%; overflow: hidden; padding: 0; margin: 0;"></div>
                 <style>
@@ -255,16 +257,28 @@
 
         // Copy Logs
         document.getElementById('copy-logs-btn').addEventListener('click', function() {
-            logsTerm.selectAll();
-            const text = logsTerm.getSelection();
-            logsTerm.clearSelection();
+            try {
+                logsTerm.selectAll();
+                const text = logsTerm.getSelection();
+                logsTerm.clearSelection();
 
-            navigator.clipboard.writeText(text).then(() => {
-                const btn = this;
-                const originalHtml = btn.innerHTML;
-                btn.innerHTML = '<i class="bi bi-check"></i> Copied';
-                setTimeout(() => btn.innerHTML = originalHtml, 2000);
-            });
+                if (!text) {
+                    alert('Log buffer is empty or selection failed.');
+                    return;
+                }
+
+                navigator.clipboard.writeText(text).then(() => {
+                    const btn = this;
+                    const originalHtml = btn.innerHTML;
+                    btn.innerHTML = '<i class="bi bi-check"></i> Copied';
+                    setTimeout(() => btn.innerHTML = originalHtml, 2000);
+                }).catch(err => {
+                    console.error('Clipboard write failed:', err);
+                    alert('Failed to copy logs to clipboard. Please check browser permissions.');
+                });
+            } catch (e) {
+                console.error('Copy logic error:', e);
+            }
         });
 
         // Live Stats
