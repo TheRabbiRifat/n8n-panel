@@ -52,9 +52,9 @@ class DashboardController extends Controller
         }
 
         if ($user->hasRole('admin')) {
-             $dbContainers = Container::all();
+             $dbContainers = Container::with(['user', 'package'])->get();
         } elseif ($user->hasRole('reseller')) {
-             $dbContainers = Container::where('user_id', $user->id)->get();
+             $dbContainers = Container::with(['user', 'package'])->where('user_id', $user->id)->get();
         } else {
              return abort(403);
         }
@@ -68,6 +68,10 @@ class DashboardController extends Controller
                 'docker_id' => $dbContainer->docker_id,
                 'name' => $dbContainer->name,
                 'port' => $dbContainer->port,
+                'domain' => $dbContainer->domain,
+                'user' => $dbContainer->user ? $dbContainer->user->name : 'System',
+                'package' => $dbContainer->package ? $dbContainer->package->name : 'Default',
+                'created_at' => $dbContainer->created_at,
                 'image' => $dockerInfo['image'] ?? 'Unknown',
                 'status' => $dockerInfo['status'] ?? 'Stopped/Unknown',
                 'state' => $dockerInfo['state'] ?? 'unknown',
