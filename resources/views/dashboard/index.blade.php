@@ -107,29 +107,44 @@
 </div>
 
 <h4 class="fw-bold mb-4">System Information</h4>
-<div class="row g-4 mb-5">
-    <div class="col-md-6 col-lg-3">
-        <div class="whm-card h-100 d-flex flex-column justify-content-center">
-            <div class="text-secondary small text-uppercase fw-bold mb-1">Hostname</div>
-            <div class="fw-bold fs-5">{{ $systemStats['hostname'] }}</div>
-        </div>
-    </div>
-    <div class="col-md-6 col-lg-3">
-        <div class="whm-card h-100 d-flex flex-column justify-content-center">
-            <div class="text-secondary small text-uppercase fw-bold mb-1">Operating System</div>
-            <div class="fw-bold fs-5">{{ $systemStats['os'] }}</div>
-        </div>
-    </div>
-    <div class="col-md-6 col-lg-3">
-        <div class="whm-card h-100 d-flex flex-column justify-content-center">
-            <div class="text-secondary small text-uppercase fw-bold mb-1">Kernel Version</div>
-            <div class="fw-bold fs-5">{{ $systemStats['kernel'] }}</div>
-        </div>
-    </div>
-    <div class="col-md-6 col-lg-3">
-        <div class="whm-card h-100 d-flex flex-column justify-content-center">
-            <div class="text-secondary small text-uppercase fw-bold mb-1">IP Address</div>
-            <div class="fw-bold fs-5">{{ $systemStats['ips'] }}</div>
+<div class="card mb-5">
+    <div class="card-body p-0">
+        <div class="row g-0">
+            <div class="col-md-4 p-4 border-bottom border-end-md">
+                <div class="d-flex align-items-center mb-2">
+                    <i class="bi bi-hdd-network fs-4 text-primary me-2"></i>
+                    <span class="text-secondary small text-uppercase fw-bold">Hostname</span>
+                </div>
+                <div class="fw-bold fs-5">{{ $systemStats['hostname'] }}</div>
+            </div>
+            <div class="col-md-4 p-4 border-bottom border-end-md">
+                <div class="d-flex align-items-center mb-2">
+                    <i class="bi bi-windows fs-4 text-info me-2"></i>
+                    <span class="text-secondary small text-uppercase fw-bold">OS Info</span>
+                </div>
+                <div class="fw-bold fs-5">{{ $systemStats['os'] }}</div>
+            </div>
+            <div class="col-md-4 p-4 border-bottom">
+                <div class="d-flex align-items-center mb-2">
+                    <i class="bi bi-cpu fs-4 text-danger me-2"></i>
+                    <span class="text-secondary small text-uppercase fw-bold">Kernel</span>
+                </div>
+                <div class="fw-bold fs-5">{{ $systemStats['kernel'] }}</div>
+            </div>
+            <div class="col-md-6 p-4 border-end-md">
+                <div class="d-flex align-items-center mb-2">
+                    <i class="bi bi-globe fs-4 text-success me-2"></i>
+                    <span class="text-secondary small text-uppercase fw-bold">IP Address</span>
+                </div>
+                <div class="fw-bold fs-5 font-monospace">{{ $systemStats['ips'] }}</div>
+            </div>
+            <div class="col-md-6 p-4">
+                <div class="d-flex align-items-center mb-2">
+                    <i class="bi bi-clock-history fs-4 text-warning me-2"></i>
+                    <span class="text-secondary small text-uppercase fw-bold">Uptime</span>
+                </div>
+                <div class="fw-bold fs-5">{{ $systemStats['uptime'] }}</div>
+            </div>
         </div>
     </div>
 </div>
