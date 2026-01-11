@@ -20,8 +20,11 @@ class LoginController extends Controller
             'password' => ['required'],
         ]);
 
-        if (Auth::attempt($credentials)) {
+        $remember = $request->filled('remember');
+
+        if (Auth::attempt($credentials, $remember)) {
             $request->session()->regenerate();
+            $request->session()->put('login_ip', $request->ip());
 
             return redirect()->intended('dashboard');
         }

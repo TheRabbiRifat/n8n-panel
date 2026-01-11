@@ -120,6 +120,11 @@
                 <input type="password" class="form-control" id="password" name="password" required placeholder="Enter your password">
             </div>
 
+            <div class="mb-4 form-check">
+                <input type="checkbox" class="form-check-input" id="remember" name="remember">
+                <label class="form-check-label small" for="remember">Remember me</label>
+            </div>
+
             <button type="submit" class="btn btn-login shadow-sm">
                 Log in
             </button>
