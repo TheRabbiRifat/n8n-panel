@@ -10,6 +10,7 @@ class RoleController extends Controller
 {
     public function index()
     {
+        $this->authorize('manage_roles');
         $roles = Role::with('permissions')->get();
         $permissions = Permission::all();
         return view('admin.roles.index', compact('roles', 'permissions'));
@@ -17,6 +18,7 @@ class RoleController extends Controller
 
     public function store(Request $request)
     {
+        $this->authorize('manage_roles');
         $request->validate([
             'name' => 'required|string|unique:roles,name',
             'permissions' => 'array'
@@ -32,6 +34,7 @@ class RoleController extends Controller
 
     public function update(Request $request, $id)
     {
+        $this->authorize('manage_roles');
         $role = Role::findOrFail($id);
         $request->validate([
             'name' => 'required|string|unique:roles,name,' . $id,
@@ -48,6 +51,7 @@ class RoleController extends Controller
 
     public function destroy($id)
     {
+        $this->authorize('manage_roles');
         $role = Role::findOrFail($id);
         if($role->name === 'admin' || $role->name === 'reseller' || $role->name === 'client') {
              return back()->with('error', 'Cannot delete system roles.');

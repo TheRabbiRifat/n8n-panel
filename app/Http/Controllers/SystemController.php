@@ -17,6 +17,7 @@ class SystemController extends Controller
 
     public function index()
     {
+        $this->authorize('view_system');
         $hostname = gethostname();
         $services = ['nginx' => 'Nginx', 'mysql' => 'MySQL', 'docker' => 'Docker'];
         $serviceStatus = [];
@@ -29,6 +30,7 @@ class SystemController extends Controller
 
     public function updateHostname(Request $request)
     {
+        $this->authorize('manage_settings');
         $request->validate([
             'hostname' => 'required|string|alpha_dash'
         ]);
@@ -45,6 +47,7 @@ class SystemController extends Controller
 
     public function reboot()
     {
+        $this->authorize('manage_settings');
         // Execute reboot in background to allow response
         Process::run("(sleep 2 && sudo reboot) &");
         return back()->with('success', 'Server is rebooting...');
@@ -52,6 +55,7 @@ class SystemController extends Controller
 
     public function restartService(Request $request, $service)
     {
+        $this->authorize('manage_settings');
         try {
             $this->serviceManager->restart($service);
             return back()->with('success', ucfirst($service) . ' restarted.');

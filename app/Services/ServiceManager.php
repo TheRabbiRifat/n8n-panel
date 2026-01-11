@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Process;
 
 class ServiceManager
 {
-    protected $allowedServices = ['nginx', 'mysql', 'mariadb'];
+    protected $allowedServices = ['nginx', 'mysql', 'mariadb', 'docker'];
 
     public function getStatus(string $service)
     {
