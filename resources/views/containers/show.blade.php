@@ -186,7 +186,12 @@
 
             <!-- Logs Tab -->
             <div class="tab-pane fade" id="logs" role="tabpanel">
-                <div id="logs-terminal" style="height: 500px; width: 100%;"></div>
+                <div id="logs-terminal" style="height: 500px; width: 100%; overflow: hidden; padding: 0; margin: 0;"></div>
+                <style>
+                    #logs-terminal .xterm-viewport {
+                        overflow-y: auto !important;
+                    }
+                </style>
             </div>
         </div>
     </div>
