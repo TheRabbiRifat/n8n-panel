@@ -166,8 +166,8 @@
         }
 
         /* Content */
-        #content-wrapper { flex-grow: 1; display: flex; flex-direction: column; }
-        .main-content { padding: 2.5rem; flex-grow: 1; }
+        #content-wrapper { flex-grow: 1; display: flex; flex-direction: column; min-width: 0; }
+        .main-content { padding: 2.5rem; flex-grow: 1; overflow-x: hidden; }
 
         /* Modern Card */
         .card {
@@ -197,6 +197,9 @@
             #sidebar.show { transform: translateX(0); box-shadow: 0 0 15px rgba(0,0,0,0.5); }
             #sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1030; transition: opacity 0.3s; }
             #sidebar-overlay.show { display: block; }
+
+            .main-content { padding: 1rem; }
+            #topbar { padding: 0 1rem; }
         }
     </style>
 </head>
