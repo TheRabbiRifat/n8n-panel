@@ -200,12 +200,21 @@
         const logsTerm = new Terminal({
             cursorBlink: true,
             theme: { background: '#1e1e1e' },
-            convertEol: true
+            convertEol: true,
+            scrollback: 1000,
+            disableStdin: true
         });
         const fitAddonLogs = new FitAddon.FitAddon();
         logsTerm.loadAddon(fitAddonLogs);
         logsTerm.open(document.getElementById('logs-terminal'));
-        fitAddonLogs.fit();
+
+        // Ensure fit is called after render
+        setTimeout(() => fitAddonLogs.fit(), 100);
+
+        // Handle Window Resize
+        window.addEventListener('resize', () => {
+            fitAddonLogs.fit();
+        });
 
         let logsInterval;
         const logsTabBtn = document.getElementById('logs-tab');
@@ -221,7 +230,8 @@
         }
 
         logsTabBtn.addEventListener('shown.bs.tab', function() {
-            fitAddonLogs.fit();
+            // Re-fit when tab becomes visible
+            setTimeout(() => fitAddonLogs.fit(), 50);
             fetchLogs();
             logsInterval = setInterval(fetchLogs, 3000); // Poll every 3s
         });
