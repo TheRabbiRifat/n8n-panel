@@ -1,106 +1,111 @@
-# n8n Control Panel
+# n8n Host Manager Panel
 
-**A lightweight, backend-first control panel built with Laravel for managing n8n instances and Docker containers.**
-Designed for VPS hosting environments, this system supports **role-based access**, **container management**, and **user-level resource control**.
-
----
-
-## Features
-
-### 1. **User Management & Authentication**
-
-* Secure login system with **email/password authentication**.
-* Forgot password functionality.
-* **Role-based access**:
-
-  * **Admin** – Full access to all system features.
-  * **Reseller** – Limited access to assigned containers and user resources.
-* Middleware guards prevent unauthorized access to protected routes.
+**A robust, backend-first control panel built with Laravel for provisioning and managing n8n instances via Docker.**
+Designed for VPS hosting environments and SaaS providers, this system offers **role-based access**, **automated provisioning**, **resource management**, and a **comprehensive API** for external integrations (WHMCS).
 
 ---
 
-### 2. **Role & Permission Management**
+## 🚀 Key Features
 
-* Powered by **Spatie Laravel Permission** package.
-* **Assign roles** to users (admin or reseller).
-* Role-based dashboard routing:
+### 🖥️ Dashboard & Monitoring
+* **System Status:** Real-time monitoring of Hostname, OS, Kernel Version, IP Addresses, and Uptime.
+* **Instance Overview:** View all hosted instances with quick status indicators (Running, Stopped, Paused).
+* **Resource Stats:** Live CPU and Memory usage tracking per instance.
+* **Modern UI:** Responsive, Slate-themed interface with dark mode support and sidebar search.
 
-  * Admins are directed to the admin panel.
-  * Resellers are directed to a reseller-specific dashboard.
-* Easily expandable with custom permissions for advanced access control.
+### 📦 Instance Management
+* **Automated Provisioning:** One-click deployment of n8n containers with Nginx reverse proxy and SSL configuration.
+* **Power Controls:** Start, Stop, Restart, Suspend, and Unsuspend instances instantly.
+* **Resource Packages:** Define limits for CPU, RAM, and Disk usage via configurable packages.
+* **Live Logs:** View real-time container logs with download and clipboard copy support.
+* **Upgrades:** Seamlessly upgrade instance resource packages with immediate effect.
 
----
+### 🔑 Role-Based Access Control (RBAC)
+* **Granular Permissions:** Built on Spatie Permissions. Assign specific capabilities (e.g., `manage_instances`, `view_logs`) to custom roles.
+* **User Roles:**
+  * **Admin:** Full system access, including server power management and API logs.
+  * **Reseller:** Manage assigned users and instances.
+  * **Client:** Access to personal instances only.
 
-### 3. **Docker Container Management**
+### 🔌 Integration API
+A full-featured REST API designed for integration with billing systems like **WHMCS**.
+* **Endpoints:** Create, Terminate, Suspend, Unsuspend, Upgrade, and Get Stats.
+* **Security:** Authenticated via Sanctum Tokens with IP Whitelisting capabilities.
+* **Logging:** Comprehensive database logging of all API requests with sensitive data redaction.
+* **Documentation:** Built-in API documentation panel with dynamic curl examples.
 
-* Integrates **Spatie Docker package** for Laravel-friendly Docker API.
-* **Container CRUD operations**:
-
-  * List all containers (with filtering by user if applicable).
-  * Start, stop, and remove containers directly from the dashboard.
-  * Create new containers with configurable options.
-* **Container monitoring**:
-
-  * View container IDs, names, status, and resource usage.
-  * Supports `running`, `stopped`, and `paused` states.
-* Role-based container management:
-
-  * Admins can manage all containers.
-  * Resellers manage only assigned containers.
-
----
-
-### 4. **Resource Management**
-
-* Assign CPU and RAM limits per container (optional).
-* Monitor container resource consumption.
-* Ensure isolated resources for multiple users or resellers.
+### ⚙️ System Administration
+* **Server Management:** Update Hostname, Reboot Server, and Restart Services (Nginx, MySQL, Docker) directly from the panel.
+* **API Logs:** Audit trail of all external API interactions.
+* **Orphan Discovery:** Detect and import unmanaged Docker containers into the panel.
 
 ---
 
-### 5. **Dashboard & UI**
+## 🛠️ Technical Stack
 
-* Minimal, backend-first **Blade templates** (no npm/Vite required).
-* User-friendly tables for container management.
-* Action buttons for **Start**, **Stop**, and **Remove** operations.
-* Extendable layout for future enhancements.
-
----
-
-### 6. **Security & Permissions**
-
-* All routes protected via **Laravel middleware**.
-* Role-based route guards prevent unauthorized operations.
-* Web server restricted from directly manipulating Docker — all operations run via controlled Laravel services.
-* No frontend dependencies — reduces attack surface and simplifies server management.
+* **Framework:** Laravel 11 (PHP 8.2+)
+* **Database:** MySQL / MariaDB (or SQLite)
+* **Containerization:** Docker (managed via `sudo` process wrappers)
+* **Web Server:** Nginx (Automated VHost management)
+* **Frontend:** Blade Templates + Bootstrap 5 (No heavy Node.js build steps required)
 
 ---
 
-### 7. **Extensibility**
+## 📥 Installation
 
-* **Add new roles or permissions** using Spatie’s role management.
-* Easily integrate **additional n8n instance management features**:
+1. **Clone the Repository**
+   ```bash
+   git clone https://github.com/your-repo/n8n-panel.git
+   cd n8n-panel
+   ```
 
-  * Environment variable updates per instance.
-  * Logs access.
-  * Container rebuild/restart operations.
-* Can be extended with APIs for automated VPS provisioning or SaaS reseller dashboards.
+2. **Install Dependencies**
+   ```bash
+   composer install
+   ```
+
+3. **Environment Setup**
+   ```bash
+   cp .env.example .env
+   php artisan key:generate
+   ```
+   *Configure your database settings in `.env`.*
+
+4. **Database Migration & Seeding**
+   ```bash
+   php artisan migrate --seed
+   ```
+   *Seeds default roles (Admin, Reseller) and permissions.*
+
+5. **Server Configuration**
+   Ensure the web user (e.g., `www-data`) has `sudo` privileges for specific commands (`docker`, `systemctl`, `hostnamectl`) without password prompt. Add to `/etc/sudoers`:
+   ```bash
+   www-data ALL=(root) NOPASSWD: /usr/bin/docker, /usr/bin/systemctl, /usr/bin/hostnamectl, /usr/sbin/reboot
+   ```
 
 ---
 
-### 8. **Developer-Friendly Backend**
+## 🔗 API Usage
 
-* Fully Laravel-powered architecture.
-* Clean MVC separation.
-* Services for Docker abstraction (`DockerService`) to allow centralized container management logic.
-* Easily extendable for custom business logic, automated workflows, or integration with n8n APIs.
+The panel provides a dedicated API for external integrations.
+
+**Base URL:** `https://your-panel.com/api/integration`
+
+### Authentication
+Include your API Token in the header:
+`Authorization: Bearer <your-token>`
+
+### Common Endpoints
+* `POST /instances/create` - Provision a new instance.
+* `POST /instances/{id}/start` - Start an instance.
+* `POST /instances/{id}/stop` - Stop an instance.
+* `GET /instances/{id}/stats` - Get JSON-formatted resource usage.
+* `POST /instances/{id}/upgrade` - Change resource package.
+
+*Check the **"Manage API Tokens"** section in the user profile for full documentation and example requests.*
 
 ---
 
-### 9. **Key Advantages**
+## 📝 License
 
-* Lightweight and minimal — no npm, no Vite required.
-* Supports multi-user environment with secure role-based access.
-* Centralized Docker container management for VPS hosting.
-* Modular and developer-friendly design, making it ideal for SaaS hosting, reseller platforms, or internal automation dashboards.
-
+This software is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
