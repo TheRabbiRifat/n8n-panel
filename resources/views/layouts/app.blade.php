@@ -269,7 +269,7 @@
 
                     <div class="d-none d-lg-flex flex-column small lh-1">
                         <div class="fw-bold">{{ $serverInfo['hostname'] ?? 'localhost' }}</div>
-                        <div class="text-muted" style="font-size: 0.75rem;">{{ $serverInfo['ips'] ?? '127.0.0.1' }}</div>
+                        <div class="text-muted text-truncate" style="font-size: 0.75rem; max-width: 200px;" title="{{ $serverInfo['ips'] ?? '127.0.0.1' }}">{{ $serverInfo['ips'] ?? '127.0.0.1' }}</div>
                     </div>
 
                     <div class="vr mx-2 d-none d-lg-block"></div>
@@ -341,7 +341,7 @@
             </main>
 
             <footer class="text-center py-3 text-muted small border-top">
-                &copy; {{ date('Y') }} n8n Host Manager. All rights reserved.
+                &copy; {{ date('Y') }} n8n Host Manager. All rights reserved. <span class="ms-2 badge bg-light text-secondary border">v1.0.0</span>
             </footer>
         </div>
     </div>

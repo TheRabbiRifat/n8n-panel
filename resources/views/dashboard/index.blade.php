@@ -147,7 +147,7 @@
                     <i class="bi bi-ethernet fs-4 text-success me-2"></i>
                     <span class="text-secondary small text-uppercase fw-bold">IP Address</span>
                 </div>
-                <div class="fw-bold fs-5 font-monospace text-truncate" title="{{ $systemStats['ips'] }}">{{ $systemStats['ips'] }}</div>
+                <div class="fw-bold fs-6 font-monospace lh-sm" style="white-space: pre-wrap;">{{ str_replace(' ', "\n", $systemStats['ips']) }}</div>
             </div>
             <div class="col-md-6 sys-info-item">
                 <div class="d-flex align-items-center mb-2">
