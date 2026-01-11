@@ -252,6 +252,12 @@
                 <a href="{{ route('containers.orphans') }}" class="nav-link {{ request()->routeIs('containers.orphans') ? 'active' : '' }}">
                     <i class="bi bi-search"></i> Docker Discovery
                 </a>
+                <a href="{{ route('roles.index') }}" class="nav-link {{ request()->routeIs('roles.*') ? 'active' : '' }}">
+                    <i class="bi bi-shield-lock"></i> Roles & Permissions
+                </a>
+                <a href="{{ route('admin.system.index') }}" class="nav-link {{ request()->routeIs('admin.system.*') ? 'active' : '' }}">
+                    <i class="bi bi-hdd-rack"></i> System Settings
+                </a>
                 <a href="{{ route('admin.api_logs.index') }}" class="nav-link {{ request()->routeIs('admin.api_logs.*') ? 'active' : '' }}">
                     <i class="bi bi-journal-text"></i> API Logs
                 </a>

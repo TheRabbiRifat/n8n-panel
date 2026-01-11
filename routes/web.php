@@ -73,5 +73,15 @@ Route::middleware(['auth'])->group(function () {
 
         // API Logs
         Route::get('api-logs', [App\Http\Controllers\ApiLogController::class, 'index'])->name('admin.api_logs.index');
+
+        // Roles & Permissions
+        Route::resource('roles', \App\Http\Controllers\RoleController::class);
+        Route::resource('permissions', \App\Http\Controllers\PermissionController::class);
+
+        // System Settings
+        Route::get('system', [\App\Http\Controllers\SystemController::class, 'index'])->name('admin.system.index');
+        Route::post('system/hostname', [\App\Http\Controllers\SystemController::class, 'updateHostname'])->name('admin.system.hostname');
+        Route::post('system/reboot', [\App\Http\Controllers\SystemController::class, 'reboot'])->name('admin.system.reboot');
+        Route::post('system/services/{service}/restart', [\App\Http\Controllers\SystemController::class, 'restartService'])->name('admin.system.service.restart');
     });
 });
