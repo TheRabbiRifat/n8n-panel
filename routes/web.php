@@ -39,18 +39,6 @@ Route::middleware(['auth'])->group(function () {
     // Instance Management (CRUD)
     Route::resource('instances', InstanceController::class)->except(['show', 'edit', 'update']);
 
-    // Detailed Instance Management (Actions)
-    Route::get('containers/{id}', [ContainerController::class, 'show'])->name('containers.show');
-    Route::put('containers/{id}', [ContainerController::class, 'update'])->name('containers.update');
-    Route::post('containers/{id}/restart', [ContainerController::class, 'restart'])->name('containers.restart');
-    Route::get('containers/{id}/logs', [ContainerController::class, 'logs'])->name('containers.logs');
-    Route::get('containers/{id}/logs/download', [ContainerController::class, 'downloadLogs'])->name('containers.logs.download');
-    Route::get('containers/{id}/stats', [ContainerController::class, 'stats'])->name('containers.stats');
-
-    Route::post('containers/{id}/start', [ContainerController::class, 'start'])->name('containers.start');
-    Route::post('containers/{id}/stop', [ContainerController::class, 'stop'])->name('containers.stop');
-    Route::delete('containers/{id}', [ContainerController::class, 'destroy'])->name('containers.destroy');
-
     // User Management (Admin Only)
     Route::middleware(['role:admin'])->group(function () {
         Route::resource('users', UserController::class);
@@ -63,10 +51,26 @@ Route::middleware(['auth'])->group(function () {
         Route::get('settings/panel', [App\Http\Controllers\AdminSettingsController::class, 'index'])->name('admin.settings.index');
         Route::put('settings/panel', [App\Http\Controllers\AdminSettingsController::class, 'update'])->name('admin.settings.update');
 
-        // Container Discovery
+        // Container Discovery (Must be before container details)
         Route::get('containers/orphans', [ContainerController::class, 'orphans'])->name('containers.orphans');
         Route::post('containers/import', [ContainerController::class, 'import'])->name('containers.import');
         Route::delete('containers/orphans', [ContainerController::class, 'deleteOrphan'])->name('containers.deleteOrphan');
+    });
+
+    // Detailed Instance Management (Actions)
+    Route::get('containers/{id}', [ContainerController::class, 'show'])->name('containers.show');
+    Route::put('containers/{id}', [ContainerController::class, 'update'])->name('containers.update');
+    Route::post('containers/{id}/restart', [ContainerController::class, 'restart'])->name('containers.restart');
+    Route::get('containers/{id}/logs', [ContainerController::class, 'logs'])->name('containers.logs');
+    Route::get('containers/{id}/logs/download', [ContainerController::class, 'downloadLogs'])->name('containers.logs.download');
+    Route::get('containers/{id}/stats', [ContainerController::class, 'stats'])->name('containers.stats');
+
+    Route::post('containers/{id}/start', [ContainerController::class, 'start'])->name('containers.start');
+    Route::post('containers/{id}/stop', [ContainerController::class, 'stop'])->name('containers.stop');
+    Route::delete('containers/{id}', [ContainerController::class, 'destroy'])->name('containers.destroy');
+
+    // Admin Routes Continued
+    Route::middleware(['role:admin'])->group(function () {
 
         // Service Management
         Route::post('services/{service}/{action}', [ServiceController::class, 'handle'])->name('services.handle');
