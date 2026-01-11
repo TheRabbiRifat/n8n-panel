@@ -107,43 +107,54 @@
 </div>
 
 <h4 class="fw-bold mb-4">System Information</h4>
-<div class="card mb-5">
+<div class="card mb-5 overflow-hidden">
     <div class="card-body p-0">
+        <style>
+            .sys-info-item { padding: 1.5rem; border-bottom: 1px solid var(--bs-border-color); }
+            @media (min-width: 768px) {
+                .sys-info-item { border-bottom: none; }
+                .sys-info-row-1 { border-bottom: 1px solid var(--bs-border-color); }
+                .sys-info-col-border { border-right: 1px solid var(--bs-border-color); }
+            }
+        </style>
         <div class="row g-0">
-            <div class="col-md-4 p-4 border-bottom border-end-md">
+            <!-- Row 1 -->
+            <div class="col-md-4 sys-info-item sys-info-row-1 sys-info-col-border">
                 <div class="d-flex align-items-center mb-2">
-                    <i class="bi bi-hdd-network fs-4 text-primary me-2"></i>
+                    <i class="bi bi-server fs-4 text-primary me-2"></i>
                     <span class="text-secondary small text-uppercase fw-bold">Hostname</span>
                 </div>
-                <div class="fw-bold fs-5">{{ $systemStats['hostname'] }}</div>
+                <div class="fw-bold fs-5 text-truncate" title="{{ $systemStats['hostname'] }}">{{ $systemStats['hostname'] }}</div>
             </div>
-            <div class="col-md-4 p-4 border-bottom border-end-md">
+            <div class="col-md-4 sys-info-item sys-info-row-1 sys-info-col-border">
                 <div class="d-flex align-items-center mb-2">
-                    <i class="bi bi-windows fs-4 text-info me-2"></i>
+                    <i class="bi bi-hdd-stack fs-4 text-info me-2"></i>
                     <span class="text-secondary small text-uppercase fw-bold">OS Info</span>
                 </div>
-                <div class="fw-bold fs-5">{{ $systemStats['os'] }}</div>
+                <div class="fw-bold fs-5 text-truncate" title="{{ $systemStats['os'] }}">{{ $systemStats['os'] }}</div>
             </div>
-            <div class="col-md-4 p-4 border-bottom">
+            <div class="col-md-4 sys-info-item sys-info-row-1">
                 <div class="d-flex align-items-center mb-2">
                     <i class="bi bi-cpu fs-4 text-danger me-2"></i>
                     <span class="text-secondary small text-uppercase fw-bold">Kernel</span>
                 </div>
-                <div class="fw-bold fs-5">{{ $systemStats['kernel'] }}</div>
+                <div class="fw-bold fs-5 text-truncate" title="{{ $systemStats['kernel'] }}">{{ $systemStats['kernel'] }}</div>
             </div>
-            <div class="col-md-6 p-4 border-end-md">
+
+            <!-- Row 2 -->
+            <div class="col-md-6 sys-info-item sys-info-col-border">
                 <div class="d-flex align-items-center mb-2">
-                    <i class="bi bi-globe fs-4 text-success me-2"></i>
+                    <i class="bi bi-ethernet fs-4 text-success me-2"></i>
                     <span class="text-secondary small text-uppercase fw-bold">IP Address</span>
                 </div>
-                <div class="fw-bold fs-5 font-monospace">{{ $systemStats['ips'] }}</div>
+                <div class="fw-bold fs-5 font-monospace text-truncate" title="{{ $systemStats['ips'] }}">{{ $systemStats['ips'] }}</div>
             </div>
-            <div class="col-md-6 p-4">
+            <div class="col-md-6 sys-info-item">
                 <div class="d-flex align-items-center mb-2">
-                    <i class="bi bi-clock-history fs-4 text-warning me-2"></i>
+                    <i class="bi bi-activity fs-4 text-warning me-2"></i>
                     <span class="text-secondary small text-uppercase fw-bold">Uptime</span>
                 </div>
-                <div class="fw-bold fs-5">{{ $systemStats['uptime'] }}</div>
+                <div class="fw-bold fs-5 text-truncate" title="{{ $systemStats['uptime'] }}">{{ $systemStats['uptime'] }}</div>
             </div>
         </div>
     </div>
