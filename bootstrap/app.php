@@ -21,6 +21,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->api(append: [
             \App\Http\Middleware\CheckApiIp::class,
         ]);
+
+        $middleware->web(append: [
+            \App\Http\Middleware\CheckSessionIp::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
