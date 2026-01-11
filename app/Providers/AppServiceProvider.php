@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\View;
 use App\Services\SystemStatusService;
 use Laravel\Sanctum\Sanctum;
 use App\Models\PersonalAccessToken;
+use Illuminate\Support\Facades\Gate;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -24,6 +25,11 @@ class AppServiceProvider extends ServiceProvider
     public function boot(SystemStatusService $systemStatusService): void
     {
         Sanctum::usePersonalAccessTokenModel(PersonalAccessToken::class);
+
+        // Implicitly grant "Super Admin" role all permissions
+        Gate::before(function ($user, $ability) {
+            return $user->hasRole('admin') ? true : null;
+        });
 
         // Share system info with the main layout
         View::composer('layouts.app', function ($view) use ($systemStatusService) {
