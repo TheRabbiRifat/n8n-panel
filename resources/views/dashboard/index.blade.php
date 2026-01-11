@@ -106,6 +106,7 @@
     </div>
 </div>
 
+@can('view_system')
 <h4 class="fw-bold mb-4">System Information</h4>
 <div class="card mb-5 overflow-hidden">
     <div class="card-body p-0">
@@ -159,6 +160,7 @@
         </div>
     </div>
 </div>
+@endcan
 @endif
 
 <h4 class="fw-bold mb-4">Common Tasks</h4>
@@ -184,7 +186,7 @@
             <p class="small text-secondary mb-0">Define resource packages and limits.</p>
         </a>
     </div>
-    @role('admin')
+    @can('manage_settings')
     <div class="col-md-6 col-lg-3">
         <a href="{{ route('admin.settings.index') }}" class="whm-card">
             <div class="whm-panel-icon"><i class="bi bi-gear"></i></div>
@@ -192,7 +194,7 @@
             <p class="small text-secondary mb-0">Configure basic setup and environment.</p>
         </a>
     </div>
-    @endrole
+    @endcan
 </div>
 
 <h4 class="fw-bold mb-3">Recent Instances</h4>

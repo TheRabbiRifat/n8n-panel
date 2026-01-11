@@ -11,18 +11,21 @@ class UserController extends Controller
 {
     public function index()
     {
+        $this->authorize('manage_users');
         $users = User::with('roles')->get();
         return view('users.index', compact('users'));
     }
 
     public function create()
     {
+        $this->authorize('manage_users');
         $roles = Role::all();
         return view('users.create', compact('roles'));
     }
 
     public function store(Request $request)
     {
+        $this->authorize('manage_users');
         $request->validate([
             'name' => 'required',
             'email' => 'required|email|unique:users',
@@ -45,12 +48,14 @@ class UserController extends Controller
 
     public function edit(User $user)
     {
+        $this->authorize('manage_users');
         $roles = Role::all();
         return view('users.edit', compact('user', 'roles'));
     }
 
     public function update(Request $request, User $user)
     {
+        $this->authorize('manage_users');
         $request->validate([
             'name' => 'required',
             'email' => 'required|email|unique:users,email,' . $user->id,
@@ -76,6 +81,7 @@ class UserController extends Controller
 
     public function destroy(User $user)
     {
+        $this->authorize('manage_users');
         if (auth()->id() === $user->id) {
             return redirect()->route('users.index')->with('error', 'You cannot delete yourself.');
         }

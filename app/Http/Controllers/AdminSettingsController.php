@@ -9,6 +9,7 @@ class AdminSettingsController extends Controller
 {
     public function index()
     {
+        $this->authorize('manage_settings');
         $settings = GlobalSetting::where('key', 'like', 'panel_%')->get()->pluck('value', 'key');
 
         return view('admin.settings.index', compact('settings'));
@@ -16,6 +17,7 @@ class AdminSettingsController extends Controller
 
     public function update(Request $request)
     {
+        $this->authorize('manage_settings');
         $request->validate([
             'panel_app_name' => 'required|string|max:255',
             'panel_footer_text' => 'nullable|string|max:255',

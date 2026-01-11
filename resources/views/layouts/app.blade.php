@@ -218,11 +218,14 @@
             </div>
 
             <nav class="flex-grow-1 overflow-y-auto pb-4" id="sidebar-nav">
+                @can('view_system')
                 <div class="nav-group-title">Server Information</div>
                 <a href="{{ route('dashboard') }}" class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
                     <i class="bi bi-speedometer2"></i> Server Status
                 </a>
+                @endcan
 
+                @can('manage_instances')
                 <div class="nav-group-title">Instance Management</div>
                 <a href="{{ route('instances.index') }}" class="nav-link {{ request()->routeIs('instances.*') ? 'active' : '' }}">
                     <i class="bi bi-hdd-network"></i> List Instances
@@ -230,6 +233,7 @@
                 <a href="{{ route('instances.create') }}" class="nav-link">
                     <i class="bi bi-plus-circle"></i> Create Instance
                 </a>
+                @endcan
 
                 <div class="nav-group-title">Packages</div>
                 <a href="{{ route('packages.index') }}" class="nav-link {{ request()->routeIs('packages.*') ? 'active' : '' }}">
@@ -241,27 +245,39 @@
                     <i class="bi bi-key"></i> Manage API Tokens
                 </a>
 
-                @role('admin')
+                @can('manage_users')
                 <div class="nav-group-title">Administration</div>
                 <a href="{{ route('users.index') }}" class="nav-link {{ request()->routeIs('users.*') ? 'active' : '' }}">
                     <i class="bi bi-people"></i> Manage Users
                 </a>
+                @endcan
+
+                @can('manage_settings')
                 <a href="{{ route('admin.environment.index') }}" class="nav-link {{ request()->routeIs('admin.environment.*') ? 'active' : '' }}">
                     <i class="bi bi-sliders"></i> Settings
                 </a>
                 <a href="{{ route('containers.orphans') }}" class="nav-link {{ request()->routeIs('containers.orphans') ? 'active' : '' }}">
                     <i class="bi bi-search"></i> Docker Discovery
                 </a>
+                @endcan
+
+                @can('manage_roles')
                 <a href="{{ route('roles.index') }}" class="nav-link {{ request()->routeIs('roles.*') ? 'active' : '' }}">
                     <i class="bi bi-shield-lock"></i> Roles & Permissions
                 </a>
+                @endcan
+
+                @can('view_system')
                 <a href="{{ route('admin.system.index') }}" class="nav-link {{ request()->routeIs('admin.system.*') ? 'active' : '' }}">
                     <i class="bi bi-hdd-rack"></i> System Settings
                 </a>
+                @endcan
+
+                @can('view_logs')
                 <a href="{{ route('admin.api_logs.index') }}" class="nav-link {{ request()->routeIs('admin.api_logs.*') ? 'active' : '' }}">
                     <i class="bi bi-journal-text"></i> API Logs
                 </a>
-                @endrole
+                @endcan
             </nav>
         </aside>
 
