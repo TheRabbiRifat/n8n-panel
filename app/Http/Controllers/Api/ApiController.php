@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
-class WhmcsController extends Controller
+class ApiController extends Controller
 {
     protected $dockerService;
     protected $nginxService;
