@@ -166,14 +166,14 @@
     <div class="col-md-6 col-lg-3">
         <a href="{{ route('instances.create') }}" class="whm-card">
             <div class="whm-panel-icon"><i class="bi bi-plus-circle"></i></div>
-            <h5 class="fw-bold">Create a New Account</h5>
+            <h5 class="fw-bold">Create a New Instance</h5>
             <p class="small text-secondary mb-0">Provision a new n8n instance on the server.</p>
         </a>
     </div>
     <div class="col-md-6 col-lg-3">
         <a href="{{ route('instances.index') }}" class="whm-card">
             <div class="whm-panel-icon"><i class="bi bi-list-ul"></i></div>
-            <h5 class="fw-bold">List Accounts</h5>
+            <h5 class="fw-bold">List Instances</h5>
             <p class="small text-secondary mb-0">View and manage all hosted instances.</p>
         </a>
     </div>
@@ -195,7 +195,7 @@
     @endrole
 </div>
 
-<h4 class="fw-bold mb-3">Recent Accounts</h4>
+<h4 class="fw-bold mb-3">Recent Instances</h4>
 <div class="card">
     <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
@@ -234,13 +234,13 @@
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="6" class="text-center py-4 text-secondary">No accounts found.</td></tr>
+                <tr><td colspan="6" class="text-center py-4 text-secondary">No instances found.</td></tr>
                 @endforelse
             </tbody>
         </table>
     </div>
     <div class="card-footer bg-transparent border-top p-3 text-center">
-        <a href="{{ route('instances.index') }}" class="text-decoration-none fw-bold small">View All Accounts &rarr;</a>
+        <a href="{{ route('instances.index') }}" class="text-decoration-none fw-bold small">View All Instances &rarr;</a>
     </div>
 </div>
 @endsection

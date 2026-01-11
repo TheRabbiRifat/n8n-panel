@@ -13,7 +13,12 @@
             Image: {{ $stats['Config']['Image'] ?? ($stats['image'] ?? 'Unknown') }}
         </div>
     </div>
-    <a href="{{ route('instances.index') }}" class="btn btn-secondary">Back to Instances</a>
+    <div>
+        <a href="{{ route('containers.logs.download', $container->id) }}" class="btn btn-outline-secondary me-2">
+            <i class="bi bi-download"></i> Download Logs
+        </a>
+        <a href="{{ route('instances.index') }}" class="btn btn-secondary">Back to Instances</a>
+    </div>
 </div>
 
 <div class="card shadow-sm mb-4">
@@ -186,6 +191,9 @@
 
             <!-- Logs Tab -->
             <div class="tab-pane fade" id="logs" role="tabpanel">
+                <div class="d-flex justify-content-end mb-2">
+                    <button class="btn btn-sm btn-outline-primary" id="copy-logs-btn"><i class="bi bi-clipboard"></i> Copy All Logs</button>
+                </div>
                 <div id="logs-terminal" style="height: 500px; width: 100%; overflow: hidden; padding: 0; margin: 0;"></div>
                 <style>
                     #logs-terminal .xterm-viewport {
@@ -243,6 +251,20 @@
 
         logsTabBtn.addEventListener('hidden.bs.tab', function() {
             clearInterval(logsInterval);
+        });
+
+        // Copy Logs
+        document.getElementById('copy-logs-btn').addEventListener('click', function() {
+            logsTerm.selectAll();
+            const text = logsTerm.getSelection();
+            logsTerm.clearSelection();
+
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = this;
+                const originalHtml = btn.innerHTML;
+                btn.innerHTML = '<i class="bi bi-check"></i> Copied';
+                setTimeout(() => btn.innerHTML = originalHtml, 2000);
+            });
         });
 
         // Live Stats

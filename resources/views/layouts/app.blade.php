@@ -223,12 +223,12 @@
                     <i class="bi bi-speedometer2"></i> Server Status
                 </a>
 
-                <div class="nav-group-title">Account Management</div>
+                <div class="nav-group-title">Instance Management</div>
                 <a href="{{ route('instances.index') }}" class="nav-link {{ request()->routeIs('instances.*') ? 'active' : '' }}">
-                    <i class="bi bi-hdd-network"></i> List Accounts
+                    <i class="bi bi-hdd-network"></i> List Instances
                 </a>
                 <a href="{{ route('instances.create') }}" class="nav-link">
-                    <i class="bi bi-plus-circle"></i> Create Account
+                    <i class="bi bi-plus-circle"></i> Create Instance
                 </a>
 
                 <div class="nav-group-title">Packages</div>

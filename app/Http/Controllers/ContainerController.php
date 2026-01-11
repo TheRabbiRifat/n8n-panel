@@ -206,6 +206,19 @@ class ContainerController extends Controller
         return response()->json($stats);
     }
 
+    public function downloadLogs($id)
+    {
+        $container = Container::findOrFail($id);
+        $this->authorizeAccess($container);
+
+        $logs = $this->dockerService->getContainerLogs($container->docker_id);
+        $filename = "instance-{$container->name}-logs.txt";
+
+        return response()->streamDownload(function () use ($logs) {
+            echo $logs;
+        }, $filename);
+    }
+
     public function update(Request $request, $id)
     {
         $container = Container::findOrFail($id);

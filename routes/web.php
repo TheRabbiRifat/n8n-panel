@@ -44,6 +44,7 @@ Route::middleware(['auth'])->group(function () {
     Route::put('containers/{id}', [ContainerController::class, 'update'])->name('containers.update');
     Route::post('containers/{id}/restart', [ContainerController::class, 'restart'])->name('containers.restart');
     Route::get('containers/{id}/logs', [ContainerController::class, 'logs'])->name('containers.logs');
+    Route::get('containers/{id}/logs/download', [ContainerController::class, 'downloadLogs'])->name('containers.logs.download');
     Route::get('containers/{id}/stats', [ContainerController::class, 'stats'])->name('containers.stats');
 
     Route::post('containers/{id}/start', [ContainerController::class, 'start'])->name('containers.start');
