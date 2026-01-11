@@ -9,7 +9,7 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <!-- Bootstrap & Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
@@ -45,26 +45,30 @@
 
     <style>
         :root {
-            --whm-sidebar-bg: #2c3e50;
-            --whm-sidebar-text: #ecf0f1;
-            --whm-sidebar-hover: #34495e;
-            --whm-accent: #ff6c2c; /* Jupiter Orange Accent */
+            --whm-sidebar-bg: #0f172a; /* Slate 900 */
+            --whm-sidebar-text: #94a3b8; /* Slate 400 */
+            --whm-sidebar-hover: #1e293b; /* Slate 800 */
+            --whm-accent: #3b82f6; /* Blue 500 */
             --whm-header-bg: #ffffff;
-            --whm-header-text: #333333;
+            --whm-header-text: #1e293b;
+            --bs-body-bg: #f1f5f9; /* Slate 100 */
         }
 
         [data-bs-theme="dark"] {
-            --whm-sidebar-bg: #1a1d20;
-            --whm-sidebar-text: #e9ecef;
-            --whm-sidebar-hover: #2b3035;
-            --whm-header-bg: #2b3035;
-            --whm-header-text: #f8f9fa;
+            --whm-sidebar-bg: #020617; /* Slate 950 */
+            --whm-sidebar-text: #cbd5e1; /* Slate 300 */
+            --whm-sidebar-hover: #1e293b;
+            --whm-header-bg: #0f172a;
+            --whm-header-text: #f8fafc;
+            --bs-body-bg: #0f172a;
+            --bs-border-color: #334155;
         }
 
         body {
-            font-family: 'Open Sans', sans-serif;
+            font-family: 'Inter', sans-serif;
             background-color: var(--bs-body-bg);
-            font-size: 0.9rem;
+            font-size: 0.925rem;
+            letter-spacing: -0.01em;
         }
 
         #wrapper { display: flex; min-height: 100vh; overflow-x: hidden; }
@@ -79,52 +83,63 @@
             flex-direction: column;
             z-index: 1040;
             transition: margin-left 0.3s ease-in-out;
+            border-right: 1px solid rgba(255,255,255,0.05);
         }
 
         #sidebar .brand {
-            height: 60px;
+            height: 64px;
             display: flex;
             align-items: center;
             padding: 0 1.5rem;
-            font-size: 1.4rem;
+            font-size: 1.25rem;
             font-weight: 700;
             color: #fff;
-            background-color: rgba(0,0,0,0.1);
+            background-color: rgba(0,0,0,0.2);
             text-decoration: none;
+            letter-spacing: -0.02em;
         }
 
         #sidebar .search-wrapper {
-            padding: 1rem;
+            padding: 1.25rem;
         }
 
         #sidebar .search-input {
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
             color: #fff;
-            border-radius: 4px;
-            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
             width: 100%;
+            font-size: 0.875rem;
+            transition: all 0.2s;
         }
-        #sidebar .search-input::placeholder { color: rgba(255,255,255,0.5); }
+        #sidebar .search-input:focus {
+            background: rgba(255,255,255,0.1);
+            border-color: rgba(255,255,255,0.2);
+            outline: none;
+        }
+        #sidebar .search-input::placeholder { color: rgba(255,255,255,0.3); }
 
         #sidebar .nav-group-title {
             text-transform: uppercase;
-            font-size: 0.7rem;
-            font-weight: 700;
-            padding: 1rem 1.5rem 0.5rem;
-            opacity: 0.6;
-            letter-spacing: 0.5px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 1.5rem 1.5rem 0.75rem;
+            color: var(--whm-sidebar-text);
+            opacity: 0.7;
+            letter-spacing: 0.05em;
         }
 
         #sidebar .nav-link {
-            color: rgba(255,255,255,0.8);
-            padding: 0.6rem 1.5rem;
+            color: var(--whm-sidebar-text);
+            padding: 0.75rem 1.5rem;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
             text-decoration: none;
             border-left: 3px solid transparent;
             transition: all 0.2s;
+            font-weight: 500;
         }
         #sidebar .nav-link:hover {
             background-color: var(--whm-sidebar-hover);
@@ -135,29 +150,41 @@
             color: #fff;
             border-left-color: var(--whm-accent);
         }
+        #sidebar .nav-link i { font-size: 1.1em; opacity: 0.8; }
 
         /* Header */
         #topbar {
-            height: 60px;
+            height: 64px;
             background-color: var(--whm-header-bg);
             border-bottom: 1px solid var(--bs-border-color);
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 1.5rem;
+            padding: 0 2rem;
             color: var(--whm-header-text);
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
         }
 
         /* Content */
         #content-wrapper { flex-grow: 1; display: flex; flex-direction: column; }
-        .main-content { padding: 2rem; flex-grow: 1; }
+        .main-content { padding: 2.5rem; flex-grow: 1; }
 
-        /* Card override for WHM look */
+        /* Modern Card */
         .card {
             border: 1px solid var(--bs-border-color);
-            border-radius: 4px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border-radius: 12px;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+            background-color: var(--bs-body-bg);
         }
+        [data-bs-theme="light"] .card { background-color: #fff; }
+
+        .card-header {
+            background-color: transparent;
+            border-bottom: 1px solid var(--bs-border-color);
+            font-weight: 600;
+            padding: 1rem 1.5rem;
+        }
+        .card-body { padding: 1.5rem; }
         .card-header {
             background-color: transparent;
             border-bottom: 1px solid var(--bs-border-color);
