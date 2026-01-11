@@ -17,17 +17,19 @@ class CheckSessionIp
     public function handle(Request $request, Closure $next): Response
     {
         if (Auth::check()) {
-            // If remember me is NOT checked, enforce IP check
-            if (!Auth::viaRemember()) {
-                $loginIp = $request->session()->get('login_ip');
+            $currentIp = $request->ip();
+            $loginIp = $request->session()->get('login_ip');
 
-                if ($loginIp && $loginIp !== $request->ip()) {
-                    Auth::logout();
-                    $request->session()->invalidate();
-                    $request->session()->regenerateToken();
+            if (!$loginIp) {
+                // Bind session to current IP if not set (e.g. Remember Me auto-login)
+                $request->session()->put('login_ip', $currentIp);
+            } elseif ($loginIp !== $currentIp) {
+                // Force logout on IP change
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
 
-                    return redirect()->route('login')->withErrors(['email' => 'Session expired due to IP address change.']);
-                }
+                return redirect()->route('login')->withErrors(['email' => 'Session expired due to IP address change.']);
             }
         }
 
