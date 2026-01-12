@@ -160,6 +160,17 @@ Get all available resource packages.
 #### Get Package Details
 *   **Endpoint:** `GET /packages/{id}`
 
+#### Create User
+Create a new standard user. (Admin or Reseller)
+
+*   **Endpoint:** `POST /users`
+*   **Body Parameters:**
+    *   `name`, `email`, `password` (all required)
+*   **Response:**
+    ```json
+    { "status": "success", "user_id": 20 }
+    ```
+
 #### Create Reseller
 Create a new user with 'reseller' role.
 

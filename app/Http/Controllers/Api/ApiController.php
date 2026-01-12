@@ -353,6 +353,34 @@ class ApiController extends Controller
         return response()->json(['status' => 'success', 'packages' => Package::all()]);
     }
 
+    // CREATE USER (Create a standard user under a Reseller or Admin)
+    public function createUser(Request $request)
+    {
+        // Admin or Reseller
+        $request->validate([
+            'name' => 'required|string',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|string|min:8',
+        ]);
+
+        $resellerId = null;
+        if (auth()->user()->hasRole('reseller')) {
+            $resellerId = auth()->id();
+        }
+
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'instance_limit' => 5, // Default for standard users
+            'reseller_id' => $resellerId,
+        ]);
+
+        $user->assignRole('user');
+
+        return response()->json(['status' => 'success', 'user_id' => $user->id], 201);
+    }
+
     // CREATE RESELLER
     public function createReseller(Request $request)
     {
@@ -402,9 +430,19 @@ class ApiController extends Controller
 
         $user = User::where('email', $request->email)->firstOrFail();
 
-        // Security: Prevent Resellers from accessing Admin accounts
-        if ($user->hasRole('admin') && !auth()->user()->hasRole('admin')) {
-            abort(403, 'Unauthorized: Cannot access admin account.');
+        // Security checks
+        if (auth()->user()->hasRole('reseller')) {
+            // Reseller can only SSO into their own users
+            if ($user->reseller_id !== auth()->id()) {
+                 abort(403, 'Unauthorized: You can only access your own users.');
+            }
+            // Double check target is not admin (redundant if reseller_id check passes, but safe)
+            if ($user->hasRole('admin')) {
+                abort(403, 'Unauthorized: Cannot access admin account.');
+            }
+        } elseif (!auth()->user()->hasRole('admin')) {
+             // Standard users cannot use SSO
+             abort(403, 'Unauthorized');
         }
 
         // Generate a temporary signed URL for auto-login
@@ -423,42 +461,69 @@ class ApiController extends Controller
     // SYSTEM STATS
     public function systemStats()
     {
-        if (!auth()->user()->hasRole('admin')) {
-            abort(403, 'Unauthorized');
-        }
+        $isAdmin = auth()->user()->hasRole('admin');
+        $isReseller = auth()->user()->hasRole('reseller');
 
         $statusService = new \App\Services\SystemStatusService();
         $stats = $statusService->getSystemStats();
 
-        // Calculate instance counts
-        $totalInstances = Container::count();
-        $runningInstances = 0;
+        if ($isAdmin) {
+            // Calculate instance counts
+            $totalInstances = Container::count();
+            $runningInstances = 0;
 
-        // This is heavy if many containers, but fine for now or could be cached/optimized via DockerService
-        $allContainers = $this->dockerService->listContainers();
-        foreach($allContainers as $c) {
-            if (str_contains(strtolower($c['status']), 'up')) {
-                $runningInstances++;
+            // This is heavy if many containers, but fine for now or could be cached/optimized via DockerService
+            $allContainers = $this->dockerService->listContainers();
+            foreach($allContainers as $c) {
+                if (str_contains(strtolower($c['status']), 'up')) {
+                    $runningInstances++;
+                }
             }
+
+            return response()->json([
+                'status' => 'success',
+                'server_status' => 'online',
+                'system_info' => [
+                    'os' => $stats['os'],
+                    'kernel' => $stats['kernel'],
+                    'ip' => $stats['ips'],
+                    'uptime' => $stats['uptime'],
+                    'hostname' => $stats['hostname'],
+                ],
+                'load_averages' => $stats['loads'],
+                'counts' => [
+                    'users' => User::count(),
+                    'instances_total' => $totalInstances,
+                    'instances_running' => $runningInstances,
+                    'instances_stopped' => $totalInstances - $runningInstances
+                ]
+            ]);
+        } elseif ($isReseller) {
+            // Reseller View: Only their own counts
+            $myUsers = User::where('reseller_id', auth()->id())->pluck('id');
+            $myInstances = Container::whereIn('user_id', $myUsers)->get();
+
+            $total = $myInstances->count();
+            // We can't easily check docker status for filtered list without mapping IDs
+            // Simplified approach: Return total DB counts. Real-time status might require more logic.
+            // Requirement: "their own instances count". It doesn't strictly say running/stopped breakdown is mandatory if complex.
+            // But for consistency let's try.
+
+            // Optimization: Get status from Docker for ALL, then match? Or just return DB counts?
+            // "online, load, their own instances count"
+            // Let's return simple count.
+
+            return response()->json([
+                'status' => 'success',
+                'server_status' => 'online',
+                'load_averages' => $stats['loads'],
+                'counts' => [
+                    'users' => $myUsers->count(),
+                    'instances_total' => $total,
+                ]
+            ]);
         }
 
-        return response()->json([
-            'status' => 'success',
-            'server_status' => 'online',
-            'system_info' => [
-                'os' => $stats['os'],
-                'kernel' => $stats['kernel'],
-                'ip' => $stats['ips'],
-                'uptime' => $stats['uptime'],
-                'hostname' => $stats['hostname'],
-            ],
-            'load_averages' => $stats['loads'],
-            'counts' => [
-                'users' => User::count(),
-                'instances_total' => $totalInstances,
-                'instances_running' => $runningInstances,
-                'instances_stopped' => $totalInstances - $runningInstances
-            ]
-        ]);
+        abort(403, 'Unauthorized');
     }
 }
