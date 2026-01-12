@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\URL;
 
 class ApiController extends Controller
 {
@@ -355,6 +356,10 @@ class ApiController extends Controller
     // CREATE RESELLER
     public function createReseller(Request $request)
     {
+        if (!auth()->user()->hasRole('admin')) {
+            abort(403, 'Unauthorized');
+        }
+
         // Admin only (enforced by route middleware)
         $request->validate([
             'name' => 'required|string',
@@ -388,9 +393,40 @@ class ApiController extends Controller
         ]);
     }
 
+    // USER SSO
+    public function sso(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email|exists:users,email',
+        ]);
+
+        $user = User::where('email', $request->email)->firstOrFail();
+
+        // Security: Prevent Resellers from accessing Admin accounts
+        if ($user->hasRole('admin') && !auth()->user()->hasRole('admin')) {
+            abort(403, 'Unauthorized: Cannot access admin account.');
+        }
+
+        // Generate a temporary signed URL for auto-login
+        $url = URL::temporarySignedRoute(
+            'sso.login',
+            now()->addMinutes(1),
+            ['user' => $user->id]
+        );
+
+        return response()->json([
+            'status' => 'success',
+            'redirect_url' => $url
+        ]);
+    }
+
     // SYSTEM STATS
     public function systemStats()
     {
+        if (!auth()->user()->hasRole('admin')) {
+            abort(403, 'Unauthorized');
+        }
+
         $statusService = new \App\Services\SystemStatusService();
         $stats = $statusService->getSystemStats();
 
@@ -409,6 +445,13 @@ class ApiController extends Controller
         return response()->json([
             'status' => 'success',
             'server_status' => 'online',
+            'system_info' => [
+                'os' => $stats['os'],
+                'kernel' => $stats['kernel'],
+                'ip' => $stats['ips'],
+                'uptime' => $stats['uptime'],
+                'hostname' => $stats['hostname'],
+            ],
             'load_averages' => $stats['loads'],
             'counts' => [
                 'users' => User::count(),

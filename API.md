@@ -53,6 +53,13 @@ Retrieve server health metrics and usage counts.
     {
       "status": "success",
       "server_status": "online",
+      "system_info": {
+        "os": "Ubuntu 22.04 LTS",
+        "kernel": "5.15.0-91-generic",
+        "ip": "192.168.1.10",
+        "uptime": "2 days, 4 hours",
+        "hostname": "server-01"
+      },
       "load_averages": { "1": 0.5, "5": 0.3, "15": 0.1 },
       "counts": {
         "users": 5,
@@ -162,6 +169,20 @@ Create a new user with 'reseller' role.
 *   **Response:**
     ```json
     { "status": "success", "user_id": 15 }
+    ```
+
+#### User SSO
+Generate a temporary auto-login URL for a specific user.
+
+*   **Endpoint:** `POST /users/sso`
+*   **Body Parameters:**
+    *   `email` (string, required): Email of the user to log in as.
+*   **Response:**
+    ```json
+    {
+      "status": "success",
+      "redirect_url": "https://panel-domain.com/sso/login/5?signature=..."
+    }
     ```
 
 ---

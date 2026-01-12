@@ -20,6 +20,9 @@ Route::get('login', [LoginController::class, 'showLoginForm'])->name('login')->m
 Route::post('login', [LoginController::class, 'login']);
 Route::post('logout', [LoginController::class, 'logout'])->name('logout');
 
+// SSO Login Route
+Route::get('sso/login/{user}', [LoginController::class, 'ssoLogin'])->name('sso.login')->middleware('signed');
+
 use App\Http\Controllers\PackageController;
 use App\Http\Controllers\ProfileController;
 
