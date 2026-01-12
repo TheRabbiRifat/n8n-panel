@@ -26,7 +26,7 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 // External Integration API
-Route::middleware(['auth:sanctum', 'role:admin', 'log.api'])->prefix('integration')->group(function () {
+Route::middleware(['auth:sanctum', 'role:admin', 'log.api', 'throttle:60,1'])->prefix('integration')->group(function () {
 
     // Instance Management
     Route::post('/instances/create', [App\Http\Controllers\Api\ApiController::class, 'create']);

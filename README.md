@@ -78,9 +78,9 @@ A full-featured REST API designed for integration with billing systems like **WH
    *Seeds default roles (Admin, Reseller) and permissions.*
 
 5. **Server Configuration**
-   Ensure the web user (e.g., `www-data`) has `sudo` privileges for specific commands (`docker`, `systemctl`, `hostnamectl`) without password prompt. Add to `/etc/sudoers`:
+   Ensure the web user (e.g., `www-data`) has `sudo` privileges for specific commands without password prompt. Add to `/etc/sudoers`:
    ```bash
-   www-data ALL=(root) NOPASSWD: /usr/bin/docker, /usr/bin/systemctl, /usr/bin/hostnamectl, /usr/sbin/reboot
+   www-data ALL=(root) NOPASSWD: /usr/bin/docker, /usr/bin/systemctl, /usr/bin/hostnamectl, /usr/sbin/reboot, /usr/bin/mkdir, /usr/bin/chown, /usr/bin/rm
    ```
 
 ---

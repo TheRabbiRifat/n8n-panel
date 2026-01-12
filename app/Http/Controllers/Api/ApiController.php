@@ -418,10 +418,8 @@ class ApiController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'uptime' => $stats['uptime'],
+            'server_status' => 'online',
             'load_averages' => $stats['loads'],
-            'memory_usage' => $stats['ram'],
-            'disk_usage' => $stats['disk'],
             'counts' => [
                 'users' => User::count(),
                 'instances_total' => $totalInstances,
