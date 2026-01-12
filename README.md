@@ -91,16 +91,11 @@ The panel provides a dedicated API for external integrations.
 
 **Base URL:** `https://your-panel.com/api/integration`
 
+> **[View Full API Documentation](API.md)**
+
 ### Authentication
 Include your API Token in the header:
 `Authorization: Bearer <your-token>`
-
-### Common Endpoints
-* `POST /instances/create` - Provision a new instance.
-* `POST /instances/{id}/start` - Start an instance.
-* `POST /instances/{id}/stop` - Stop an instance.
-* `GET /instances/{id}/stats` - Get JSON-formatted resource usage.
-* `POST /instances/{id}/upgrade` - Change resource package.
 
 *Check the **"Manage API Tokens"** section in the user profile for full documentation and example requests.*
 
