@@ -77,6 +77,8 @@ Route::middleware(['auth'])->group(function () {
 
     // Admin Routes Continued
     Route::middleware(['role:admin'])->group(function () {
+        // Ownership Transfer
+        Route::post('containers/{id}/transfer', [ContainerController::class, 'transferOwnership'])->name('instances.transfer');
 
         // Service Management
         Route::post('services/{service}/{action}', [ServiceController::class, 'handle'])->name('services.handle');

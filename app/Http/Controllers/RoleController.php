@@ -36,14 +36,27 @@ class RoleController extends Controller
     {
         $this->authorize('manage_roles');
         $role = Role::findOrFail($id);
+
+        // Prevent editing admin role name or permissions critical to system integrity if we wanted
+        if ($role->name === 'admin') {
+             // In many ACL systems, admin is immutable.
+             // Requirement: "can CRUD any ACL expect admin"
+             return back()->with('error', 'Cannot edit the Admin role.');
+        }
+
         $request->validate([
             'name' => 'required|string|unique:roles,name,' . $id,
             'permissions' => 'array'
         ]);
 
         $role->update(['name' => $request->name]);
-        if($request->permissions){
+
+        // Handle permissions sync
+        if ($request->has('permissions')) {
             $role->syncPermissions($request->permissions);
+        } else {
+            // If no permissions sent (checkboxes unchecked), clear them
+            $role->syncPermissions([]);
         }
 
         return back()->with('success', 'Role updated.');
@@ -53,9 +66,13 @@ class RoleController extends Controller
     {
         $this->authorize('manage_roles');
         $role = Role::findOrFail($id);
-        if($role->name === 'admin' || $role->name === 'reseller' || $role->name === 'client') {
-             return back()->with('error', 'Cannot delete system roles.');
+
+        // "can CRUD any ACL expect admin"
+        // System roles might need protection, but definitely admin.
+        if ($role->name === 'admin') {
+             return back()->with('error', 'Cannot delete the Admin role.');
         }
+
         $role->delete();
         return back()->with('success', 'Role deleted.');
     }

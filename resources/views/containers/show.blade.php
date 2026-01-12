@@ -160,6 +160,19 @@
                         </div>
                     </div>
 
+                    @role('admin')
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Instance Ownership</label>
+                        <div class="input-group">
+                             <input type="text" class="form-control" value="{{ $container->user->name }} ({{ $container->user->email }})" readonly>
+                             <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#transferOwnershipModal">
+                                 <i class="bi bi-arrow-left-right"></i> Change Owner
+                             </button>
+                        </div>
+                        <div class="form-text">Transfer this instance to another user.</div>
+                    </div>
+                    @endrole
+
                     @php
                         $currentEnv = $container->environment ? json_decode($container->environment, true) : [];
                         $currentTimezone = $currentEnv['GENERIC_TIMEZONE'] ?? 'Asia/Dhaka';
@@ -365,4 +378,37 @@
         }
     });
 </script>
+<!-- Ownership Transfer Modal -->
+@role('admin')
+<div class="modal fade" id="transferOwnershipModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Transfer Instance Ownership</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ route('instances.transfer', $container->id) }}" method="POST">
+                @csrf
+                <div class="modal-body">
+                    <p>Select the new owner for this instance. The current owner will lose access.</p>
+                    <div class="mb-3">
+                        <label for="new_user_id" class="form-label">New Owner</label>
+                        <select class="form-select" name="new_user_id" required>
+                            <option value="">Select User...</option>
+                            @foreach(\App\Models\User::all() as $u)
+                                <option value="{{ $u->id }}">{{ $u->name }} ({{ $u->email }})</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Transfer Ownership</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endrole
+
 @endsection
