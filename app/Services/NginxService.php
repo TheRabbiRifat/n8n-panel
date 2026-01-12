@@ -33,9 +33,12 @@ server {
 }
 nginx;
 
-        Process::run("echo '$config' | sudo tee /etc/nginx/sites-available/$domain");
-        Process::run("sudo ln -sf /etc/nginx/sites-available/$domain /etc/nginx/sites-enabled/");
-        Process::run("sudo systemctl reload nginx");
+        // Write config file (Assuming write permissions on /etc/nginx/sites-available)
+        // Using file_put_contents if possible, or tee without sudo
+        // We will stick to shell commands to minimize ownership issues if user is added to a group that has write access
+        Process::run("echo '$config' | tee /etc/nginx/sites-available/$domain");
+        Process::run("ln -sf /etc/nginx/sites-available/$domain /etc/nginx/sites-enabled/");
+        Process::run("systemctl reload nginx");
     }
 
     public function secureVhost(string $domain)
@@ -46,7 +49,7 @@ nginx;
         // Command to obtain cert and redirect HTTP to HTTPS
         // --nginx: Use Nginx plugin for auth and install
         // --redirect: Automatically redirect HTTP to HTTPS
-        $command = "sudo certbot --nginx -d $domain --non-interactive --agree-tos --email $email --redirect";
+        $command = "certbot --nginx -d $domain --non-interactive --agree-tos --email $email --redirect";
 
         $process = Process::run($command);
 
@@ -62,14 +65,14 @@ nginx;
 
     public function removeVhost(string $domain)
     {
-        Process::run("sudo rm -f /etc/nginx/sites-available/$domain");
-        Process::run("sudo rm -f /etc/nginx/sites-enabled/$domain");
+        Process::run("rm -f /etc/nginx/sites-available/$domain");
+        Process::run("rm -f /etc/nginx/sites-enabled/$domain");
 
         // Optionally delete certs?
-        // sudo certbot delete --cert-name $domain
+        // certbot delete --cert-name $domain
         // This prevents clutter.
-        Process::run("sudo certbot delete --cert-name $domain --non-interactive");
+        Process::run("certbot delete --cert-name $domain --non-interactive");
 
-        Process::run("sudo systemctl reload nginx");
+        Process::run("systemctl reload nginx");
     }
 }

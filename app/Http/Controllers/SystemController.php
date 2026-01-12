@@ -37,8 +37,8 @@ class SystemController extends Controller
 
         $hostname = $request->hostname;
 
-        // Update hostname via hostnamectl
-        Process::run("sudo hostnamectl set-hostname {$hostname}");
+        // Update hostname via hostnamectl (sudo removed as requested)
+        Process::run("hostnamectl set-hostname {$hostname}");
 
         // Ideally update /etc/hosts too, but minimal req is usually just this.
 
@@ -48,8 +48,8 @@ class SystemController extends Controller
     public function reboot()
     {
         $this->authorize('manage_settings');
-        // Execute reboot in background to allow response
-        Process::run("(sleep 2 && sudo reboot) &");
+        // Execute reboot in background to allow response (sudo removed as requested)
+        Process::run("(sleep 2 && reboot) &");
         return back()->with('success', 'Server is rebooting...');
     }
 

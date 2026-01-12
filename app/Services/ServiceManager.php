@@ -49,8 +49,8 @@ class ServiceManager
             throw new \Exception("Service $service is not managed.");
         }
 
-        // This requires sudo permissions without password for the web user
-        $process = Process::run("sudo systemctl $action $service");
+        // Removed sudo as requested. Ensure user has permissions or polkit rules.
+        $process = Process::run("systemctl $action $service");
 
         if (!$process->successful()) {
             throw new \Exception("Failed to $action $service: " . $process->errorOutput());
