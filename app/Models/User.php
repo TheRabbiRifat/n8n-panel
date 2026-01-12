@@ -24,6 +24,7 @@ class User extends Authenticatable
         'email',
         'password',
         'instance_limit',
+        'reseller_id',
     ];
 
     /**
@@ -52,5 +53,15 @@ class User extends Authenticatable
     public function instances()
     {
         return $this->hasMany(Container::class);
+    }
+
+    public function reseller()
+    {
+        return $this->belongsTo(User::class, 'reseller_id');
+    }
+
+    public function customers()
+    {
+        return $this->hasMany(User::class, 'reseller_id');
     }
 }

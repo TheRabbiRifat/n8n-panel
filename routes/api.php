@@ -45,6 +45,9 @@ Route::middleware(['auth:sanctum', 'role:admin|reseller', 'log.api', 'throttle:6
     // Reseller Management
     Route::post('/resellers', [App\Http\Controllers\Api\ApiController::class, 'createReseller']);
 
+    // User Management
+    Route::post('/users', [App\Http\Controllers\Api\ApiController::class, 'createUser']);
+
     // User SSO
     Route::post('/users/sso', [App\Http\Controllers\Api\ApiController::class, 'sso']);
 
