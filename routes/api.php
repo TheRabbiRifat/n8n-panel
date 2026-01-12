@@ -44,4 +44,8 @@ Route::middleware(['auth:sanctum', 'role:admin', 'log.api'])->prefix('integratio
 
     // Reseller Management
     Route::post('/resellers', [App\Http\Controllers\Api\ApiController::class, 'createReseller']);
+
+    // System & Connection
+    Route::get('/connection/test', [App\Http\Controllers\Api\ApiController::class, 'testConnection']);
+    Route::get('/system/stats', [App\Http\Controllers\Api\ApiController::class, 'systemStats']);
 });

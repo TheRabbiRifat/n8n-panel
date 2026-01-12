@@ -383,4 +383,51 @@ class ApiController extends Controller
 
         return response()->json(['status' => 'success', 'user_id' => $user->id], 201);
     }
+
+    // CONNECTION TEST
+    public function testConnection()
+    {
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Connection successful',
+            'user' => [
+                'id' => auth()->id(),
+                'name' => auth()->user()->name,
+                'email' => auth()->user()->email
+            ]
+        ]);
+    }
+
+    // SYSTEM STATS
+    public function systemStats()
+    {
+        $statusService = new \App\Services\SystemStatusService();
+        $stats = $statusService->getSystemStats();
+
+        // Calculate instance counts
+        $totalInstances = Container::count();
+        $runningInstances = 0;
+
+        // This is heavy if many containers, but fine for now or could be cached/optimized via DockerService
+        $allContainers = $this->dockerService->listContainers();
+        foreach($allContainers as $c) {
+            if (str_contains(strtolower($c['status']), 'up')) {
+                $runningInstances++;
+            }
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'uptime' => $stats['uptime'],
+            'load_averages' => $stats['loads'],
+            'memory_usage' => $stats['ram'],
+            'disk_usage' => $stats['disk'],
+            'counts' => [
+                'users' => User::count(),
+                'instances_total' => $totalInstances,
+                'instances_running' => $runningInstances,
+                'instances_stopped' => $totalInstances - $runningInstances
+            ]
+        ]);
+    }
 }
