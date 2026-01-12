@@ -51,6 +51,13 @@ class ApiController extends Controller
         // 1. Find User
         $user = User::where('email', $request->email)->firstOrFail();
 
+        // Security: Ensure Reseller owns the target user
+        if (auth()->user()->hasRole('reseller')) {
+            if ($user->reseller_id !== auth()->id()) {
+                abort(403, 'Unauthorized: You can only create instances for your own users.');
+            }
+        }
+
         $package = Package::findOrFail($request->package_id);
 
         // 2. Allocate Port

@@ -26,12 +26,9 @@ class ContainerController extends Controller
     {
         $versions = ['stable', 'latest', 'beta'];
 
-        $user = Auth::user();
-        if ($user->hasRole('admin')) {
-             $packages = Package::all();
-        } else {
-             $packages = Package::where('user_id', $user->id)->get();
-        }
+        // Resellers can use any package (according to: "resellers can only use the packages")
+        // assuming "use" means using Admin packages to create instances.
+        $packages = Package::all();
 
         return view('containers.create', compact('versions', 'packages'));
     }
@@ -157,12 +154,8 @@ class ContainerController extends Controller
         $versions = ['stable', 'latest', 'beta'];
 
         // Fetch packages for dropdown
-        $user = Auth::user();
-        if ($user->hasRole('admin')) {
-             $packages = Package::all();
-        } else {
-             $packages = Package::where('user_id', $user->id)->get();
-        }
+        // Resellers can use any package
+        $packages = Package::all();
 
         $timezones = \DateTimeZone::listIdentifiers();
 
@@ -268,10 +261,7 @@ class ContainerController extends Controller
 
         // Package
         $package = Package::findOrFail($request->package_id);
-        // Verify ownership if needed
-        if (!Auth::user()->hasRole('admin') && $package->user_id !== Auth::id()) {
-             abort(403);
-        }
+        // Resellers can use any package, no ownership check needed anymore.
 
         DB::beginTransaction();
         try {
@@ -322,6 +312,36 @@ class ContainerController extends Controller
         } catch (\Exception $e) {
             return back()->with('error', $e->getMessage());
         }
+    }
+
+    public function transferOwnership(Request $request, $id)
+    {
+        // Admin only
+        if (!Auth::user()->hasRole('admin')) {
+            abort(403, 'Unauthorized');
+        }
+
+        $container = Container::findOrFail($id);
+
+        $request->validate([
+            'new_user_id' => 'required|exists:users,id',
+        ]);
+
+        $newUser = User::findOrFail($request->new_user_id);
+
+        // Prevent transfer if it exceeds new user's limit?
+        // Logic: if new user isn't admin and (count >= limit), fail?
+        // Let's implement check if not admin.
+        if (!$newUser->hasRole('admin')) {
+            if ($newUser->instances()->count() >= $newUser->instance_limit) {
+                 return back()->with('error', 'New owner has reached their instance limit.');
+            }
+        }
+
+        $container->user_id = $newUser->id;
+        $container->save();
+
+        return back()->with('success', 'Instance ownership transferred successfully to ' . $newUser->name);
     }
 
     protected function authorizeAccess(Container $container)
