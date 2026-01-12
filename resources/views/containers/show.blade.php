@@ -176,7 +176,14 @@
                     @php
                         $currentEnv = $container->environment ? json_decode($container->environment, true) : [];
                         $currentTimezone = $currentEnv['GENERIC_TIMEZONE'] ?? 'Asia/Dhaka';
+                        $encryptionKey = $currentEnv['N8N_ENCRYPTION_KEY'] ?? '';
                     @endphp
+
+                    <div class="mb-3">
+                        <label class="form-label">N8N Encryption Key</label>
+                        <input type="text" class="form-control" name="N8N_ENCRYPTION_KEY" value="{{ $encryptionKey }}" readonly>
+                        <div class="form-text">This key is auto-generated and cannot be changed.</div>
+                    </div>
 
                     <div class="mb-3">
                         <label for="generic_timezone" class="form-label">Timezone</label>
