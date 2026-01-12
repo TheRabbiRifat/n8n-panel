@@ -90,7 +90,7 @@ class ContainerController extends Controller
             // DELETE VOLUME
             $volumePath = "/var/lib/n8n/instances/{$container->name}";
             if (Str::startsWith($volumePath, '/var/lib/n8n/instances/') && strlen($volumePath) > 23) {
-                 \Illuminate\Support\Facades\Process::run("sudo rm -rf $volumePath");
+                 \Illuminate\Support\Facades\Process::run("rm -rf $volumePath");
             }
 
             $containerName = $container->name;

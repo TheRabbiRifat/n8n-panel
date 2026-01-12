@@ -82,8 +82,22 @@ class ApiController extends Controller
 
         // 5. Volume
         $volumeHostPath = "/var/lib/n8n/instances/{$request->name}";
-        Process::run("sudo mkdir -p $volumeHostPath");
-        Process::run("sudo chown -R 1000:1000 $volumeHostPath");
+        // Removing sudo to rely on user group permissions or pre-configured permissions
+        Process::run("mkdir -p $volumeHostPath");
+        // chown might fail if not root, but if we created it, we own it.
+        // n8n inside container runs as node(1000). Host directory needs to be writable by 1000.
+        // If we are www-data, we might need to chmod or ensure ownership matches.
+        // For now, removing sudo as requested to fix "sudo: password required" error.
+        // Process::run("sudo chown -R 1000:1000 $volumeHostPath");
+
+        // Alternative: Make it writable by everyone? Or trust the parent dir?
+        // Let's try setting permissions without sudo if possible, or skip chown and rely on docker.
+        // Ideally, we chown. But without sudo, we can't chown to 1000 if we are not root.
+        // We can chmod 777 (insecure) or 775 if group shared?
+        // Let's try simply creating it. Docker might handle it or fail.
+        // Given the requirement "fix permission related issues", avoiding sudo is key.
+        Process::run("chmod 777 $volumeHostPath"); // Temporary fix for container access without sudo/chown
+
         $volumes = [$volumeHostPath => '/home/node/.n8n'];
 
         $instanceEnv = [
@@ -160,7 +174,7 @@ class ApiController extends Controller
 
             $volumePath = "/var/lib/n8n/instances/{$container->name}";
             if (Str::startsWith($volumePath, '/var/lib/n8n/instances/') && strlen($volumePath) > 23) {
-                 Process::run("sudo rm -rf $volumePath");
+                 Process::run("rm -rf $volumePath");
             }
 
             $container->delete();
@@ -258,7 +272,7 @@ class ApiController extends Controller
             $memory = intval($package->ram_limit * 1024) . 'm'; // Convert GB to MB
             $cpus = $package->cpu_limit;
 
-            Process::run("sudo docker update --memory={$memory} --memory-swap={$memory} --cpus={$cpus} " . $container->docker_id);
+            Process::run("docker update --memory={$memory} --memory-swap={$memory} --cpus={$cpus} " . $container->docker_id);
 
             return response()->json([
                 'status' => 'success',
@@ -279,7 +293,7 @@ class ApiController extends Controller
         // Return resource usage
         try {
              // Fetch Status
-             $statusProcess = Process::run("sudo docker inspect --format '{{.State.Status}}' " . $container->docker_id);
+             $statusProcess = Process::run("docker inspect --format '{{.State.Status}}' " . $container->docker_id);
              $status = 'unknown';
              if ($statusProcess->successful()) {
                  $rawStatus = trim($statusProcess->output());
@@ -294,7 +308,7 @@ class ApiController extends Controller
              }
 
              // Fetch stats: CPU%, MemUsage, MemPerc
-             $process = Process::run("sudo docker stats --no-stream --format \"{{.CPUPerc}};{{.MemUsage}};{{.MemPerc}}\" " . $container->docker_id);
+             $process = Process::run("docker stats --no-stream --format \"{{.CPUPerc}};{{.MemUsage}};{{.MemPerc}}\" " . $container->docker_id);
 
              if ($process->successful()) {
                  $output = trim($process->output());

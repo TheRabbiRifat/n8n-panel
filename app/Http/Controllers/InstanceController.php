@@ -118,8 +118,10 @@ class InstanceController extends Controller
         $volumeHostPath = "/var/lib/n8n/instances/{$request->name}";
 
         // Ensure volume exists and has correct permissions (n8n runs as node:1000)
-        \Illuminate\Support\Facades\Process::run("sudo mkdir -p $volumeHostPath");
-        \Illuminate\Support\Facades\Process::run("sudo chown -R 1000:1000 $volumeHostPath");
+        \Illuminate\Support\Facades\Process::run("mkdir -p $volumeHostPath");
+        // Removed sudo to rely on group/existing permissions
+        // \Illuminate\Support\Facades\Process::run("sudo chown -R 1000:1000 $volumeHostPath");
+        \Illuminate\Support\Facades\Process::run("chmod 777 $volumeHostPath");
 
         $volumes = [$volumeHostPath => '/home/node/.n8n'];
 
@@ -213,7 +215,7 @@ class InstanceController extends Controller
             // DELETE VOLUME (Permanent removal as requested)
             $volumePath = "/var/lib/n8n/instances/{$container->name}";
             if (Str::startsWith($volumePath, '/var/lib/n8n/instances/') && strlen($volumePath) > 23) {
-                 \Illuminate\Support\Facades\Process::run("sudo rm -rf $volumePath");
+                 \Illuminate\Support\Facades\Process::run("rm -rf $volumePath");
             }
 
             // Remove DB
