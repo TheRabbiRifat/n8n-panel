@@ -26,7 +26,7 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 // External Integration API
-Route::middleware(['auth:sanctum', 'role:admin', 'log.api', 'throttle:60,1'])->prefix('integration')->group(function () {
+Route::middleware(['auth:sanctum', 'role:admin|reseller', 'log.api', 'throttle:60,1'])->prefix('integration')->group(function () {
 
     // Instance Management
     Route::post('/instances/create', [App\Http\Controllers\Api\ApiController::class, 'create']);
@@ -44,6 +44,9 @@ Route::middleware(['auth:sanctum', 'role:admin', 'log.api', 'throttle:60,1'])->p
 
     // Reseller Management
     Route::post('/resellers', [App\Http\Controllers\Api\ApiController::class, 'createReseller']);
+
+    // User SSO
+    Route::post('/users/sso', [App\Http\Controllers\Api\ApiController::class, 'sso']);
 
     // System & Connection
     Route::get('/connection/test', [App\Http\Controllers\Api\ApiController::class, 'testConnection']);

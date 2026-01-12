@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\User;
 
 class LoginController extends Controller
 {
@@ -43,5 +44,16 @@ class LoginController extends Controller
         $request->session()->regenerateToken();
 
         return redirect('/');
+    }
+
+    public function ssoLogin(Request $request, User $user)
+    {
+        // Log the user in directly
+        Auth::login($user);
+
+        $request->session()->regenerate();
+        $request->session()->put('login_ip', $request->ip());
+
+        return redirect()->intended('dashboard');
     }
 }
