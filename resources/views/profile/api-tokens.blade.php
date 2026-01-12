@@ -154,6 +154,66 @@
                         </div>
                     </div>
 
+                    <!-- Connection Test -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed py-2" type="button" data-bs-toggle="collapse" data-bs-target="#api-connection">
+                                <span class="badge bg-primary me-2">GET</span> /connection/test
+                            </button>
+                        </h2>
+                        <div id="api-connection" class="accordion-collapse collapse" data-bs-parent="#apiDocs">
+                            <div class="accordion-body bg-light">
+                                <p class="small">Verify your API credentials and connection.</p>
+                                <pre class="small bg-dark text-white p-3 rounded mb-0 text-break" style="white-space: pre-wrap;">curl -X GET "{{ 'https://' . gethostname() . '/api/integration/connection/test' }}" \
+  -H "Authorization: Bearer YOUR_API_TOKEN"</pre>
+                                <div class="mt-3">
+                                    <h6 class="small fw-bold text-muted">Response</h6>
+                                    <pre class="small bg-light border p-3 rounded mb-0 text-muted text-break" style="white-space: pre-wrap;">{
+  "status": "success",
+  "message": "Connection successful",
+  "user": {
+    "id": 1,
+    "name": "Admin User",
+    "email": "admin@example.com"
+  }
+}</pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- System Stats -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed py-2" type="button" data-bs-toggle="collapse" data-bs-target="#api-system-stats">
+                                <span class="badge bg-primary me-2">GET</span> /system/stats
+                            </button>
+                        </h2>
+                        <div id="api-system-stats" class="accordion-collapse collapse" data-bs-parent="#apiDocs">
+                            <div class="accordion-body bg-light">
+                                <p class="small">Get system health and usage statistics.</p>
+                                <pre class="small bg-dark text-white p-3 rounded mb-0 text-break" style="white-space: pre-wrap;">curl -X GET "{{ 'https://' . gethostname() . '/api/integration/system/stats' }}" \
+  -H "Authorization: Bearer YOUR_API_TOKEN"</pre>
+                                <div class="mt-3">
+                                    <h6 class="small fw-bold text-muted">Response</h6>
+                                    <pre class="small bg-light border p-3 rounded mb-0 text-muted text-break" style="white-space: pre-wrap;">{
+  "status": "success",
+  "uptime": "2 hours, 15 minutes",
+  "load_averages": { "1": 0.5, "5": 0.3, "15": 0.1 },
+  "memory_usage": { "percent": 45.2, "used": 3600, "total": 8000 },
+  "disk_usage": { "percent": 20.5, "used_gb": 10, "total_gb": 50 },
+  "counts": {
+    "users": 5,
+    "instances_total": 10,
+    "instances_running": 8,
+    "instances_stopped": 2
+  }
+}</pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Create Instance -->
                     <div class="accordion-item">
                         <h2 class="accordion-header">
