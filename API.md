@@ -36,6 +36,8 @@ Verify your API token is valid and the server is reachable.
     {
       "status": "success",
       "message": "Connection successful",
+      "hostname": "server-01.example.com",
+      "ip": "192.168.1.100",
       "user": {
         "id": 1,
         "name": "Admin User",
