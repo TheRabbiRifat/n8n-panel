@@ -25,6 +25,7 @@ class User extends Authenticatable
         'password',
         'instance_limit',
         'reseller_id',
+        'whitelisted_ips',
     ];
 
     /**

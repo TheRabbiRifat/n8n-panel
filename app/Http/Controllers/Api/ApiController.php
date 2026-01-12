@@ -410,9 +410,14 @@ class ApiController extends Controller
     // CONNECTION TEST
     public function testConnection()
     {
+        $statusService = new \App\Services\SystemStatusService();
+        $stats = $statusService->getSystemStats();
+
         return response()->json([
             'status' => 'success',
             'message' => 'Connection successful',
+            'hostname' => $stats['hostname'],
+            'ip' => $stats['ips'],
             'user' => [
                 'id' => auth()->id(),
                 'name' => auth()->user()->name,
