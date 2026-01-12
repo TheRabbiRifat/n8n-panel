@@ -9,7 +9,7 @@ class DockerService
 {
     public function listContainers()
     {
-        $process = Process::run('sudo docker ps -a --format "{{.ID}}|{{.Names}}|{{.Image}}|{{.Status}}|{{.State}}|{{.Ports}}"');
+        $process = Process::run('docker ps -a --format "{{.ID}}|{{.Names}}|{{.Image}}|{{.Status}}|{{.State}}|{{.Ports}}"');
 
         if ($process->failed()) {
             return [];
@@ -39,8 +39,8 @@ class DockerService
 
     public function createContainer(string $image, string $name, int $port, int $internalPort = 5678, $cpu = null, $memory = null, array $environment = [], array $volumes = [], array $labels = [])
     {
-        // Manually construct sudo docker run command
-        $command = ['sudo', 'docker', 'run', '-d', '--name', $name, '--restart', 'unless-stopped'];
+        // Construct docker run command without sudo
+        $command = ['docker', 'run', '-d', '--name', $name, '--restart', 'unless-stopped'];
 
         // Port
         $command[] = '-p';
@@ -100,33 +100,33 @@ class DockerService
 
     public function stopContainer(string $id)
     {
-         Process::run("sudo docker stop $id");
+         Process::run("docker stop $id");
     }
 
     public function startContainer(string $id)
     {
-         Process::run("sudo docker start $id");
+         Process::run("docker start $id");
     }
 
     public function removeContainer(string $id)
     {
-         Process::run("sudo docker rm -f $id");
+         Process::run("docker rm -f $id");
     }
 
     public function restartContainer(string $id)
     {
-         Process::run("sudo docker restart $id");
+         Process::run("docker restart $id");
     }
 
     public function getContainerLogs(string $id, int $lines = 100)
     {
-         $process = Process::run("sudo docker logs --tail {$lines} $id");
+         $process = Process::run("docker logs --tail {$lines} $id");
          return $process->successful() ? $process->output() : 'Could not retrieve logs.';
     }
 
     public function getContainer(string $id)
     {
-         $process = Process::run("sudo docker inspect $id");
+         $process = Process::run("docker inspect $id");
          if ($process->successful()) {
              return json_decode($process->output(), true)[0] ?? null;
          }
@@ -135,7 +135,7 @@ class DockerService
 
     public function getContainerStats(string $id)
     {
-         $process = Process::run("sudo docker stats --no-stream --format \"{{json .}}\" $id");
+         $process = Process::run("docker stats --no-stream --format \"{{json .}}\" $id");
          if ($process->successful()) {
              return json_decode($process->output(), true);
          }
