@@ -227,7 +227,6 @@
   -H "Content-Type: application/json" \
   -d '{
     "email": "user@example.com",
-    "password": "secretpassword",
     "package_id": 1,
     "name": "my-instance"
   }'</pre>
