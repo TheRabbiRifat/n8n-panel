@@ -100,6 +100,18 @@
                              {{ $nginxStatus === 'active' ? 'UP' : 'DOWN' }}
                         </span>
                     </div>
+                    <div class="d-flex justify-content-between small">
+                        <span>PostgreSQL</span>
+                        <span class="badge {{ $postgresStatus === 'active' ? 'bg-success' : 'bg-danger' }}">
+                             {{ $postgresStatus === 'active' ? 'UP' : 'DOWN' }}
+                        </span>
+                    </div>
+                    <div class="d-flex justify-content-between small">
+                        <span>Docker</span>
+                        <span class="badge {{ $dockerStatus === 'active' ? 'bg-success' : 'bg-danger' }}">
+                             {{ $dockerStatus === 'active' ? 'UP' : 'DOWN' }}
+                        </span>
+                    </div>
                 </div>
             </div>
         </div>
