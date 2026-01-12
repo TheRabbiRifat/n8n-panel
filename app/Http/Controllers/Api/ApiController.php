@@ -38,27 +38,17 @@ class ApiController extends Controller
     public function create(Request $request)
     {
         $request->validate([
-            'email' => 'required|email',
+            'email' => 'required|email|exists:users,email',
             'package_id' => 'required|exists:packages,id',
             'name' => 'required|string|alpha_dash|unique:containers,name', // Instance Name
             'version' => 'nullable|string', // Default 'latest'
-            'password' => 'nullable|string', // For new user creation
         ]);
 
         $version = $request->version ?: 'latest';
         $genericTimezone = 'Asia/Dhaka'; // Default or from request
 
-        // 1. Find or Create User
-        $user = User::where('email', $request->email)->first();
-        if (!$user) {
-            $user = User::create([
-                'name' => explode('@', $request->email)[0],
-                'email' => $request->email,
-                'password' => Hash::make($request->password ?: Str::random(12)),
-                'instance_limit' => 5,
-            ]);
-            $user->assignRole('client');
-        }
+        // 1. Find User
+        $user = User::where('email', $request->email)->firstOrFail();
 
         $package = Package::findOrFail($request->package_id);
 

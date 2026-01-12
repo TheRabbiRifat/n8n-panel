@@ -68,12 +68,11 @@ Retrieve server health metrics and usage counts.
 ### 2. Instance Management
 
 #### Create Instance
-Provision a new n8n instance.
+Provision a new n8n instance for an existing user.
 
 *   **Endpoint:** `POST /instances/create`
 *   **Body Parameters:**
-    *   `email` (string, required): User email (will create user if not exists).
-    *   `password` (string, optional): User password (if creating new user).
+    *   `email` (string, required): Existing user email.
     *   `package_id` (int, required): ID of the resource package.
     *   `name` (string, required): Unique instance name (alpha-dash).
     *   `version` (string, optional): n8n version tag (default: 'latest').
