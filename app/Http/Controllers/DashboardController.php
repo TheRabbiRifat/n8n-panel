@@ -49,6 +49,11 @@ class DashboardController extends Controller
 
             $mysqlStatus = $this->serviceManager->getStatus('mysql');
             $nginxStatus = $this->serviceManager->getStatus('nginx');
+            $postgresStatus = $this->serviceManager->getStatus('postgresql');
+            $dockerStatus = $this->serviceManager->getStatus('docker');
+        } else {
+            $postgresStatus = 'Unknown';
+            $dockerStatus = 'Unknown';
         }
 
         if ($user->hasRole('admin')) {
@@ -79,6 +84,6 @@ class DashboardController extends Controller
             ];
         });
 
-        return view('dashboard.index', compact('containers', 'systemStats', 'nginxStatus', 'mysqlStatus'));
+        return view('dashboard.index', compact('containers', 'systemStats', 'nginxStatus', 'mysqlStatus', 'postgresStatus', 'dockerStatus'));
     }
 }
