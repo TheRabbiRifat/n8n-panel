@@ -149,8 +149,11 @@
                     <div class="mb-3">
                         <label class="small text-muted text-uppercase fw-bold">Base URL</label>
                         <div class="input-group input-group-sm flex-nowrap">
-                            <span class="input-group-text bg-light text-truncate" style="max-width: 100%;">{{ 'https://' . gethostname() . '/api/integration' }}</span>
-                            <button class="btn btn-outline-secondary" type="button" onclick="navigator.clipboard.writeText('{{ 'https://' . gethostname() . '/api/integration' }}')"><i class="bi bi-clipboard"></i></button>
+                            @php
+                                $apiBase = request()->schemeAndHttpHost() . '/api/integration';
+                            @endphp
+                            <span class="input-group-text bg-light text-truncate" style="max-width: 100%;">{{ $apiBase }}</span>
+                            <button class="btn btn-outline-secondary" type="button" onclick="navigator.clipboard.writeText('{{ $apiBase }}')"><i class="bi bi-clipboard"></i></button>
                         </div>
                     </div>
 
@@ -164,7 +167,7 @@
                         <div id="api-connection" class="accordion-collapse collapse" data-bs-parent="#apiDocs">
                             <div class="accordion-body bg-light">
                                 <p class="small">Verify your API credentials and connection.</p>
-                                <pre class="small bg-dark text-white p-3 rounded mb-0 text-break" style="white-space: pre-wrap;">curl -X GET "{{ 'https://' . gethostname() . '/api/integration/connection/test' }}" \
+                                <pre class="small bg-dark text-white p-3 rounded mb-0 text-break" style="white-space: pre-wrap;">curl -X GET "{{ $apiBase }}/connection/test" \
   -H "Authorization: Bearer YOUR_API_TOKEN"</pre>
                                 <div class="mt-3">
                                     <h6 class="small fw-bold text-muted">Response</h6>
@@ -192,7 +195,7 @@
                         <div id="api-system-stats" class="accordion-collapse collapse" data-bs-parent="#apiDocs">
                             <div class="accordion-body bg-light">
                                 <p class="small">Get system health and usage statistics.</p>
-                                <pre class="small bg-dark text-white p-3 rounded mb-0 text-break" style="white-space: pre-wrap;">curl -X GET "{{ 'https://' . gethostname() . '/api/integration/system/stats' }}" \
+                                <pre class="small bg-dark text-white p-3 rounded mb-0 text-break" style="white-space: pre-wrap;">curl -X GET "{{ $apiBase }}/system/stats" \
   -H "Authorization: Bearer YOUR_API_TOKEN"</pre>
                                 <div class="mt-3">
                                     <h6 class="small fw-bold text-muted">Response</h6>
@@ -222,7 +225,7 @@
                         <div id="api-create" class="accordion-collapse collapse" data-bs-parent="#apiDocs">
                             <div class="accordion-body bg-light">
                                 <p class="small">Create a new n8n instance.</p>
-                                <pre class="small bg-dark text-white p-3 rounded mb-0 text-break" style="white-space: pre-wrap;">curl -X POST "{{ 'https://' . gethostname() . '/api/integration/instances/create' }}" \
+                                <pre class="small bg-dark text-white p-3 rounded mb-0 text-break" style="white-space: pre-wrap;">curl -X POST "{{ $apiBase }}/instances/create" \
   -H "Authorization: Bearer YOUR_API_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -253,7 +256,7 @@
                         <div id="api-start" class="accordion-collapse collapse" data-bs-parent="#apiDocs">
                             <div class="accordion-body bg-light">
                                 <p class="small">Start an instance.</p>
-                                <pre class="small bg-dark text-white p-3 rounded mb-0 text-break" style="white-space: pre-wrap;">curl -X POST "{{ 'https://' . gethostname() . '/api/integration/instances/1/start' }}" \
+                                <pre class="small bg-dark text-white p-3 rounded mb-0 text-break" style="white-space: pre-wrap;">curl -X POST "{{ $apiBase }}/instances/1/start" \
   -H "Authorization: Bearer YOUR_API_TOKEN"</pre>
                                 <div class="mt-3">
                                     <h6 class="small fw-bold text-muted">Response</h6>
@@ -275,7 +278,7 @@
                         <div id="api-stop" class="accordion-collapse collapse" data-bs-parent="#apiDocs">
                             <div class="accordion-body bg-light">
                                 <p class="small">Stop an instance.</p>
-                                <pre class="small bg-dark text-white p-3 rounded mb-0 text-break" style="white-space: pre-wrap;">curl -X POST "{{ 'https://' . gethostname() . '/api/integration/instances/1/stop' }}" \
+                                <pre class="small bg-dark text-white p-3 rounded mb-0 text-break" style="white-space: pre-wrap;">curl -X POST "{{ $apiBase }}/instances/1/stop" \
   -H "Authorization: Bearer YOUR_API_TOKEN"</pre>
                                 <div class="mt-3">
                                     <h6 class="small fw-bold text-muted">Response</h6>
@@ -297,7 +300,7 @@
                         <div id="api-suspend" class="accordion-collapse collapse" data-bs-parent="#apiDocs">
                             <div class="accordion-body bg-light">
                                 <p class="small">Suspend an instance (Stops and marks as suspended).</p>
-                                <pre class="small bg-dark text-white p-3 rounded mb-0 text-break" style="white-space: pre-wrap;">curl -X POST "{{ 'https://' . gethostname() . '/api/integration/instances/1/suspend' }}" \
+                                <pre class="small bg-dark text-white p-3 rounded mb-0 text-break" style="white-space: pre-wrap;">curl -X POST "{{ $apiBase }}/instances/1/suspend" \
   -H "Authorization: Bearer YOUR_API_TOKEN"</pre>
                                 <div class="mt-3">
                                     <h6 class="small fw-bold text-muted">Response</h6>
@@ -319,7 +322,7 @@
                         <div id="api-unsuspend" class="accordion-collapse collapse" data-bs-parent="#apiDocs">
                             <div class="accordion-body bg-light">
                                 <p class="small">Unsuspend an instance (Unmarks and starts).</p>
-                                <pre class="small bg-dark text-white p-3 rounded mb-0 text-break" style="white-space: pre-wrap;">curl -X POST "{{ 'https://' . gethostname() . '/api/integration/instances/1/unsuspend' }}" \
+                                <pre class="small bg-dark text-white p-3 rounded mb-0 text-break" style="white-space: pre-wrap;">curl -X POST "{{ $apiBase }}/instances/1/unsuspend" \
   -H "Authorization: Bearer YOUR_API_TOKEN"</pre>
                                 <div class="mt-3">
                                     <h6 class="small fw-bold text-muted">Response</h6>
@@ -341,7 +344,7 @@
                         <div id="api-upgrade" class="accordion-collapse collapse" data-bs-parent="#apiDocs">
                             <div class="accordion-body bg-light">
                                 <p class="small">Change the package (Upgrade/Downgrade) and apply resources immediately.</p>
-                                <pre class="small bg-dark text-white p-3 rounded mb-0 text-break" style="white-space: pre-wrap;">curl -X POST "{{ 'https://' . gethostname() . '/api/integration/instances/1/upgrade' }}" \
+                                <pre class="small bg-dark text-white p-3 rounded mb-0 text-break" style="white-space: pre-wrap;">curl -X POST "{{ $apiBase }}/instances/1/upgrade" \
   -H "Authorization: Bearer YOUR_API_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -369,7 +372,7 @@
                         <div id="api-terminate" class="accordion-collapse collapse" data-bs-parent="#apiDocs">
                             <div class="accordion-body bg-light">
                                 <p class="small text-danger fw-bold">Permanently delete an instance and its data.</p>
-                                <pre class="small bg-dark text-white p-3 rounded mb-0 text-break" style="white-space: pre-wrap;">curl -X POST "{{ 'https://' . gethostname() . '/api/integration/instances/1/terminate' }}" \
+                                <pre class="small bg-dark text-white p-3 rounded mb-0 text-break" style="white-space: pre-wrap;">curl -X POST "{{ $apiBase }}/instances/1/terminate" \
   -H "Authorization: Bearer YOUR_API_TOKEN"</pre>
                                 <div class="mt-3">
                                     <h6 class="small fw-bold text-muted">Response</h6>
@@ -391,7 +394,7 @@
                         <div id="api-stats" class="accordion-collapse collapse" data-bs-parent="#apiDocs">
                             <div class="accordion-body bg-light">
                                 <p class="small">Get real-time resource usage.</p>
-                                <pre class="small bg-dark text-white p-3 rounded mb-0 text-break" style="white-space: pre-wrap;">curl -X GET "{{ 'https://' . gethostname() . '/api/integration/instances/1/stats' }}" \
+                                <pre class="small bg-dark text-white p-3 rounded mb-0 text-break" style="white-space: pre-wrap;">curl -X GET "{{ $apiBase }}/instances/1/stats" \
   -H "Authorization: Bearer YOUR_API_TOKEN"</pre>
                                 <div class="mt-3">
                                     <h6 class="small fw-bold text-muted">Response</h6>
@@ -419,7 +422,7 @@
                         <div id="api-packages" class="accordion-collapse collapse" data-bs-parent="#apiDocs">
                             <div class="accordion-body bg-light">
                                 <p class="small">List all available packages.</p>
-                                <pre class="small bg-dark text-white p-3 rounded mb-0 text-break" style="white-space: pre-wrap;">curl -X GET "{{ 'https://' . gethostname() . '/api/integration/packages' }}" \
+                                <pre class="small bg-dark text-white p-3 rounded mb-0 text-break" style="white-space: pre-wrap;">curl -X GET "{{ $apiBase }}/packages" \
   -H "Authorization: Bearer YOUR_API_TOKEN"</pre>
                                 <div class="mt-3">
                                     <h6 class="small fw-bold text-muted">Response</h6>
@@ -450,7 +453,7 @@
                         <div id="api-package-detail" class="accordion-collapse collapse" data-bs-parent="#apiDocs">
                             <div class="accordion-body bg-light">
                                 <p class="small">Get details of a specific package.</p>
-                                <pre class="small bg-dark text-white p-3 rounded mb-0 text-break" style="white-space: pre-wrap;">curl -X GET "{{ 'https://' . gethostname() . '/api/integration/packages/1' }}" \
+                                <pre class="small bg-dark text-white p-3 rounded mb-0 text-break" style="white-space: pre-wrap;">curl -X GET "{{ $apiBase }}/packages/1" \
   -H "Authorization: Bearer YOUR_API_TOKEN"</pre>
                                 <div class="mt-3">
                                     <h6 class="small fw-bold text-muted">Response</h6>
