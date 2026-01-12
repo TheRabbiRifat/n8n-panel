@@ -198,10 +198,8 @@
                                     <h6 class="small fw-bold text-muted">Response</h6>
                                     <pre class="small bg-light border p-3 rounded mb-0 text-muted text-break" style="white-space: pre-wrap;">{
   "status": "success",
-  "uptime": "2 hours, 15 minutes",
+  "server_status": "online",
   "load_averages": { "1": 0.5, "5": 0.3, "15": 0.1 },
-  "memory_usage": { "percent": 45.2, "used": 3600, "total": 8000 },
-  "disk_usage": { "percent": 20.5, "used_gb": 10, "total_gb": 50 },
   "counts": {
     "users": 5,
     "instances_total": 10,
