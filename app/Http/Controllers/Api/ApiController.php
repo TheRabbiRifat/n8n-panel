@@ -64,10 +64,11 @@ class ApiController extends Controller
         $port = $this->portAllocator->allocate();
 
         // 3. Domain Logic
+        // Automatically detect domain if not strictly set in env
         $baseDomain = env('APP_DOMAIN');
         if (empty($baseDomain) || $baseDomain === 'n8n.local') {
-             $hostname = gethostname();
-             $baseDomain = $hostname ?: 'n8n.local';
+             // Fallback to request host or hostname
+             $baseDomain = $request->getHost();
         }
         $subdomain = Str::slug($request->name) . '.' . $baseDomain;
 
@@ -420,11 +421,15 @@ class ApiController extends Controller
         $statusService = new \App\Services\SystemStatusService();
         $stats = $statusService->getSystemStats();
 
+        // Auto-detect base URL/Domain for client configuration convenience
+        $baseUrl = url('/');
+
         return response()->json([
             'status' => 'success',
             'message' => 'Connection successful',
             'hostname' => $stats['hostname'],
             'ip' => $stats['ips'],
+            'detected_url' => $baseUrl,
             'user' => [
                 'id' => auth()->id(),
                 'name' => auth()->user()->name,
