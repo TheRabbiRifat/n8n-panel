@@ -124,6 +124,9 @@ systemctl reload nginx
 echo "Configuring PostgreSQL..."
 # Force md5 auth for local connections
 sed -i "s/^local\s\+all\s\+all\s\+peer/local all all md5/" /etc/postgresql/*/main/pg_hba.conf
+# Ensure host connections also use md5 (default is often scram-sha-256 or md5, but being explicit helps)
+sed -i "s/^host\s\+all\s\+all\s\+127.0.0.1\/32\s\+.*/host    all             all             127.0.0.1\/32            md5/" /etc/postgresql/*/main/pg_hba.conf
+sed -i "s/^host\s\+all\s\+all\s\+::1\/128\s\+.*/host    all             all             ::1\/128                 md5/" /etc/postgresql/*/main/pg_hba.conf
 systemctl restart postgresql
 
 # Drop previous DB/user if exist
