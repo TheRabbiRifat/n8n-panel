@@ -252,6 +252,7 @@
         });
 
         let logsInterval;
+        let currentLogData = '';
         const logsTabBtn = document.getElementById('logs-tab');
 
         function fetchLogs() {
@@ -259,6 +260,7 @@
                 .then(response => response.json())
                 .then(data => {
                     logsTerm.clear(); // Simple refresh strategy
+                    currentLogData = data.logs;
                     logsTerm.write(data.logs.replace(/\n/g, '\r\n'));
                 })
                 .catch(err => console.error(err));
@@ -278,16 +280,21 @@
         // Copy Logs
         document.getElementById('copy-logs-btn').addEventListener('click', function() {
             try {
-                logsTerm.selectAll();
-                const text = logsTerm.getSelection();
-                logsTerm.clearSelection();
+                if (!currentLogData) {
+                    // Fallback to selection if variable is empty (e.g. initial load)
+                    logsTerm.selectAll();
+                    currentLogData = logsTerm.getSelection();
+                    logsTerm.clearSelection();
+                }
 
-                if (!text) {
-                    alert('Log buffer is empty or selection failed.');
+                if (!currentLogData) {
+                    alert('Log buffer is empty.');
                     return;
                 }
 
-                navigator.clipboard.writeText(text).then(() => {
+                const cleanLogs = currentLogData.replace(/\u001b\[[0-9;]*m/g, '');
+
+                navigator.clipboard.writeText(cleanLogs).then(() => {
                     const btn = this;
                     const originalHtml = btn.innerHTML;
                     btn.innerHTML = '<i class="bi bi-check"></i> Copied';
