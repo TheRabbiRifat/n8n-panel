@@ -25,18 +25,19 @@ class SystemStatusService
 
     protected function getKernelVersion()
     {
-        $process = Process::run('uname -r');
+        $process = Process::run([base_path('scripts/get-system-status.sh'), '--type=kernel']);
         return $process->successful() ? trim($process->output()) : 'Unknown';
     }
 
     protected function getLoadAverages()
     {
-        if (function_exists('sys_getloadavg')) {
-            $loads = sys_getloadavg();
+        $process = Process::run([base_path('scripts/get-system-status.sh'), '--type=load']);
+        if ($process->successful()) {
+            $parts = explode(' ', trim($process->output()));
             return [
-                '1' => round($loads[0] ?? 0, 2),
-                '5' => round($loads[1] ?? 0, 2),
-                '15' => round($loads[2] ?? 0, 2),
+                '1' => round($parts[0] ?? 0, 2),
+                '5' => round($parts[1] ?? 0, 2),
+                '15' => round($parts[2] ?? 0, 2),
             ];
         }
         return ['1' => 0, '5' => 0, '15' => 0];
@@ -44,18 +45,14 @@ class SystemStatusService
 
     protected function getHostname()
     {
-        return gethostname();
+        $process = Process::run([base_path('scripts/get-system-status.sh'), '--type=hostname']);
+        return $process->successful() ? trim($process->output()) : 'Unknown';
     }
 
     protected function getOsInfo()
     {
-        $process = Process::run("cat /etc/os-release | grep PRETTY_NAME");
-        if ($process->successful()) {
-            // Output example: PRETTY_NAME="Ubuntu 22.04 LTS"
-            $output = trim($process->output());
-            return str_replace(['PRETTY_NAME=', '"'], '', $output);
-        }
-        return PHP_OS;
+        $process = Process::run([base_path('scripts/get-system-status.sh'), '--type=os']);
+        return $process->successful() ? trim($process->output()) : PHP_OS;
     }
 
     protected function getServerTime()
@@ -65,46 +62,38 @@ class SystemStatusService
 
     protected function getIps()
     {
-        $process = Process::run("hostname -I");
-        if ($process->successful()) {
-            return trim($process->output());
-        }
-        return 'Unknown';
+        $process = Process::run([base_path('scripts/get-system-status.sh'), '--type=ips']);
+        return $process->successful() ? trim($process->output()) : 'Unknown';
     }
 
     protected function getDockerStatus()
     {
-        // Simple check if docker info command runs successfully
-        $process = Process::run('docker info');
+        // Check using docker-utils.sh info command
+        $process = Process::run([base_path('scripts/docker-utils.sh'), '--action=info']);
         return $process->successful() ? 'Running' : 'Stopped';
     }
 
     protected function getUptime()
     {
-        $uptime = Process::run('uptime -p');
-        return $uptime->successful() ? trim(str_replace('up ', '', $uptime->output())) : 'Unknown';
+        $process = Process::run([base_path('scripts/get-system-status.sh'), '--type=uptime']);
+        return $process->successful() ? trim(str_replace('up ', '', $process->output())) : 'Unknown';
     }
 
     protected function getCpuLoad()
     {
-        // Load average for last 1 minute
-        if (function_exists('sys_getloadavg')) {
-            $load = sys_getloadavg();
-            return round($load[0] ?? 0, 2);
-        }
-        return 0;
+        $loads = $this->getLoadAverages();
+        return $loads['1'] ?? 0;
     }
 
     protected function getRamUsage()
     {
-        // Parse /proc/meminfo or use shell command
         $total = 0;
-        $free = 0;
+        $used = 0;
 
-        $process = Process::run('free -m');
+        $process = Process::run([base_path('scripts/get-system-status.sh'), '--type=memory']);
         if ($process->successful()) {
             $output = $process->output();
-            // Expected format:
+            // Expected format (free -m):
             //               total        used        free      shared  buff/cache   available
             // Mem:           7933        1234        5000         123        1700        6400
 
@@ -113,9 +102,8 @@ class SystemStatusService
                 $parts = preg_split('/\s+/', $lines[1]);
                 if (count($parts) >= 3) {
                     $total = intval($parts[1]);
-                    $used = intval($parts[2]); // This is 'used' column, but better to check 'available' if present
+                    $used = intval($parts[2]);
 
-                    // Let's stick to basic: Used / Total
                     return [
                         'used' => $used,
                         'total' => $total,

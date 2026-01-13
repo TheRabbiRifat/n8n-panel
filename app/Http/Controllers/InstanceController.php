@@ -116,13 +116,8 @@ class InstanceController extends Controller
 
         // 4. Volume Path
         $volumeHostPath = "/var/lib/n8n/instances/{$request->name}";
-
-        // Ensure volume exists and has correct permissions (n8n runs as node:1000)
-        \Illuminate\Support\Facades\Process::run("mkdir -p $volumeHostPath");
-        // Removed sudo to rely on group/existing permissions
-        // \Illuminate\Support\Facades\Process::run("sudo chown -R 1000:1000 $volumeHostPath");
-        \Illuminate\Support\Facades\Process::run("chmod 777 $volumeHostPath");
-
+        // FS operations are handled by the create-instance.sh script now.
+        // We define volumes array for compatibility if needed, but script hardcodes the path.
         $volumes = [$volumeHostPath => '/home/node/.n8n'];
 
         // Generate Instance Specific Envs (Important for n8n persistence)
