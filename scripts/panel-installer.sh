@@ -27,7 +27,9 @@ EMAIL="admin@${HOSTNAME_FQDN}"
 
 DB_NAME="n8n_panel"
 DB_USER="n8n_panel"
+set +o pipefail
 DB_PASS="$(LC_ALL=C tr -dc a-z1-9 </dev/urandom | head -c 11)"
+set -o pipefail
 
 NGINX_MAIN_CONF="/etc/nginx/nginx.conf"
 NGINX_INCLUDE_LINE="include /var/lib/n8n/nginx/*.conf;"
@@ -126,7 +128,9 @@ rm -rf "$TMP_DIR"
 mkdir -p "$TMP_DIR"
 curl -fsSL "$ZIP_URL" -o "$TMP_DIR/panel.zip"
 unzip -q "$TMP_DIR/panel.zip" -d "$TMP_DIR"
+set +o pipefail
 SRC_DIR="$(find "$TMP_DIR" -mindepth 1 -maxdepth 1 -type d | head -n1)"
+set -o pipefail
 rm -rf "$APP_DIR"
 mv "$SRC_DIR" "$APP_DIR"
 
