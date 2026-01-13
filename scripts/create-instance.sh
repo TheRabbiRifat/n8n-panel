@@ -157,7 +157,8 @@ server {
 EOF
 
 # Enable Site
-ln -sf "$NGINX_CONF" "/etc/nginx/sites-enabled/$DOMAIN"
+# No need to link to sites-enabled as /var/lib/n8n/nginx/*.conf is included in main config
+# ln -sf "$NGINX_CONF" "/etc/nginx/sites-enabled/$DOMAIN"
 systemctl reload nginx
 
 # 4. SSL (Certbot)
