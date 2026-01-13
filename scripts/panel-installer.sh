@@ -1,6 +1,14 @@
 #!/bin/bash
 set -Eeuo pipefail
 
+echo "Starting n8n Panel Installer..."
+
+# Check if running as root
+if [ "$(id -u)" -ne 0 ]; then
+    echo "❌ Error: This script must be run as root."
+    exit 1
+fi
+
 #################################
 # CONFIGURATION
 #################################
@@ -14,12 +22,12 @@ INSTANCES_DIR="/var/lib/n8n/instances"
 PANEL_PORT=8448
 PHP_SOCK="/run/php/php8.2-fpm.sock"
 
-HOSTNAME_FQDN="$(hostname -f)"
+HOSTNAME_FQDN="$(hostname -f 2>/dev/null || hostname 2>/dev/null || echo 'localhost')"
 EMAIL="admin@${HOSTNAME_FQDN}"
 
 DB_NAME="n8n_panel"
 DB_USER="n8n_panel"
-DB_PASS="$(tr -dc a-z1-9 </dev/urandom | head -c 11)"
+DB_PASS="$(LC_ALL=C tr -dc a-z1-9 </dev/urandom | head -c 11)"
 
 NGINX_MAIN_CONF="/etc/nginx/nginx.conf"
 NGINX_INCLUDE_LINE="include /var/lib/n8n/nginx/*.conf;"
