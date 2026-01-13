@@ -37,58 +37,49 @@ class DockerService
         return $containers;
     }
 
-    public function createContainer(string $image, string $name, int $port, int $internalPort = 5678, $cpu = null, $memory = null, array $environment = [], array $volumes = [], array $labels = [])
+    public function createContainer(string $image, string $name, int $port, int $internalPort = 5678, $cpu = null, $memory = null, array $environment = [], array $volumes = [], array $labels = [], string $domain = '', string $email = '')
     {
-        // Construct docker run command without sudo
-        $command = ['docker', 'run', '-d', '--name', $name, '--restart', 'unless-stopped'];
+        // Extract tag from image (e.g. n8nio/n8n:latest -> latest)
+        $imageParts = explode(':', $image);
+        $tag = count($imageParts) > 1 ? $imageParts[1] : 'latest';
 
-        // Port
-        $command[] = '-p';
-        $command[] = "{$port}:{$internalPort}";
+        $envJson = json_encode($environment);
 
-        // Env
-        foreach ($environment as $key => $value) {
-            $command[] = '-e';
-            $command[] = "{$key}={$value}";
-        }
+        // Path to script
+        $scriptPath = base_path('scripts/create-instance.sh');
 
-        // Volumes
-        foreach ($volumes as $hostPath => $containerPath) {
-            $command[] = '-v';
-            $command[] = "{$hostPath}:{$containerPath}";
-        }
+        $command = [
+            $scriptPath,
+            "--name={$name}",
+            "--port={$port}",
+            "--image={$tag}",
+            "--domain={$domain}",
+            "--email={$email}",
+            "--env-json={$envJson}",
+        ];
 
-        // Labels
-        foreach ($labels as $key => $value) {
-            $command[] = '-l';
-            $command[] = "{$key}={$value}";
-        }
-
-        // Resources
         if ($cpu) {
-            $command[] = "--cpus={$cpu}";
+            $command[] = "--cpu={$cpu}";
         }
         if ($memory) {
-            // Assume memory is passed as float GB, so append 'g'
-            // If it's already a string with suffix, this might break, but we are standardizing on float GB.
-            // Check if it's numeric before appending.
-            if (is_numeric($memory)) {
-                $command[] = "--memory={$memory}g";
-            } else {
-                $command[] = "--memory={$memory}";
-            }
+             $command[] = "--memory={$memory}";
         }
-
-        $command[] = $image;
 
         // Execute with timeout for pulling image
         $process = Process::timeout(600)->run($command);
 
         if (!$process->successful()) {
-            throw new Exception("Docker creation failed: " . $process->errorOutput() . " " . $process->output());
+            throw new Exception("Instance creation failed: " . $process->errorOutput() . " " . $process->output());
         }
 
-        $containerId = trim($process->output());
+        // Need to fetch ID separately since script output might be noisy
+        // Or assume the script was successful and we can just inspect the container by name to get ID
+        $inspect = Process::run("docker inspect --format '{{.Id}}' $name");
+        $containerId = trim($inspect->output());
+
+        if (empty($containerId)) {
+             throw new Exception("Instance created but could not retrieve ID. Output: " . $process->output());
+        }
 
         // Return Mock Object
         return new class($containerId) {
@@ -100,22 +91,62 @@ class DockerService
 
     public function stopContainer(string $id)
     {
-         Process::run("docker stop $id");
+        // Need name to use script, or just use docker stop if ID provided
+        // But let's look up name if needed.
+        // The script manages via docker command anyway.
+        // If we want to strictly use scripts, we should pass name.
+        // However, current signature uses ID.
+        // Let's resolve name from ID.
+        $name = $this->getNameById($id);
+        if ($name) {
+             Process::run([base_path('scripts/manage-container.sh'), "--name={$name}", "--action=stop"]);
+        } else {
+             // Fallback
+             Process::run("docker stop $id");
+        }
     }
 
     public function startContainer(string $id)
     {
-         Process::run("docker start $id");
+        $name = $this->getNameById($id);
+        if ($name) {
+             Process::run([base_path('scripts/manage-container.sh'), "--name={$name}", "--action=start"]);
+        } else {
+             Process::run("docker start $id");
+        }
     }
 
-    public function removeContainer(string $id)
+    public function removeContainer(string $id, string $domain = '')
     {
-         Process::run("docker rm -f $id");
+        $name = $this->getNameById($id);
+        // If name not found (already deleted?), fallback to docker rm
+        if ($name) {
+             $command = [base_path('scripts/delete-instance.sh'), "--name={$name}"];
+             if ($domain) {
+                 $command[] = "--domain={$domain}";
+             }
+             Process::run($command);
+        } else {
+             Process::run("docker rm -f $id");
+        }
     }
 
     public function restartContainer(string $id)
     {
-         Process::run("docker restart $id");
+        $name = $this->getNameById($id);
+        if ($name) {
+             Process::run([base_path('scripts/manage-container.sh'), "--name={$name}", "--action=restart"]);
+        } else {
+             Process::run("docker restart $id");
+        }
+    }
+
+    private function getNameById($id) {
+         $p = Process::run("docker inspect --format '{{.Name}}' $id");
+         if ($p->successful()) {
+             return trim($p->output(), "/ \n\r");
+         }
+         return null;
     }
 
     public function getContainerLogs(string $id, int $lines = 100)
