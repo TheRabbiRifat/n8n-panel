@@ -53,6 +53,15 @@ A full-featured REST API designed for integration with billing systems like **WH
 
 ## 📥 Installation
 
+### ⚡ Quick Install
+
+Run the following command on a fresh Ubuntu 22.04+ server:
+```bash
+bash <(curl -fsSL https://raw.githubusercontent.com/TheRabbiRifat/n8n-panel/main/scripts/panel-installer.sh)
+```
+
+### 🛠️ Manual Installation
+
 1. **Clone the Repository**
    ```bash
    git clone https://github.com/your-repo/n8n-panel.git

@@ -47,11 +47,15 @@ echo "Installing system packages..."
 apt update -y
 apt install -y \
     nginx \
+    docker.io \
+    git \
     postgresql postgresql-contrib \
     php8.2-fpm php8.2-cli php8.2-pgsql php8.2-mbstring php8.2-bcmath \
-    php8.2-curl php8.2-xml php8.2-zip \
+    php8.2-curl php8.2-xml php8.2-zip php8.2-intl php8.2-gd \
     unzip curl composer \
     certbot python3-certbot-nginx ufw
+
+systemctl enable --now docker
 
 #################################
 # 2. FIREWALL
@@ -145,6 +149,7 @@ chmod -R 775 storage bootstrap/cache
 sudo -u www-data composer install --no-dev --optimize-autoloader
 sudo -u www-data php artisan key:generate --force
 sudo -u www-data php artisan migrate --force
+sudo -u www-data php artisan db:seed --force
 sudo -u www-data php artisan config:clear
 sudo -u www-data php artisan config:cache
 sudo -u www-data php artisan route:cache
@@ -213,4 +218,8 @@ echo "URL: https://${HOSTNAME_FQDN}:${PANEL_PORT}"
 echo "PostgreSQL DB: ${DB_NAME}"
 echo "DB User: ${DB_USER}"
 echo "DB Password: ${DB_PASS}"
+echo ""
+echo "Admin Login:"
+echo "Email: admin@example.com"
+echo "Password: password"
 echo "======================================"
