@@ -73,8 +73,8 @@ apt install -y \
     nginx \
     docker-ce docker-ce-cli docker-buildx-plugin docker-compose-plugin docker-ce-rootless-extras \
     git \
-    postgresql postgresql-contrib \
-    php8.2-fpm php8.2-cli php8.2-pgsql php8.2-mbstring php8.2-bcmath \
+    mariadb-server \
+    php8.2-fpm php8.2-cli php8.2-mysql php8.2-mbstring php8.2-bcmath \
     php8.2-curl php8.2-xml php8.2-zip php8.2-intl php8.2-gd \
     unzip composer \
     certbot python3-certbot-nginx ufw
@@ -119,24 +119,19 @@ nginx -t
 systemctl reload nginx
 
 #################################
-# 6. POSTGRESQL CLEAN + SETUP
+# 6. MARIADB CLEAN + SETUP
 #################################
-echo "Configuring PostgreSQL..."
-# Force md5 auth for local connections
-sed -i "s/^local\s\+all\s\+all\s\+peer/local all all md5/" /etc/postgresql/*/main/pg_hba.conf
-# Ensure host connections also use md5 (default is often scram-sha-256 or md5, but being explicit helps)
-sed -i "s/^host\s\+all\s\+all\s\+127.0.0.1\/32\s\+.*/host    all             all             127.0.0.1\/32            md5/" /etc/postgresql/*/main/pg_hba.conf
-sed -i "s/^host\s\+all\s\+all\s\+::1\/128\s\+.*/host    all             all             ::1\/128                 md5/" /etc/postgresql/*/main/pg_hba.conf
-systemctl restart postgresql
-
-# Drop previous DB/user if exist
-sudo -u postgres psql -c "DROP DATABASE IF EXISTS ${DB_NAME};"
-sudo -u postgres psql -c "DROP ROLE IF EXISTS ${DB_USER};"
+echo "Configuring MariaDB..."
+systemctl start mariadb
+systemctl enable mariadb
 
 # Create DB/user
-sudo -u postgres psql -c "CREATE ROLE ${DB_USER} LOGIN PASSWORD '${DB_PASS}';"
-sudo -u postgres psql -c "CREATE DATABASE ${DB_NAME} OWNER ${DB_USER};"
-sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE ${DB_NAME} TO ${DB_USER};"
+mariadb -e "DROP DATABASE IF EXISTS ${DB_NAME};"
+mariadb -e "DROP USER IF EXISTS '${DB_USER}'@'127.0.0.1';"
+mariadb -e "CREATE DATABASE ${DB_NAME};"
+mariadb -e "CREATE USER '${DB_USER}'@'127.0.0.1' IDENTIFIED BY '${DB_PASS}';"
+mariadb -e "GRANT ALL PRIVILEGES ON ${DB_NAME}.* TO '${DB_USER}'@'127.0.0.1';"
+mariadb -e "FLUSH PRIVILEGES;"
 
 #################################
 # 7. DOWNLOAD PANEL
@@ -162,9 +157,9 @@ cd "$APP_DIR"
 #################################
 sudo -u www-data cp .env.example .env
 
-sudo -u www-data sed -i "s|^DB_CONNECTION=.*|DB_CONNECTION=pgsql|" .env
+sudo -u www-data sed -i "s|^DB_CONNECTION=.*|DB_CONNECTION=mysql|" .env
 sudo -u www-data sed -i "s|^DB_HOST=.*|DB_HOST=127.0.0.1|" .env
-sudo -u www-data sed -i "s|^DB_PORT=.*|DB_PORT=5432|" .env
+sudo -u www-data sed -i "s|^DB_PORT=.*|DB_PORT=3306|" .env
 sudo -u www-data sed -i "s|^DB_DATABASE=.*|DB_DATABASE=${DB_NAME}|" .env
 sudo -u www-data sed -i "s|^DB_USERNAME=.*|DB_USERNAME=${DB_USER}|" .env
 sudo -u www-data sed -i "s|^DB_PASSWORD=.*|DB_PASSWORD=${DB_PASS}|" .env
@@ -244,7 +239,7 @@ rm -rf "$TMP_DIR"
 echo "======================================"
 echo "✅ n8n Panel installed successfully"
 echo "URL: https://${HOSTNAME_FQDN}:${PANEL_PORT}"
-echo "PostgreSQL DB: ${DB_NAME}"
+echo "MariaDB DB: ${DB_NAME}"
 echo "DB User: ${DB_USER}"
 echo "DB Password: ${DB_PASS}"
 echo ""
