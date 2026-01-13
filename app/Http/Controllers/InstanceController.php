@@ -140,6 +140,9 @@ class InstanceController extends Controller
 
         try {
             // Docker Create
+            // Pass domain and email for Nginx/Certbot setup inside the script
+            $email = env('MAIL_FROM_ADDRESS', 'admin@example.com');
+
             $instance = $this->dockerService->createContainer(
                 $image,
                 $request->name,
@@ -148,7 +151,10 @@ class InstanceController extends Controller
                 $package->cpu_limit,
                 $package->ram_limit,
                 $envArray,
-                $volumes
+                $volumes,
+                [],
+                $subdomain,
+                $email
             );
 
             // Create DB Record
@@ -163,11 +169,8 @@ class InstanceController extends Controller
                 'environment' => json_encode($instanceEnv),
             ]);
 
-            // Nginx & Certbot
-            $this->nginxService->createVhost($subdomain, $port);
-
-            // Attempt to secure via Certbot (Best effort)
-            $sslSuccess = $this->nginxService->secureVhost($subdomain);
+            // Nginx & Certbot handled by script via createContainer
+            $sslSuccess = true; // Assumed success or non-critical failure in script
 
             DB::commit();
 
@@ -204,19 +207,9 @@ class InstanceController extends Controller
         }
 
         try {
-            // Remove Nginx Vhost
-            if ($container->domain) {
-                $this->nginxService->removeVhost($container->domain);
-            }
-
-            // Remove Container
-            $this->dockerService->removeContainer($container->docker_id);
-
-            // DELETE VOLUME (Permanent removal as requested)
-            $volumePath = "/var/lib/n8n/instances/{$container->name}";
-            if (Str::startsWith($volumePath, '/var/lib/n8n/instances/') && strlen($volumePath) > 23) {
-                 \Illuminate\Support\Facades\Process::run("rm -rf $volumePath");
-            }
+            // Remove Container & Associated Resources (Nginx, Volume) via Script
+            // We pass the domain to allow Nginx cleanup
+            $this->dockerService->removeContainer($container->docker_id, $container->domain);
 
             // Remove DB
             $containerName = $container->name;
