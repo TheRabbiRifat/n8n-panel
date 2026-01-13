@@ -117,6 +117,18 @@ class ApiController extends Controller
         try {
             $email = $user->email; // Use user email for SSL
 
+            // Create DB Record FIRST
+            $container = Container::create([
+                'user_id' => $user->id,
+                'package_id' => $package->id,
+                'docker_id' => 'pending_' . Str::random(8),
+                'name' => $request->name,
+                'port' => $port,
+                'domain' => $subdomain,
+                'image_tag' => $version,
+                'environment' => json_encode($instanceEnv),
+            ]);
+
             $instanceDocker = $this->dockerService->createContainer(
                 $image,
                 $request->name,
@@ -128,18 +140,12 @@ class ApiController extends Controller
                 $volumes, // This is technically ignored by the specific n8n script but kept for interface
                 [],
                 $subdomain,
-                $email
+                $email,
+                $container->id
             );
 
-            $container = Container::create([
-                'user_id' => $user->id,
-                'package_id' => $package->id,
+            $container->update([
                 'docker_id' => $instanceDocker->getShortDockerIdentifier(),
-                'name' => $request->name,
-                'port' => $port,
-                'domain' => $subdomain,
-                'image_tag' => $version,
-                'environment' => json_encode($instanceEnv),
             ]);
 
             // Nginx & SSL handled by create-instance.sh
@@ -156,7 +162,12 @@ class ApiController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             if ($instanceDocker) {
-                try { $this->dockerService->removeContainer($instanceDocker->getShortDockerIdentifier()); } catch (\Exception $e) {}
+                // Pass DB ID if we have it, though container object might not be fully formed.
+                // Assuming basic cleanup via docker ID is enough for rollback if volume was created by ID
+                // But wait, if we used ID for volume, we need ID to clean it up.
+                // If $container exists (DB record created), we have the ID.
+                $dbId = isset($container) ? $container->id : null;
+                try { $this->dockerService->removeContainer($instanceDocker->getShortDockerIdentifier(), '', $dbId); } catch (\Exception $e) {}
             }
             return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
         }
@@ -169,7 +180,7 @@ class ApiController extends Controller
 
         try {
             // Cleanup via script
-            $this->dockerService->removeContainer($container->docker_id, $container->domain);
+            $this->dockerService->removeContainer($container->docker_id, $container->domain, $container->id);
 
             $container->delete();
 

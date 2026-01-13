@@ -134,6 +134,18 @@ class InstanceController extends Controller
         $instance = null;
 
         try {
+            // Create DB Record FIRST to get the ID for persistent volume path
+            $container = Container::create([
+                'user_id' => Auth::id(),
+                'package_id' => $package->id,
+                'docker_id' => 'pending_' . Str::random(8), // Placeholder
+                'name' => $request->name,
+                'port' => $port,
+                'domain' => $subdomain,
+                'image_tag' => $request->version,
+                'environment' => json_encode($instanceEnv),
+            ]);
+
             // Docker Create
             // Pass domain and email for Nginx/Certbot setup inside the script
             $email = env('MAIL_FROM_ADDRESS', 'admin@example.com');
@@ -149,19 +161,13 @@ class InstanceController extends Controller
                 $volumes,
                 [],
                 $subdomain,
-                $email
+                $email,
+                $container->id // Pass DB ID for volume path
             );
 
-            // Create DB Record
-            $container = Container::create([
-                'user_id' => Auth::id(),
-                'package_id' => $package->id,
+            // Update DB Record with real Docker ID
+            $container->update([
                 'docker_id' => $instance->getShortDockerIdentifier(),
-                'name' => $request->name,
-                'port' => $port,
-                'domain' => $subdomain,
-                'image_tag' => $request->version,
-                'environment' => json_encode($instanceEnv),
             ]);
 
             // Nginx & Certbot handled by script via createContainer
@@ -204,7 +210,8 @@ class InstanceController extends Controller
         try {
             // Remove Container & Associated Resources (Nginx, Volume) via Script
             // We pass the domain to allow Nginx cleanup
-            $this->dockerService->removeContainer($container->docker_id, $container->domain);
+            // Pass DB ID for volume cleanup
+            $this->dockerService->removeContainer($container->docker_id, $container->domain, $container->id);
 
             // Remove DB
             $containerName = $container->name;

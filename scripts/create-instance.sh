@@ -1,10 +1,11 @@
 #!/bin/bash
 
 # create-instance.sh
-# Usage: ./create-instance.sh --name=NAME --port=PORT --image=TAG --cpu=CPU --memory=MEM --domain=DOMAIN --email=EMAIL [--env-json=JSON]
+# Usage: ./create-instance.sh --id=ID --name=NAME --port=PORT --image=TAG --cpu=CPU --memory=MEM --domain=DOMAIN --email=EMAIL [--env-json=JSON]
 
 set -e
 
+ID=""
 NAME=""
 PORT=""
 IMAGE="latest"
@@ -18,6 +19,9 @@ ENV_JSON="{}"
 for i in "$@"
 do
 case $i in
+    --id=*)
+    ID="${i#*=}"
+    ;;
     --name=*)
     NAME="${i#*=}"
     ;;
@@ -50,12 +54,19 @@ done
 
 if [ -z "$NAME" ] || [ -z "$PORT" ] || [ -z "$DOMAIN" ]; then
     echo "Error: Missing required arguments."
-    echo "Usage: $0 --name=NAME --port=PORT --domain=DOMAIN --image=TAG --cpu=CPU --memory=MEM --email=EMAIL"
+    echo "Usage: $0 --id=ID --name=NAME --port=PORT --domain=DOMAIN --image=TAG --cpu=CPU --memory=MEM --email=EMAIL"
     exit 1
 fi
 
+# Use ID for volume path if provided, else fallback to NAME (for backward compatibility or recovery)
+if [ ! -z "$ID" ]; then
+    VOLUME_HOST_PATH="/var/lib/n8n/instances/${ID}"
+else
+    # Fallback to name if no ID provided (legacy behavior)
+    VOLUME_HOST_PATH="/var/lib/n8n/instances/${NAME}"
+fi
+
 FULL_IMAGE="n8nio/n8n:${IMAGE}"
-VOLUME_HOST_PATH="/var/lib/n8n/instances/${NAME}"
 
 echo "Starting creation for $NAME ($DOMAIN) on port $PORT..."
 
@@ -116,7 +127,11 @@ echo "Executing: docker ${CMD_ARGS[*]}"
 docker "${CMD_ARGS[@]}"
 
 # 3. Nginx Configuration
-NGINX_CONF="/etc/nginx/sites-available/$DOMAIN"
+# Config location: /var/lib/n8n/nginx/$NAME.conf
+NGINX_DIR="/var/lib/n8n/nginx"
+mkdir -p "$NGINX_DIR"
+NGINX_CONF="${NGINX_DIR}/${NAME}.conf"
+
 cat > "$NGINX_CONF" <<EOF
 server {
     listen 80;
