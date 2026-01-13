@@ -128,6 +128,7 @@ systemctl enable mariadb
 # Create DB/user
 mariadb -e "DROP DATABASE IF EXISTS ${DB_NAME};"
 mariadb -e "DROP USER IF EXISTS '${DB_USER}'@'127.0.0.1';"
+mariadb -e "DROP USER IF EXISTS '${DB_USER}'@'localhost';"
 mariadb -e "CREATE DATABASE ${DB_NAME};"
 mariadb -e "CREATE USER '${DB_USER}'@'127.0.0.1' IDENTIFIED BY '${DB_PASS}';"
 mariadb -e "GRANT ALL PRIVILEGES ON ${DB_NAME}.* TO '${DB_USER}'@'127.0.0.1';"
