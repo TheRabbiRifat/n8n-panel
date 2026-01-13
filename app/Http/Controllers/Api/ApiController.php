@@ -82,21 +82,23 @@ class ApiController extends Controller
 
         // 5. Volume
         $volumeHostPath = "/var/lib/n8n/instances/{$request->name}";
-        // Removing sudo to rely on user group permissions or pre-configured permissions
-        Process::run("mkdir -p $volumeHostPath");
-        // chown might fail if not root, but if we created it, we own it.
-        // n8n inside container runs as node(1000). Host directory needs to be writable by 1000.
-        // If we are www-data, we might need to chmod or ensure ownership matches.
-        // For now, removing sudo as requested to fix "sudo: password required" error.
-        // Process::run("sudo chown -R 1000:1000 $volumeHostPath");
+        // Volume creation/permissions handled by DockerService->createContainer -> create-instance.sh
+        // However, standard Create logic handles it. But here we construct $volumes array.
+        // DockerService createContainer will ignore this manual array if we just pass path, but signature expects array.
+        // Actually, create-instance.sh does `mkdir -p` and `chmod`.
+        // So we can skip manual Process::run here, as the script will do it.
+        // But we need to pass the volume mapping to createContainer if generic.
+        // Wait, create-instance.sh hardcodes VOLUME_HOST_PATH based on name!
+        // So passing $volumes array to DockerService might be redundant if using that specific script.
+        // But DockerService->createContainer is generic-ish?
+        // Let's check DockerService implementation.
+        // It appends `--env-json`. It does NOT seemingly iterate $volumes array to pass to script?
+        // Let's check DockerService.php content again.
+        // It accepts $volumes argument but create-instance.sh signature doesn't take volumes arg!
+        // create-instance.sh hardcodes: VOLUME_HOST_PATH="/var/lib/n8n/instances/${NAME}" and CMD_ARGS+=("-v" "${VOLUME_HOST_PATH}:/home/node/.n8n")
+        // So this manual logic in ApiController is actually redundant/conflicting if we rely on the script.
 
-        // Alternative: Make it writable by everyone? Or trust the parent dir?
-        // Let's try setting permissions without sudo if possible, or skip chown and rely on docker.
-        // Ideally, we chown. But without sudo, we can't chown to 1000 if we are not root.
-        // We can chmod 777 (insecure) or 775 if group shared?
-        // Let's try simply creating it. Docker might handle it or fail.
-        // Given the requirement "fix permission related issues", avoiding sudo is key.
-        Process::run("chmod 777 $volumeHostPath"); // Temporary fix for container access without sudo/chown
+        // We should just define the array for DB compatibility if needed, but remove manual FS operations.
 
         $volumes = [$volumeHostPath => '/home/node/.n8n'];
 
@@ -113,6 +115,8 @@ class ApiController extends Controller
         $instanceDocker = null;
 
         try {
+            $email = $user->email; // Use user email for SSL
+
             $instanceDocker = $this->dockerService->createContainer(
                 $image,
                 $request->name,
@@ -121,7 +125,10 @@ class ApiController extends Controller
                 $package->cpu_limit,
                 $package->ram_limit,
                 $envArray,
-                $volumes
+                $volumes, // This is technically ignored by the specific n8n script but kept for interface
+                [],
+                $subdomain,
+                $email
             );
 
             $container = Container::create([
@@ -135,8 +142,7 @@ class ApiController extends Controller
                 'environment' => json_encode($instanceEnv),
             ]);
 
-            $this->nginxService->createVhost($subdomain, $port);
-            $this->nginxService->secureVhost($subdomain);
+            // Nginx & SSL handled by create-instance.sh
 
             DB::commit();
 
@@ -162,20 +168,8 @@ class ApiController extends Controller
         $container = Container::findOrFail($id);
 
         try {
-            if ($container->domain) {
-                $this->nginxService->removeVhost($container->domain);
-            }
-
-            try {
-                $this->dockerService->removeContainer($container->docker_id);
-            } catch (\Exception $e) {
-                // Ignore if container not found
-            }
-
-            $volumePath = "/var/lib/n8n/instances/{$container->name}";
-            if (Str::startsWith($volumePath, '/var/lib/n8n/instances/') && strlen($volumePath) > 23) {
-                 Process::run("rm -rf $volumePath");
-            }
+            // Cleanup via script
+            $this->dockerService->removeContainer($container->docker_id, $container->domain);
 
             $container->delete();
 
@@ -272,7 +266,14 @@ class ApiController extends Controller
             $memory = intval($package->ram_limit * 1024) . 'm'; // Convert GB to MB
             $cpus = $package->cpu_limit;
 
-            Process::run("docker update --memory={$memory} --memory-swap={$memory} --cpus={$cpus} " . $container->docker_id);
+            Process::run([
+                base_path('scripts/docker-utils.sh'),
+                '--action=update',
+                "--id={$container->docker_id}",
+                "--arg=--memory={$memory}",
+                "--arg=--memory-swap={$memory}",
+                "--arg=--cpus={$cpus}"
+            ]);
 
             return response()->json([
                 'status' => 'success',
@@ -292,8 +293,14 @@ class ApiController extends Controller
 
         // Return resource usage
         try {
-             // Fetch Status
-             $statusProcess = Process::run("docker inspect --format '{{.State.Status}}' " . $container->docker_id);
+             // Fetch Status via Utils
+             $statusProcess = Process::run([
+                 base_path('scripts/docker-utils.sh'),
+                 '--action=inspect-format',
+                 "--id={$container->docker_id}",
+                 "--arg={{.State.Status}}"
+             ]);
+
              $status = 'unknown';
              if ($statusProcess->successful()) {
                  $rawStatus = trim($statusProcess->output());
@@ -308,7 +315,12 @@ class ApiController extends Controller
              }
 
              // Fetch stats: CPU%, MemUsage, MemPerc
-             $process = Process::run("docker stats --no-stream --format \"{{.CPUPerc}};{{.MemUsage}};{{.MemPerc}}\" " . $container->docker_id);
+             $process = Process::run([
+                 base_path('scripts/docker-utils.sh'),
+                 '--action=stats',
+                 "--id={$container->docker_id}",
+                 "--arg={{.CPUPerc}};{{.MemUsage}};{{.MemPerc}}"
+             ]);
 
              if ($process->successful()) {
                  $output = trim($process->output());

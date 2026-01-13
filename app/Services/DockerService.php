@@ -9,7 +9,7 @@ class DockerService
 {
     public function listContainers()
     {
-        $process = Process::run('docker ps -a --format "{{.ID}}|{{.Names}}|{{.Image}}|{{.Status}}|{{.State}}|{{.Ports}}"');
+        $process = Process::run([base_path('scripts/docker-utils.sh'), '--action=list']);
 
         if ($process->failed()) {
             return [];
@@ -49,6 +49,7 @@ class DockerService
         $scriptPath = base_path('scripts/create-instance.sh');
 
         $command = [
+            'sudo',
             $scriptPath,
             "--name={$name}",
             "--port={$port}",
@@ -72,9 +73,8 @@ class DockerService
             throw new Exception("Instance creation failed: " . $process->errorOutput() . " " . $process->output());
         }
 
-        // Need to fetch ID separately since script output might be noisy
-        // Or assume the script was successful and we can just inspect the container by name to get ID
-        $inspect = Process::run("docker inspect --format '{{.Id}}' $name");
+        // Need to fetch ID separately using utils script
+        $inspect = Process::run([base_path('scripts/docker-utils.sh'), '--action=inspect-format', "--id={$name}", "--arg={{.Id}}"]);
         $containerId = trim($inspect->output());
 
         if (empty($containerId)) {
@@ -99,7 +99,7 @@ class DockerService
         // Let's resolve name from ID.
         $name = $this->getNameById($id);
         if ($name) {
-             Process::run([base_path('scripts/manage-container.sh'), "--name={$name}", "--action=stop"]);
+             Process::run(['sudo', base_path('scripts/manage-container.sh'), "--name={$name}", "--action=stop"]);
         } else {
              // Fallback
              Process::run("docker stop $id");
@@ -110,7 +110,7 @@ class DockerService
     {
         $name = $this->getNameById($id);
         if ($name) {
-             Process::run([base_path('scripts/manage-container.sh'), "--name={$name}", "--action=start"]);
+             Process::run(['sudo', base_path('scripts/manage-container.sh'), "--name={$name}", "--action=start"]);
         } else {
              Process::run("docker start $id");
         }
@@ -121,7 +121,7 @@ class DockerService
         $name = $this->getNameById($id);
         // If name not found (already deleted?), fallback to docker rm
         if ($name) {
-             $command = [base_path('scripts/delete-instance.sh'), "--name={$name}"];
+             $command = ['sudo', base_path('scripts/delete-instance.sh'), "--name={$name}"];
              if ($domain) {
                  $command[] = "--domain={$domain}";
              }
@@ -135,7 +135,7 @@ class DockerService
     {
         $name = $this->getNameById($id);
         if ($name) {
-             Process::run([base_path('scripts/manage-container.sh'), "--name={$name}", "--action=restart"]);
+             Process::run(['sudo', base_path('scripts/manage-container.sh'), "--name={$name}", "--action=restart"]);
         } else {
              Process::run("docker restart $id");
         }
@@ -151,13 +151,13 @@ class DockerService
 
     public function getContainerLogs(string $id, int $lines = 100)
     {
-         $process = Process::run("docker logs --tail {$lines} $id");
+         $process = Process::run([base_path('scripts/docker-utils.sh'), '--action=logs', "--id={$id}", "--lines={$lines}"]);
          return $process->successful() ? $process->output() : 'Could not retrieve logs.';
     }
 
     public function getContainer(string $id)
     {
-         $process = Process::run("docker inspect $id");
+         $process = Process::run([base_path('scripts/docker-utils.sh'), '--action=inspect', "--id={$id}"]);
          if ($process->successful()) {
              return json_decode($process->output(), true)[0] ?? null;
          }
@@ -166,7 +166,8 @@ class DockerService
 
     public function getContainerStats(string $id)
     {
-         $process = Process::run("docker stats --no-stream --format \"{{json .}}\" $id");
+         // Use default json format in utils script (or pass arg)
+         $process = Process::run([base_path('scripts/docker-utils.sh'), '--action=stats', "--id={$id}"]);
          if ($process->successful()) {
              return json_decode($process->output(), true);
          }

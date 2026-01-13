@@ -11,20 +11,21 @@ class ServiceManager
     public function getStatus(string $service)
     {
         if (!in_array($service, $this->allowedServices)) {
-            // Try adding it if it's safe? No, let's keep strict whitelist or specific logic.
-            // If checking mysql, we might try mariadb fallback.
+            // Check mysql vs mariadb fallback logic
             if ($service === 'mysql') {
-                 $process = Process::run("systemctl is-active mysql");
+                 // Try mysql
+                 $process = Process::run([base_path('scripts/system-manager.sh'), '--action=service-status', "--service=mysql"]);
                  $status = trim($process->output());
                  if ($status === 'active') return 'active';
 
-                 $process = Process::run("systemctl is-active mariadb");
+                 // Try mariadb
+                 $process = Process::run([base_path('scripts/system-manager.sh'), '--action=service-status', "--service=mariadb"]);
                  return trim($process->output());
             }
             return 'Unknown';
         }
 
-        $process = Process::run("systemctl is-active $service");
+        $process = Process::run([base_path('scripts/system-manager.sh'), '--action=service-status', "--service={$service}"]);
         return trim($process->output()); // active, inactive, failed
     }
 
@@ -49,8 +50,14 @@ class ServiceManager
             throw new \Exception("Service $service is not managed.");
         }
 
-        // Removed sudo as requested. Ensure user has permissions or polkit rules.
-        $process = Process::run("systemctl $action $service");
+        // Execute via system-manager.sh with sudo
+        $process = Process::run([
+            'sudo',
+            base_path('scripts/system-manager.sh'),
+            '--action=service-action',
+            "--service={$service}",
+            "--cmd={$action}"
+        ]);
 
         if (!$process->successful()) {
             throw new \Exception("Failed to $action $service: " . $process->errorOutput());
