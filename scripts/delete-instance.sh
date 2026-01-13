@@ -42,15 +42,14 @@ fi
 
 # 2. Remove Nginx Config
 if [ ! -z "$DOMAIN" ]; then
-    # Legacy path (if exists)
+    # Legacy path cleanup (if exists)
     rm -f "/etc/nginx/sites-available/$DOMAIN"
+    rm -f "/etc/nginx/sites-enabled/$DOMAIN"
 
-    # New path
+    # New path cleanup
     if [ ! -z "$NAME" ]; then
         rm -f "/var/lib/n8n/nginx/${NAME}.conf"
     fi
-
-    rm -f "/etc/nginx/sites-enabled/$DOMAIN"
 
     # 3. Certbot Cleanup
     if command -v certbot &> /dev/null; then
