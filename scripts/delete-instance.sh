@@ -1,16 +1,20 @@
 #!/bin/bash
 
 # delete-instance.sh
-# Usage: ./delete-instance.sh --name=NAME --domain=DOMAIN
+# Usage: ./delete-instance.sh --id=ID --name=NAME --domain=DOMAIN
 
 set -e
 
+ID=""
 NAME=""
 DOMAIN=""
 
 for i in "$@"
 do
 case $i in
+    --id=*)
+    ID="${i#*=}"
+    ;;
     --name=*)
     NAME="${i#*=}"
     ;;
@@ -38,7 +42,14 @@ fi
 
 # 2. Remove Nginx Config
 if [ ! -z "$DOMAIN" ]; then
+    # Legacy path (if exists)
     rm -f "/etc/nginx/sites-available/$DOMAIN"
+
+    # New path
+    if [ ! -z "$NAME" ]; then
+        rm -f "/var/lib/n8n/nginx/${NAME}.conf"
+    fi
+
     rm -f "/etc/nginx/sites-enabled/$DOMAIN"
 
     # 3. Certbot Cleanup
@@ -50,7 +61,13 @@ if [ ! -z "$DOMAIN" ]; then
 fi
 
 # 4. Remove Volume
-VOLUME_PATH="/var/lib/n8n/instances/${NAME}"
+# Use ID if present, else fallback to NAME
+if [ ! -z "$ID" ]; then
+    VOLUME_PATH="/var/lib/n8n/instances/${ID}"
+else
+    VOLUME_PATH="/var/lib/n8n/instances/${NAME}"
+fi
+
 if [[ "$VOLUME_PATH" == /var/lib/n8n/instances/* ]] && [ ${#VOLUME_PATH} -gt 23 ]; then
     rm -rf "$VOLUME_PATH"
 fi

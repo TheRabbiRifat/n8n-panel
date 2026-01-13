@@ -37,7 +37,7 @@ class DockerService
         return $containers;
     }
 
-    public function createContainer(string $image, string $name, int $port, int $internalPort = 5678, $cpu = null, $memory = null, array $environment = [], array $volumes = [], array $labels = [], string $domain = '', string $email = '')
+    public function createContainer(string $image, string $name, int $port, int $internalPort = 5678, $cpu = null, $memory = null, array $environment = [], array $volumes = [], array $labels = [], string $domain = '', string $email = '', ?int $dbId = null)
     {
         // Extract tag from image (e.g. n8nio/n8n:latest -> latest)
         $imageParts = explode(':', $image);
@@ -58,6 +58,10 @@ class DockerService
             "--email={$email}",
             "--env-json={$envJson}",
         ];
+
+        if ($dbId) {
+            $command[] = "--id={$dbId}";
+        }
 
         if ($cpu) {
             $command[] = "--cpu={$cpu}";
@@ -116,7 +120,7 @@ class DockerService
         }
     }
 
-    public function removeContainer(string $id, string $domain = '')
+    public function removeContainer(string $id, string $domain = '', ?int $dbId = null)
     {
         $name = $this->getNameById($id);
         // If name not found (already deleted?), fallback to docker rm
@@ -124,6 +128,9 @@ class DockerService
              $command = ['sudo', base_path('scripts/delete-instance.sh'), "--name={$name}"];
              if ($domain) {
                  $command[] = "--domain={$domain}";
+             }
+             if ($dbId) {
+                 $command[] = "--id={$dbId}";
              }
              Process::run($command);
         } else {
