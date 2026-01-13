@@ -55,14 +55,28 @@ trap rollback ERR
 #################################
 echo "Installing system packages..."
 apt update -y
+apt install -y ca-certificates curl gnupg
+
+# Setup Docker Repo
+install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor --yes -o /etc/apt/keyrings/docker.gpg
+chmod a+r /etc/apt/keyrings/docker.gpg
+
+echo \
+  "deb [arch=\"$(dpkg --print-architecture)\" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+  tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+apt update -y
+
 apt install -y \
     nginx \
-    docker.io \
+    docker-ce docker-ce-cli docker-buildx-plugin docker-compose-plugin docker-ce-rootless-extras \
     git \
     postgresql postgresql-contrib \
     php8.2-fpm php8.2-cli php8.2-pgsql php8.2-mbstring php8.2-bcmath \
     php8.2-curl php8.2-xml php8.2-zip php8.2-intl php8.2-gd \
-    unzip curl composer \
+    unzip composer \
     certbot python3-certbot-nginx ufw
 
 systemctl enable --now docker
