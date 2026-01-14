@@ -90,11 +90,10 @@ Retrieve server health metrics and usage counts. The response varies based on us
 ### 2. Instance Management
 
 #### Create Instance
-Provision a new n8n instance for an existing user.
+Provision a new n8n instance. The instance is assigned to the authenticated user (Admin or Reseller).
 
 *   **Endpoint:** `POST /instances/create`
 *   **Body Parameters:**
-    *   `email` (string, required): Existing user email.
     *   `package_id` (int, required): ID of the resource package.
     *   `name` (string, required): Unique instance name (alpha-dash, used for subdomain).
     *   `version` (string, optional): n8n version tag (default: 'latest').
@@ -104,7 +103,7 @@ Provision a new n8n instance for an existing user.
       "status": "success",
       "instance_id": 12,
       "domain": "my-instance.panel-domain.com",
-      "user_id": 5
+      "user_id": 1
     }
     ```
 
@@ -191,31 +190,17 @@ Get details for a single package.
     }
     ```
 
-#### Create User
-Create a new standard user.
+#### Reseller Management (Admin Only)
 
-*   **Endpoint:** `POST /users`
-*   **Body Parameters:**
-    *   `name` (string, required): Full Name.
-    *   `email` (string, required): Valid Email Address.
-    *   `password` (string, required): Minimum 8 characters.
-*   **Response:**
-    ```json
-    { "status": "success", "user_id": 20 }
-    ```
+Manage reseller accounts.
 
-#### Create Reseller
-Create a new user with the 'reseller' role. (Admin only)
-
-*   **Endpoint:** `POST /resellers`
-*   **Body Parameters:**
-    *   `name` (string, required): Full Name.
-    *   `email` (string, required): Valid Email Address.
-    *   `password` (string, required): Minimum 8 characters.
-*   **Response:**
-    ```json
-    { "status": "success", "user_id": 15 }
-    ```
+*   **List Resellers:** `GET /resellers`
+*   **Create Reseller:** `POST /resellers`
+    *   Body: `name`, `email`, `password`
+*   **Get Reseller:** `GET /resellers/{id}`
+*   **Update Reseller:** `PUT /resellers/{id}`
+    *   Body: `name`, `email`, `password`, `instance_limit`
+*   **Delete Reseller:** `DELETE /resellers/{id}`
 
 #### User SSO
 Generate a temporary auto-login URL for a specific user. Resellers can only access their own users.

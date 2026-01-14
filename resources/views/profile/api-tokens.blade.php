@@ -229,7 +229,6 @@
   -H "Authorization: Bearer YOUR_API_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
-    "email": "user@example.com",
     "package_id": 1,
     "name": "my-instance"
   }'</pre>
@@ -239,7 +238,7 @@
   "status": "success",
   "instance_id": 1,
   "domain": "my-instance.n8n.local",
-  "user_id": 2
+  "user_id": 1
 }</pre>
                                 </div>
                             </div>
