@@ -96,14 +96,14 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="modalPackage" class="form-label">Assign Package (Optional)</label>
-                        <select class="form-select" id="modalPackage" name="package_id">
-                            <option value="">No Package</option>
+                        <label for="modalPackage" class="form-label">Assign Package (Required)</label>
+                        <select class="form-select" id="modalPackage" name="package_id" required>
+                            <option value="">Select Package</option>
                             @foreach($packages as $package)
                                 <option value="{{ $package->id }}">{{ $package->name }}</option>
                             @endforeach
                         </select>
-                        <div class="form-text">Limits from this package will be applied on next restart.</div>
+                        <div class="form-text">Limits from this package will be applied immediately.</div>
                     </div>
 
                     <div class="mb-3">
