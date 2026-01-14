@@ -399,25 +399,25 @@ class ApiController extends Controller
         return response()->json(['status' => 'success', 'resellers' => $resellers]);
     }
 
-    public function showReseller($id)
+    public function showReseller($name)
     {
         if (!auth()->user()->hasRole('admin')) {
             abort(403, 'Unauthorized');
         }
-        $user = User::role('reseller')->findOrFail($id);
+        $user = User::role('reseller')->where('name', $name)->firstOrFail();
         return response()->json(['status' => 'success', 'reseller' => $user]);
     }
 
-    public function updateReseller(Request $request, $id)
+    public function updateReseller(Request $request, $name)
     {
         if (!auth()->user()->hasRole('admin')) {
             abort(403, 'Unauthorized');
         }
-        $user = User::role('reseller')->findOrFail($id);
+        $user = User::role('reseller')->where('name', $name)->firstOrFail();
 
         $request->validate([
-            'name' => 'nullable|string',
-            'email' => 'nullable|email|unique:users,email,' . $id,
+            'name' => 'nullable|string|unique:users,name,' . $user->id,
+            'email' => 'nullable|email|unique:users,email,' . $user->id,
             'password' => 'nullable|string|min:8',
             'instance_limit' => 'nullable|integer|min:1',
         ]);
@@ -431,17 +431,13 @@ class ApiController extends Controller
         return response()->json(['status' => 'success', 'message' => 'Reseller updated.']);
     }
 
-    public function destroyReseller($id)
+    public function destroyReseller($name)
     {
         if (!auth()->user()->hasRole('admin')) {
             abort(403, 'Unauthorized');
         }
-        $user = User::role('reseller')->findOrFail($id);
+        $user = User::role('reseller')->where('name', $name)->firstOrFail();
 
-        // Check if has instances? Or just delete?
-        // Usually safer to prevent delete if has instances, but task says 'CRUD'.
-        // Assuming simple delete is okay or let DB cascade handle it (or soft delete).
-        // Let's just delete.
         $user->delete();
         return response()->json(['status' => 'success', 'message' => 'Reseller deleted.']);
     }
@@ -455,7 +451,7 @@ class ApiController extends Controller
 
         // Admin only (enforced by route middleware)
         $request->validate([
-            'name' => 'required|string',
+            'name' => 'required|string|unique:users,name',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:8',
         ]);

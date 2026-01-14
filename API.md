@@ -196,11 +196,11 @@ Manage reseller accounts.
 
 *   **List Resellers:** `GET /resellers`
 *   **Create Reseller:** `POST /resellers`
-    *   Body: `name`, `email`, `password`
-*   **Get Reseller:** `GET /resellers/{id}`
-*   **Update Reseller:** `PUT /resellers/{id}`
+    *   Body: `name` (Unique Username), `email`, `password`
+*   **Get Reseller:** `GET /resellers/{name}`
+*   **Update Reseller:** `PUT /resellers/{name}`
     *   Body: `name`, `email`, `password`, `instance_limit`
-*   **Delete Reseller:** `DELETE /resellers/{id}`
+*   **Delete Reseller:** `DELETE /resellers/{name}`
 
 #### User SSO
 Generate a temporary auto-login URL for a specific user. Resellers can only access their own users.

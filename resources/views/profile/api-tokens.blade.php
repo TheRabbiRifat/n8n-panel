@@ -470,6 +470,39 @@
                             </div>
                         </div>
                     </div>
+
+                    @if(auth()->user()->hasRole('admin'))
+                    <!-- Reseller Management (Admin Only) -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed py-2" type="button" data-bs-toggle="collapse" data-bs-target="#api-resellers">
+                                <span class="badge bg-dark me-2">ADMIN</span> Reseller Management
+                            </button>
+                        </h2>
+                        <div id="api-resellers" class="accordion-collapse collapse" data-bs-parent="#apiDocs">
+                            <div class="accordion-body bg-light">
+                                <p class="small mb-2">Manage reseller accounts via API. Endpoints allow you to Create, Read, Update, and Delete resellers using their username.</p>
+                                <ul class="list-unstyled small mb-0">
+                                    <li class="mb-2">
+                                        <span class="badge bg-primary me-1">GET</span> <code>/resellers</code> - List all resellers
+                                    </li>
+                                    <li class="mb-2">
+                                        <span class="badge bg-success me-1">POST</span> <code>/resellers</code> - Create reseller
+                                    </li>
+                                    <li class="mb-2">
+                                        <span class="badge bg-primary me-1">GET</span> <code>/resellers/{name}</code> - Get reseller details
+                                    </li>
+                                    <li class="mb-2">
+                                        <span class="badge bg-warning text-dark me-1">PUT</span> <code>/resellers/{name}</code> - Update reseller
+                                    </li>
+                                    <li>
+                                        <span class="badge bg-danger me-1">DELETE</span> <code>/resellers/{name}</code> - Delete reseller
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
                 </div>
             </div>
         </div>
