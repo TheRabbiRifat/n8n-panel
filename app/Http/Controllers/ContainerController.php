@@ -118,7 +118,7 @@ class ContainerController extends Controller
                 return false;
             }
             // Only show n8n containers (images containing 'n8n')
-            if (!str_contains($c['image'], 'n8n')) {
+            if (!str_contains($c['image'], 'n8nio/n8n')) {
                 return false;
             }
             return true;
@@ -262,6 +262,11 @@ class ContainerController extends Controller
         $logs = $this->dockerService->getContainerLogs($container->docker_id);
 
         $versions = ['stable', 'latest', 'beta'];
+
+        // Add current tag if not in list (handles imports of specific versions)
+        if (!in_array($container->image_tag, $versions)) {
+            $versions[] = $container->image_tag;
+        }
 
         // Fetch packages for dropdown
         // Resellers can use any package
