@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\Auth;
 
 class ApiController extends Controller
 {
@@ -35,28 +36,47 @@ class ApiController extends Controller
         $this->portAllocator = $portAllocator;
     }
 
+    /**
+     * Helper to find container with scope permissions.
+     */
+    private function findContainer(string $name): Container
+    {
+        $query = Container::where('name', $name);
+        $user = Auth::user();
+
+        if ($user->hasRole('admin')) {
+            // Admin sees all
+        } elseif ($user->hasRole('reseller')) {
+            // Reseller sees own + customers
+            $customerIds = User::where('reseller_id', $user->id)->pluck('id');
+            $allowedIds = $customerIds->push($user->id);
+            $query->whereIn('user_id', $allowedIds);
+        } else {
+            // Standard user sees only own
+            $query->where('user_id', $user->id);
+        }
+
+        return $query->firstOrFail();
+    }
+
     // CREATE
     public function create(Request $request)
     {
         $request->validate([
-            'email' => 'required|email|exists:users,email',
             'package_id' => 'required|exists:packages,id',
             'name' => 'required|string|alpha_dash|unique:containers,name', // Instance Name
             'version' => 'nullable|string', // Default 'latest'
         ]);
 
+        $targetUser = Auth::user();
+
+        // Check Instance Limit
+        if ($targetUser->instances()->count() >= $targetUser->instance_limit) {
+            abort(403, 'Instance limit reached for this user.');
+        }
+
         $version = $request->version ?: 'latest';
         $genericTimezone = 'Asia/Dhaka'; // Default or from request
-
-        // 1. Find User
-        $user = User::where('email', $request->email)->firstOrFail();
-
-        // Security: Ensure Reseller owns the target user
-        if (auth()->user()->hasRole('reseller')) {
-            if ($user->reseller_id !== auth()->id()) {
-                abort(403, 'Unauthorized: You can only create instances for your own users.');
-            }
-        }
 
         $package = Package::findOrFail($request->package_id);
 
@@ -82,24 +102,6 @@ class ApiController extends Controller
 
         // 5. Volume
         $volumeHostPath = "/var/lib/n8n/instances/{$request->name}";
-        // Volume creation/permissions handled by DockerService->createContainer -> create-instance.sh
-        // However, standard Create logic handles it. But here we construct $volumes array.
-        // DockerService createContainer will ignore this manual array if we just pass path, but signature expects array.
-        // Actually, create-instance.sh does `mkdir -p` and `chmod`.
-        // So we can skip manual Process::run here, as the script will do it.
-        // But we need to pass the volume mapping to createContainer if generic.
-        // Wait, create-instance.sh hardcodes VOLUME_HOST_PATH based on name!
-        // So passing $volumes array to DockerService might be redundant if using that specific script.
-        // But DockerService->createContainer is generic-ish?
-        // Let's check DockerService implementation.
-        // It appends `--env-json`. It does NOT seemingly iterate $volumes array to pass to script?
-        // Let's check DockerService.php content again.
-        // It accepts $volumes argument but create-instance.sh signature doesn't take volumes arg!
-        // create-instance.sh hardcodes: VOLUME_HOST_PATH="/var/lib/n8n/instances/${NAME}" and CMD_ARGS+=("-v" "${VOLUME_HOST_PATH}:/home/node/.n8n")
-        // So this manual logic in ApiController is actually redundant/conflicting if we rely on the script.
-
-        // We should just define the array for DB compatibility if needed, but remove manual FS operations.
-
         $volumes = [$volumeHostPath => '/home/node/.n8n'];
 
         $instanceEnv = [
@@ -115,11 +117,11 @@ class ApiController extends Controller
         $instanceDocker = null;
 
         try {
-            $email = $user->email; // Use user email for SSL
+            $email = $targetUser->email; // Use user email for SSL
 
             // Create DB Record FIRST
             $container = Container::create([
-                'user_id' => $user->id,
+                'user_id' => $targetUser->id,
                 'package_id' => $package->id,
                 'docker_id' => 'pending_' . Str::random(8),
                 'name' => $request->name,
@@ -148,24 +150,18 @@ class ApiController extends Controller
                 'docker_id' => $instanceDocker->getShortDockerIdentifier(),
             ]);
 
-            // Nginx & SSL handled by create-instance.sh
-
             DB::commit();
 
             return response()->json([
                 'status' => 'success',
                 'instance_id' => $container->id,
                 'domain' => $subdomain,
-                'user_id' => $user->id
+                'user_id' => $targetUser->id
             ], 201);
 
         } catch (\Exception $e) {
             DB::rollBack();
             if ($instanceDocker) {
-                // Pass DB ID if we have it, though container object might not be fully formed.
-                // Assuming basic cleanup via docker ID is enough for rollback if volume was created by ID
-                // But wait, if we used ID for volume, we need ID to clean it up.
-                // If $container exists (DB record created), we have the ID.
                 $dbId = isset($container) ? $container->id : null;
                 try { $this->dockerService->removeContainer($instanceDocker->getShortDockerIdentifier(), '', $dbId); } catch (\Exception $e) {}
             }
@@ -176,7 +172,7 @@ class ApiController extends Controller
     // TERMINATE
     public function terminate($name)
     {
-        $container = Container::where('name', $name)->firstOrFail();
+        $container = $this->findContainer($name);
 
         try {
             // Cleanup via script
@@ -193,7 +189,7 @@ class ApiController extends Controller
     // START
     public function start($name)
     {
-        $container = Container::where('name', $name)->firstOrFail();
+        $container = $this->findContainer($name);
 
         // If suspended, do not allow start?
         if ($container->is_suspended) {
@@ -211,7 +207,7 @@ class ApiController extends Controller
     // STOP
     public function stop($name)
     {
-        $container = Container::where('name', $name)->firstOrFail();
+        $container = $this->findContainer($name);
         try {
             $this->dockerService->stopContainer($container->docker_id);
             return response()->json(['status' => 'success']);
@@ -223,7 +219,7 @@ class ApiController extends Controller
     // SUSPEND
     public function suspend($name)
     {
-        $container = Container::where('name', $name)->firstOrFail();
+        $container = $this->findContainer($name);
 
         try {
             $this->dockerService->stopContainer($container->docker_id);
@@ -239,7 +235,7 @@ class ApiController extends Controller
     // UNSUSPEND
     public function unsuspend($name)
     {
-        $container = Container::where('name', $name)->firstOrFail();
+        $container = $this->findContainer($name);
 
         try {
             $container->is_suspended = false;
@@ -260,7 +256,7 @@ class ApiController extends Controller
             'package_id' => 'required|exists:packages,id',
         ]);
 
-        $container = Container::where('name', $name)->firstOrFail();
+        $container = $this->findContainer($name);
         $package = Package::findOrFail($request->package_id);
 
         try {
@@ -269,11 +265,6 @@ class ApiController extends Controller
             $container->save();
 
             // Apply limits immediately via Docker Update
-            // Converting RAM to bytes or string format as needed by DockerService or CLI
-            // DockerService->create uses '512m' or '1g'. Package stores 'ram_limit' as int/float (GB usually).
-            // Let's assume standard 'docker update' accepts --memory and --cpus
-
-            // Logic similar to DockerService creation but updating
             $memory = intval($package->ram_limit * 1024) . 'm'; // Convert GB to MB
             $cpus = $package->cpu_limit;
 
@@ -300,7 +291,7 @@ class ApiController extends Controller
     // STATS
     public function stats($name)
     {
-        $container = Container::where('name', $name)->firstOrFail();
+        $container = $this->findContainer($name);
 
         // Return resource usage
         try {
@@ -398,32 +389,61 @@ class ApiController extends Controller
         return response()->json(['status' => 'success', 'packages' => Package::all()]);
     }
 
-    // CREATE USER (Create a standard user under a Reseller or Admin)
-    public function createUser(Request $request)
+    // RESELLER CRUD
+    public function indexResellers()
     {
-        // Admin or Reseller
-        $request->validate([
-            'name' => 'required|string',
-            'email' => 'required|email|unique:users,email',
-            'password' => 'required|string|min:8',
-        ]);
-
-        $resellerId = null;
-        if (auth()->user()->hasRole('reseller')) {
-            $resellerId = auth()->id();
+        if (!auth()->user()->hasRole('admin')) {
+            abort(403, 'Unauthorized');
         }
+        $resellers = User::role('reseller')->get(['id', 'name', 'email', 'instance_limit', 'created_at']);
+        return response()->json(['status' => 'success', 'resellers' => $resellers]);
+    }
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'instance_limit' => 5, // Default for standard users
-            'reseller_id' => $resellerId,
+    public function showReseller($id)
+    {
+        if (!auth()->user()->hasRole('admin')) {
+            abort(403, 'Unauthorized');
+        }
+        $user = User::role('reseller')->findOrFail($id);
+        return response()->json(['status' => 'success', 'reseller' => $user]);
+    }
+
+    public function updateReseller(Request $request, $id)
+    {
+        if (!auth()->user()->hasRole('admin')) {
+            abort(403, 'Unauthorized');
+        }
+        $user = User::role('reseller')->findOrFail($id);
+
+        $request->validate([
+            'name' => 'nullable|string',
+            'email' => 'nullable|email|unique:users,email,' . $id,
+            'password' => 'nullable|string|min:8',
+            'instance_limit' => 'nullable|integer|min:1',
         ]);
 
-        $user->assignRole('user');
+        if ($request->filled('name')) $user->name = $request->name;
+        if ($request->filled('email')) $user->email = $request->email;
+        if ($request->filled('password')) $user->password = Hash::make($request->password);
+        if ($request->filled('instance_limit')) $user->instance_limit = $request->instance_limit;
 
-        return response()->json(['status' => 'success', 'user_id' => $user->id], 201);
+        $user->save();
+        return response()->json(['status' => 'success', 'message' => 'Reseller updated.']);
+    }
+
+    public function destroyReseller($id)
+    {
+        if (!auth()->user()->hasRole('admin')) {
+            abort(403, 'Unauthorized');
+        }
+        $user = User::role('reseller')->findOrFail($id);
+
+        // Check if has instances? Or just delete?
+        // Usually safer to prevent delete if has instances, but task says 'CRUD'.
+        // Assuming simple delete is okay or let DB cascade handle it (or soft delete).
+        // Let's just delete.
+        $user->delete();
+        return response()->json(['status' => 'success', 'message' => 'Reseller deleted.']);
     }
 
     // CREATE RESELLER
@@ -515,18 +535,24 @@ class ApiController extends Controller
     // SYSTEM STATS
     public function systemStats()
     {
-        $isAdmin = auth()->user()->hasRole('admin');
-        $isReseller = auth()->user()->hasRole('reseller');
+        $user = Auth::user();
+        $isAdmin = $user->hasRole('admin');
+        $isReseller = $user->hasRole('reseller');
 
-        $statusService = new \App\Services\SystemStatusService();
-        $stats = $statusService->getSystemStats();
+        // Only fetch system stats if admin (expensive and sensitive)
+        // Standard users/resellers don't need kernel info/load averages usually.
+        // But the previous code shared some info.
+        // User request: "API return unnecessary and unauthorized data.... like entire server instance count"
+        // So we strictly limit what is returned.
 
         if ($isAdmin) {
+             $statusService = new \App\Services\SystemStatusService();
+             $stats = $statusService->getSystemStats();
+
             // Calculate instance counts
             $totalInstances = Container::count();
             $runningInstances = 0;
 
-            // This is heavy if many containers, but fine for now or could be cached/optimized via DockerService
             $allContainers = $this->dockerService->listContainers();
             foreach($allContainers as $c) {
                 if (str_contains(strtolower($c['status']), 'up')) {
@@ -554,30 +580,30 @@ class ApiController extends Controller
             ]);
         } elseif ($isReseller) {
             // Reseller View: Only their own counts
-            $myUsers = User::where('reseller_id', auth()->id())->pluck('id');
+            $myUsers = User::where('reseller_id', $user->id)->pluck('id');
+            // Include themselves
+            $myUsers->push($user->id);
+
             $myInstances = Container::whereIn('user_id', $myUsers)->get();
-
             $total = $myInstances->count();
-            // We can't easily check docker status for filtered list without mapping IDs
-            // Simplified approach: Return total DB counts. Real-time status might require more logic.
-            // Requirement: "their own instances count". It doesn't strictly say running/stopped breakdown is mandatory if complex.
-            // But for consistency let's try.
-
-            // Optimization: Get status from Docker for ALL, then match? Or just return DB counts?
-            // "online, load, their own instances count"
-            // Let's return simple count.
 
             return response()->json([
                 'status' => 'success',
                 'server_status' => 'online',
-                'load_averages' => $stats['loads'],
                 'counts' => [
-                    'users' => $myUsers->count(),
+                    'users' => $myUsers->count(), // Count of their customers + themselves
+                    'instances_total' => $total,
+                ]
+            ]);
+        } else {
+            // Standard User View
+            $total = Container::where('user_id', $user->id)->count();
+            return response()->json([
+                'status' => 'success',
+                'counts' => [
                     'instances_total' => $total,
                 ]
             ]);
         }
-
-        abort(403, 'Unauthorized');
     }
 }

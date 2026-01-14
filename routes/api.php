@@ -43,10 +43,11 @@ Route::middleware(['auth:sanctum', 'check.api.ip', 'role:admin|reseller', 'log.a
     Route::get('/packages/{id}', [App\Http\Controllers\Api\ApiController::class, 'getPackage']);
 
     // Reseller Management
+    Route::get('/resellers', [App\Http\Controllers\Api\ApiController::class, 'indexResellers']);
     Route::post('/resellers', [App\Http\Controllers\Api\ApiController::class, 'createReseller']);
-
-    // User Management
-    Route::post('/users', [App\Http\Controllers\Api\ApiController::class, 'createUser']);
+    Route::get('/resellers/{id}', [App\Http\Controllers\Api\ApiController::class, 'showReseller']);
+    Route::put('/resellers/{id}', [App\Http\Controllers\Api\ApiController::class, 'updateReseller']);
+    Route::delete('/resellers/{id}', [App\Http\Controllers\Api\ApiController::class, 'destroyReseller']);
 
     // User SSO
     Route::post('/users/sso', [App\Http\Controllers\Api\ApiController::class, 'sso']);
