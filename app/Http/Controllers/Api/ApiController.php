@@ -431,6 +431,46 @@ class ApiController extends Controller
         return response()->json(['status' => 'success', 'message' => 'Reseller updated.']);
     }
 
+    public function suspendReseller(Request $request, $name)
+    {
+        if (!auth()->user()->hasRole('admin')) {
+            abort(403, 'Unauthorized');
+        }
+        $user = User::role('reseller')->where('name', $name)->firstOrFail();
+
+        $user->is_suspended = true;
+        $user->save();
+
+        // Stop all instances owned by reseller
+        $containers = Container::where('user_id', $user->id)->get();
+        foreach ($containers as $container) {
+            try {
+                $this->dockerService->stopContainer($container->docker_id);
+                // Optionally mark container as suspended if desired, but request said "stop"
+                // Let's also update suspended status to prevent auto-start on reboot if system handles it
+                $container->is_suspended = true;
+                $container->save();
+            } catch (\Exception $e) {
+                Log::error("Failed to stop container {$container->name} for suspended reseller: " . $e->getMessage());
+            }
+        }
+
+        return response()->json(['status' => 'success', 'message' => 'Reseller suspended and instances stopped.']);
+    }
+
+    public function unsuspendReseller(Request $request, $name)
+    {
+        if (!auth()->user()->hasRole('admin')) {
+            abort(403, 'Unauthorized');
+        }
+        $user = User::role('reseller')->where('name', $name)->firstOrFail();
+
+        $user->is_suspended = false;
+        $user->save();
+
+        return response()->json(['status' => 'success', 'message' => 'Reseller unsuspended.']);
+    }
+
     public function destroyReseller($name)
     {
         if (!auth()->user()->hasRole('admin')) {
@@ -438,8 +478,19 @@ class ApiController extends Controller
         }
         $user = User::role('reseller')->where('name', $name)->firstOrFail();
 
+        // Terminate all instances first
+        $containers = Container::where('user_id', $user->id)->get();
+        foreach ($containers as $container) {
+            try {
+                $this->dockerService->removeContainer($container->docker_id, $container->domain, $container->id);
+                $container->delete();
+            } catch (\Exception $e) {
+                Log::error("Failed to terminate container {$container->name} during reseller deletion: " . $e->getMessage());
+            }
+        }
+
         $user->delete();
-        return response()->json(['status' => 'success', 'message' => 'Reseller deleted.']);
+        return response()->json(['status' => 'success', 'message' => 'Reseller and all instances deleted.']);
     }
 
     // CREATE RESELLER

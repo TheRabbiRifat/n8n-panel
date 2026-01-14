@@ -200,6 +200,9 @@ Manage reseller accounts.
 *   **Get Reseller:** `GET /resellers/{name}`
 *   **Update Reseller:** `PUT /resellers/{name}`
     *   Body: `name`, `email`, `password`, `instance_limit`
+*   **Suspend Reseller:** `POST /resellers/{name}/suspend`
+    *   Stops login, API access, and all owned instances.
+*   **Unsuspend Reseller:** `POST /resellers/{name}/unsuspend`
 *   **Delete Reseller:** `DELETE /resellers/{name}`
 
 #### User SSO

@@ -26,6 +26,7 @@ class User extends Authenticatable
         'instance_limit',
         'reseller_id',
         'whitelisted_ips',
+        'is_suspended',
     ];
 
     /**
@@ -48,6 +49,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_suspended' => 'boolean',
         ];
     }
 
