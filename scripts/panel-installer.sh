@@ -129,15 +129,9 @@ systemctl enable mariadb
 mariadb -e "DROP DATABASE IF EXISTS ${DB_NAME};"
 mariadb -e "DROP USER IF EXISTS '${DB_USER}'@'127.0.0.1';"
 mariadb -e "DROP USER IF EXISTS '${DB_USER}'@'localhost';"
-
 mariadb -e "CREATE DATABASE ${DB_NAME};"
-
 mariadb -e "CREATE USER '${DB_USER}'@'127.0.0.1' IDENTIFIED BY '${DB_PASS}';"
-mariadb -e "CREATE USER '${DB_USER}'@'localhost' IDENTIFIED BY '${DB_PASS}';"
-
 mariadb -e "GRANT ALL PRIVILEGES ON ${DB_NAME}.* TO '${DB_USER}'@'127.0.0.1';"
-mariadb -e "GRANT ALL PRIVILEGES ON ${DB_NAME}.* TO '${DB_USER}'@'localhost';"
-
 mariadb -e "FLUSH PRIVILEGES;"
 
 #################################
@@ -165,11 +159,11 @@ cd "$APP_DIR"
 sudo -u www-data cp .env.example .env
 
 sudo -u www-data sed -i "s|^DB_CONNECTION=.*|DB_CONNECTION=mysql|" .env
-sudo -u www-data sed -i "s|^DB_HOST=.*|DB_HOST=127.0.0.1|" .env
-sudo -u www-data sed -i "s|^DB_PORT=.*|DB_PORT=3306|" .env
-sudo -u www-data sed -i "s|^DB_DATABASE=.*|DB_DATABASE=${DB_NAME}|" .env
-sudo -u www-data sed -i "s|^DB_USERNAME=.*|DB_USERNAME=${DB_USER}|" .env
-sudo -u www-data sed -i "s|^DB_PASSWORD=.*|DB_PASSWORD=${DB_PASS}|" .env
+sudo -u www-data sed -i "s|^.*DB_HOST=.*|DB_HOST=127.0.0.1|" .env
+sudo -u www-data sed -i "s|^.*DB_PORT=.*|DB_PORT=3306|" .env
+sudo -u www-data sed -i "s|^.*DB_DATABASE=.*|DB_DATABASE=${DB_NAME}|" .env
+sudo -u www-data sed -i "s|^.*DB_USERNAME=.*|DB_USERNAME=${DB_USER}|" .env
+sudo -u www-data sed -i "s|^.*DB_PASSWORD=.*|DB_PASSWORD=${DB_PASS}|" .env
 sudo -u www-data sed -i "s|^APP_URL=.*|APP_URL=https://${HOSTNAME_FQDN}:${PANEL_PORT}|" .env
 
 # Make storage and cache writable
@@ -178,14 +172,10 @@ chmod -R 775 storage bootstrap/cache
 
 # Install dependencies and setup Laravel
 sudo -u www-data composer install --no-dev --optimize-autoloader
-
 sudo -u www-data php artisan key:generate --force
-sudo -u www-data php artisan config:clear
-sudo -u www-data php artisan cache:clear
-
 sudo -u www-data php artisan migrate --force
 sudo -u www-data php artisan db:seed --force
-
+sudo -u www-data php artisan config:clear
 sudo -u www-data php artisan config:cache
 sudo -u www-data php artisan route:cache
 sudo -u www-data php artisan view:cache
