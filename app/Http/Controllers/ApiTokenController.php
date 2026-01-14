@@ -28,7 +28,7 @@ class ApiTokenController extends Controller
         $token = $request->user()->createToken($request->token_name);
 
         $personalAccessToken = $token->accessToken;
-        $personalAccessToken->allowed_ips = !empty($ips) ? $ips : null;
+        $personalAccessToken->allowed_ips = !empty($ips) ? implode(',', $ips) : null;
         $personalAccessToken->save();
 
         return back()->with('flash_token', $token->plainTextToken)
@@ -48,7 +48,7 @@ class ApiTokenController extends Controller
             return back()->withErrors(['allowed_ips' => 'Maximum 5 IP addresses allowed.']);
         }
 
-        $token->allowed_ips = !empty($ips) ? $ips : null;
+        $token->allowed_ips = !empty($ips) ? implode(',', $ips) : null;
         $token->save();
 
         return back()->with('success', 'Token updated.');

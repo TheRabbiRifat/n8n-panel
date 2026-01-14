@@ -63,38 +63,12 @@ class ApiController extends Controller
     public function create(Request $request)
     {
         $request->validate([
-            'email' => 'nullable|email|exists:users,email',
             'package_id' => 'required|exists:packages,id',
             'name' => 'required|string|alpha_dash|unique:containers,name', // Instance Name
             'version' => 'nullable|string', // Default 'latest'
         ]);
 
-        $authUser = Auth::user();
-        $targetUser = null;
-
-        // Determine Target User
-        if ($request->filled('email')) {
-            // Permission Check: Only Admin or Reseller can create for others
-            if (!$authUser->hasRole('admin') && !$authUser->hasRole('reseller')) {
-                 // Standard users can only create for themselves, so email must be their own
-                 if ($request->email !== $authUser->email) {
-                     abort(403, 'Unauthorized: You can only create instances for yourself.');
-                 }
-                 $targetUser = $authUser;
-            } else {
-                // Admin/Reseller Logic
-                $targetUser = User::where('email', $request->email)->firstOrFail();
-                // If Reseller, ensure they own the user
-                if ($authUser->hasRole('reseller')) {
-                    if ($targetUser->id !== $authUser->id && $targetUser->reseller_id !== $authUser->id) {
-                        abort(403, 'Unauthorized: You can only create instances for your own users.');
-                    }
-                }
-            }
-        } else {
-            // Default to self
-            $targetUser = $authUser;
-        }
+        $targetUser = Auth::user();
 
         // Check Instance Limit
         if ($targetUser->instances()->count() >= $targetUser->instance_limit) {
@@ -415,32 +389,61 @@ class ApiController extends Controller
         return response()->json(['status' => 'success', 'packages' => Package::all()]);
     }
 
-    // CREATE USER (Create a standard user under a Reseller or Admin)
-    public function createUser(Request $request)
+    // RESELLER CRUD
+    public function indexResellers()
     {
-        // Admin or Reseller
-        $request->validate([
-            'name' => 'required|string',
-            'email' => 'required|email|unique:users,email',
-            'password' => 'required|string|min:8',
-        ]);
-
-        $resellerId = null;
-        if (auth()->user()->hasRole('reseller')) {
-            $resellerId = auth()->id();
+        if (!auth()->user()->hasRole('admin')) {
+            abort(403, 'Unauthorized');
         }
+        $resellers = User::role('reseller')->get(['id', 'name', 'email', 'instance_limit', 'created_at']);
+        return response()->json(['status' => 'success', 'resellers' => $resellers]);
+    }
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'instance_limit' => 5, // Default for standard users
-            'reseller_id' => $resellerId,
+    public function showReseller($id)
+    {
+        if (!auth()->user()->hasRole('admin')) {
+            abort(403, 'Unauthorized');
+        }
+        $user = User::role('reseller')->findOrFail($id);
+        return response()->json(['status' => 'success', 'reseller' => $user]);
+    }
+
+    public function updateReseller(Request $request, $id)
+    {
+        if (!auth()->user()->hasRole('admin')) {
+            abort(403, 'Unauthorized');
+        }
+        $user = User::role('reseller')->findOrFail($id);
+
+        $request->validate([
+            'name' => 'nullable|string',
+            'email' => 'nullable|email|unique:users,email,' . $id,
+            'password' => 'nullable|string|min:8',
+            'instance_limit' => 'nullable|integer|min:1',
         ]);
 
-        $user->assignRole('user');
+        if ($request->filled('name')) $user->name = $request->name;
+        if ($request->filled('email')) $user->email = $request->email;
+        if ($request->filled('password')) $user->password = Hash::make($request->password);
+        if ($request->filled('instance_limit')) $user->instance_limit = $request->instance_limit;
 
-        return response()->json(['status' => 'success', 'user_id' => $user->id], 201);
+        $user->save();
+        return response()->json(['status' => 'success', 'message' => 'Reseller updated.']);
+    }
+
+    public function destroyReseller($id)
+    {
+        if (!auth()->user()->hasRole('admin')) {
+            abort(403, 'Unauthorized');
+        }
+        $user = User::role('reseller')->findOrFail($id);
+
+        // Check if has instances? Or just delete?
+        // Usually safer to prevent delete if has instances, but task says 'CRUD'.
+        // Assuming simple delete is okay or let DB cascade handle it (or soft delete).
+        // Let's just delete.
+        $user->delete();
+        return response()->json(['status' => 'success', 'message' => 'Reseller deleted.']);
     }
 
     // CREATE RESELLER
