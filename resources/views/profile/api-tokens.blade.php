@@ -250,13 +250,13 @@
                     <div class="accordion-item">
                         <h2 class="accordion-header">
                             <button class="accordion-button collapsed py-2" type="button" data-bs-toggle="collapse" data-bs-target="#api-start">
-                                <span class="badge bg-success me-2">POST</span> /instances/{id}/start
+                                <span class="badge bg-success me-2">POST</span> /instances/{name}/start
                             </button>
                         </h2>
                         <div id="api-start" class="accordion-collapse collapse" data-bs-parent="#apiDocs">
                             <div class="accordion-body bg-light">
                                 <p class="small">Start an instance.</p>
-                                <pre class="small bg-dark text-white p-3 rounded mb-0 text-break" style="white-space: pre-wrap;">curl -X POST "{{ $apiBase }}/instances/1/start" \
+                                <pre class="small bg-dark text-white p-3 rounded mb-0 text-break" style="white-space: pre-wrap;">curl -X POST "{{ $apiBase }}/instances/my-instance/start" \
   -H "Authorization: Bearer YOUR_API_TOKEN"</pre>
                                 <div class="mt-3">
                                     <h6 class="small fw-bold text-muted">Response</h6>
@@ -272,13 +272,13 @@
                     <div class="accordion-item">
                         <h2 class="accordion-header">
                             <button class="accordion-button collapsed py-2" type="button" data-bs-toggle="collapse" data-bs-target="#api-stop">
-                                <span class="badge bg-success me-2">POST</span> /instances/{id}/stop
+                                <span class="badge bg-success me-2">POST</span> /instances/{name}/stop
                             </button>
                         </h2>
                         <div id="api-stop" class="accordion-collapse collapse" data-bs-parent="#apiDocs">
                             <div class="accordion-body bg-light">
                                 <p class="small">Stop an instance.</p>
-                                <pre class="small bg-dark text-white p-3 rounded mb-0 text-break" style="white-space: pre-wrap;">curl -X POST "{{ $apiBase }}/instances/1/stop" \
+                                <pre class="small bg-dark text-white p-3 rounded mb-0 text-break" style="white-space: pre-wrap;">curl -X POST "{{ $apiBase }}/instances/my-instance/stop" \
   -H "Authorization: Bearer YOUR_API_TOKEN"</pre>
                                 <div class="mt-3">
                                     <h6 class="small fw-bold text-muted">Response</h6>
@@ -294,13 +294,13 @@
                     <div class="accordion-item">
                         <h2 class="accordion-header">
                             <button class="accordion-button collapsed py-2" type="button" data-bs-toggle="collapse" data-bs-target="#api-suspend">
-                                <span class="badge bg-success me-2">POST</span> /instances/{id}/suspend
+                                <span class="badge bg-success me-2">POST</span> /instances/{name}/suspend
                             </button>
                         </h2>
                         <div id="api-suspend" class="accordion-collapse collapse" data-bs-parent="#apiDocs">
                             <div class="accordion-body bg-light">
                                 <p class="small">Suspend an instance (Stops and marks as suspended).</p>
-                                <pre class="small bg-dark text-white p-3 rounded mb-0 text-break" style="white-space: pre-wrap;">curl -X POST "{{ $apiBase }}/instances/1/suspend" \
+                                <pre class="small bg-dark text-white p-3 rounded mb-0 text-break" style="white-space: pre-wrap;">curl -X POST "{{ $apiBase }}/instances/my-instance/suspend" \
   -H "Authorization: Bearer YOUR_API_TOKEN"</pre>
                                 <div class="mt-3">
                                     <h6 class="small fw-bold text-muted">Response</h6>
@@ -316,13 +316,13 @@
                     <div class="accordion-item">
                         <h2 class="accordion-header">
                             <button class="accordion-button collapsed py-2" type="button" data-bs-toggle="collapse" data-bs-target="#api-unsuspend">
-                                <span class="badge bg-success me-2">POST</span> /instances/{id}/unsuspend
+                                <span class="badge bg-success me-2">POST</span> /instances/{name}/unsuspend
                             </button>
                         </h2>
                         <div id="api-unsuspend" class="accordion-collapse collapse" data-bs-parent="#apiDocs">
                             <div class="accordion-body bg-light">
                                 <p class="small">Unsuspend an instance (Unmarks and starts).</p>
-                                <pre class="small bg-dark text-white p-3 rounded mb-0 text-break" style="white-space: pre-wrap;">curl -X POST "{{ $apiBase }}/instances/1/unsuspend" \
+                                <pre class="small bg-dark text-white p-3 rounded mb-0 text-break" style="white-space: pre-wrap;">curl -X POST "{{ $apiBase }}/instances/my-instance/unsuspend" \
   -H "Authorization: Bearer YOUR_API_TOKEN"</pre>
                                 <div class="mt-3">
                                     <h6 class="small fw-bold text-muted">Response</h6>
@@ -338,13 +338,13 @@
                     <div class="accordion-item">
                         <h2 class="accordion-header">
                             <button class="accordion-button collapsed py-2" type="button" data-bs-toggle="collapse" data-bs-target="#api-upgrade">
-                                <span class="badge bg-success me-2">POST</span> /instances/{id}/upgrade
+                                <span class="badge bg-success me-2">POST</span> /instances/{name}/upgrade
                             </button>
                         </h2>
                         <div id="api-upgrade" class="accordion-collapse collapse" data-bs-parent="#apiDocs">
                             <div class="accordion-body bg-light">
                                 <p class="small">Change the package (Upgrade/Downgrade) and apply resources immediately.</p>
-                                <pre class="small bg-dark text-white p-3 rounded mb-0 text-break" style="white-space: pre-wrap;">curl -X POST "{{ $apiBase }}/instances/1/upgrade" \
+                                <pre class="small bg-dark text-white p-3 rounded mb-0 text-break" style="white-space: pre-wrap;">curl -X POST "{{ $apiBase }}/instances/my-instance/upgrade" \
   -H "Authorization: Bearer YOUR_API_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -366,13 +366,13 @@
                     <div class="accordion-item">
                         <h2 class="accordion-header">
                             <button class="accordion-button collapsed py-2" type="button" data-bs-toggle="collapse" data-bs-target="#api-terminate">
-                                <span class="badge bg-success me-2">POST</span> /instances/{id}/terminate
+                                <span class="badge bg-success me-2">POST</span> /instances/{name}/terminate
                             </button>
                         </h2>
                         <div id="api-terminate" class="accordion-collapse collapse" data-bs-parent="#apiDocs">
                             <div class="accordion-body bg-light">
                                 <p class="small text-danger fw-bold">Permanently delete an instance and its data.</p>
-                                <pre class="small bg-dark text-white p-3 rounded mb-0 text-break" style="white-space: pre-wrap;">curl -X POST "{{ $apiBase }}/instances/1/terminate" \
+                                <pre class="small bg-dark text-white p-3 rounded mb-0 text-break" style="white-space: pre-wrap;">curl -X POST "{{ $apiBase }}/instances/my-instance/terminate" \
   -H "Authorization: Bearer YOUR_API_TOKEN"</pre>
                                 <div class="mt-3">
                                     <h6 class="small fw-bold text-muted">Response</h6>
@@ -388,13 +388,13 @@
                     <div class="accordion-item">
                         <h2 class="accordion-header">
                             <button class="accordion-button collapsed py-2" type="button" data-bs-toggle="collapse" data-bs-target="#api-stats">
-                                <span class="badge bg-primary me-2">GET</span> /instances/{id}/stats
+                                <span class="badge bg-primary me-2">GET</span> /instances/{name}/stats
                             </button>
                         </h2>
                         <div id="api-stats" class="accordion-collapse collapse" data-bs-parent="#apiDocs">
                             <div class="accordion-body bg-light">
                                 <p class="small">Get real-time resource usage.</p>
-                                <pre class="small bg-dark text-white p-3 rounded mb-0 text-break" style="white-space: pre-wrap;">curl -X GET "{{ $apiBase }}/instances/1/stats" \
+                                <pre class="small bg-dark text-white p-3 rounded mb-0 text-break" style="white-space: pre-wrap;">curl -X GET "{{ $apiBase }}/instances/my-instance/stats" \
   -H "Authorization: Bearer YOUR_API_TOKEN"</pre>
                                 <div class="mt-3">
                                     <h6 class="small fw-bold text-muted">Response</h6>
