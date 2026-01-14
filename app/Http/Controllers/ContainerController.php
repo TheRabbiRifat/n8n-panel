@@ -160,15 +160,18 @@ class ContainerController extends Controller
                 }
             }
 
+            // Detect existing volume source for /home/node/.n8n
+            $volumeHostPath = "/var/lib/n8n/instances/{$request->name}"; // Default
+            $mounts = $orphanStats['Mounts'] ?? [];
+            foreach ($mounts as $mount) {
+                if (($mount['Destination'] ?? '') === '/home/node/.n8n') {
+                    $volumeHostPath = $mount['Source'] ?? $volumeHostPath;
+                    break;
+                }
+            }
+
             // 2. Stop and Remove the Orphan Container
-            // We use the raw ID to ensure we target the correct one.
-            // The service will clean up standard n8n volumes if they match the naming convention,
-            // but for imports, we often want to preserve data.
-            // However, the prompt implies "setup nginx+ssl", effectively "n8n-ifying" it.
-            // We will assume standard volume mounting will happen in recreation.
-            // To be safe, we remove the container but NOT the volumes if they are non-standard.
-            // But DockerService::removeContainer script might be aggressive.
-            // For now, we proceed with standard removal to clear the name/port binding.
+            // Standard removal to clear name/port binding
             $this->dockerService->removeContainer($request->docker_id);
 
             // 3. Prepare for Recreation
@@ -186,7 +189,7 @@ class ContainerController extends Controller
             $globalEnv = GlobalSetting::where('key', 'n8n_env')->first();
             $envArray = $globalEnv ? json_decode($globalEnv->value, true) : [];
 
-            // System/Fixed Envs
+            // System/Fixed Envs (These override everything)
             $systemEnvs = [
                 'N8N_HOST' => $subdomain,
                 'N8N_PORT' => 5678,
@@ -195,17 +198,24 @@ class ContainerController extends Controller
                 'N8N_BLOCK_ENV_ACCESS_IN_NODE' => 'true',
             ];
 
-            // Specific Critical Envs to preserve from Orphan if present
-            $preservedEnvs = [
-                'GENERIC_TIMEZONE' => $existingEnvs['GENERIC_TIMEZONE'] ?? 'UTC',
-                'N8N_ENCRYPTION_KEY' => $existingEnvs['N8N_ENCRYPTION_KEY'] ?? Str::random(32),
-            ];
+            // Preserve ALL existing envs except system overrides
+            // Filter out internal Docker keys if necessary (usually not needed as we merge)
+            $preservedEnvs = array_diff_key($existingEnvs, $systemEnvs);
 
-            // Merge: Global -> System -> Preserved
-            $finalEnv = array_merge($envArray, $systemEnvs, $preservedEnvs);
+            // Ensure encryption key exists
+            if (!isset($preservedEnvs['N8N_ENCRYPTION_KEY'])) {
+                $preservedEnvs['N8N_ENCRYPTION_KEY'] = Str::random(32);
+            }
+            // Ensure timezone exists
+            if (!isset($preservedEnvs['GENERIC_TIMEZONE'])) {
+                $preservedEnvs['GENERIC_TIMEZONE'] = 'UTC';
+            }
 
-            // Volume Path (Standardized)
-            $volumeHostPath = "/var/lib/n8n/instances/{$request->name}";
+            // Merge: Global -> Preserved (User) -> System (Overrides)
+            // Order implies: Global defaults < User Existing < System Enforced
+            $finalEnv = array_merge($envArray, $preservedEnvs, $systemEnvs);
+
+            // Volume Config
             $volumes = [$volumeHostPath => '/home/node/.n8n'];
 
             // 4. Create DB Record (to get ID)
@@ -390,6 +400,8 @@ class ContainerController extends Controller
             // 3. Create New Container
             $image = 'n8nio/n8n:' . $request->image_tag;
 
+            $email = Auth::user()->email ?? env('MAIL_FROM_ADDRESS', 'admin@example.com');
+
             $instance = $this->dockerService->createContainer(
                 $image,
                 $container->name,
@@ -398,7 +410,11 @@ class ContainerController extends Controller
                 $package->cpu_limit,
                 $package->ram_limit,
                 $envArray,
-                $volumes
+                $volumes,
+                [], // labels
+                $container->domain,
+                $email,
+                $container->id
             );
 
             // 4. Update DB
