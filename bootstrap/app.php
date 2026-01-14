@@ -17,10 +17,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
             'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
             'log.api' => \App\Http\Middleware\LogApiRequests::class,
+            'check.api.ip' => \App\Http\Middleware\CheckApiIp::class,
         ]);
 
         $middleware->api(append: [
-            \App\Http\Middleware\CheckApiIp::class,
         ]);
 
         $middleware->web(append: [

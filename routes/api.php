@@ -10,7 +10,7 @@ use App\Models\Container;
 |--------------------------------------------------------------------------
 */
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'check.api.ip'])->group(function () {
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
@@ -26,17 +26,17 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 // External Integration API
-Route::middleware(['auth:sanctum', 'role:admin|reseller', 'log.api', 'throttle:60,1'])->prefix('integration')->group(function () {
+Route::middleware(['auth:sanctum', 'check.api.ip', 'role:admin|reseller', 'log.api', 'throttle:60,1'])->prefix('integration')->group(function () {
 
     // Instance Management
     Route::post('/instances/create', [App\Http\Controllers\Api\ApiController::class, 'create']);
-    Route::post('/instances/{id}/start', [App\Http\Controllers\Api\ApiController::class, 'start']);
-    Route::post('/instances/{id}/stop', [App\Http\Controllers\Api\ApiController::class, 'stop']);
-    Route::post('/instances/{id}/terminate', [App\Http\Controllers\Api\ApiController::class, 'terminate']);
-    Route::post('/instances/{id}/suspend', [App\Http\Controllers\Api\ApiController::class, 'suspend']);
-    Route::post('/instances/{id}/unsuspend', [App\Http\Controllers\Api\ApiController::class, 'unsuspend']);
-    Route::post('/instances/{id}/upgrade', [App\Http\Controllers\Api\ApiController::class, 'upgrade']);
-    Route::get('/instances/{id}/stats', [App\Http\Controllers\Api\ApiController::class, 'stats']);
+    Route::post('/instances/{name}/start', [App\Http\Controllers\Api\ApiController::class, 'start']);
+    Route::post('/instances/{name}/stop', [App\Http\Controllers\Api\ApiController::class, 'stop']);
+    Route::post('/instances/{name}/terminate', [App\Http\Controllers\Api\ApiController::class, 'terminate']);
+    Route::post('/instances/{name}/suspend', [App\Http\Controllers\Api\ApiController::class, 'suspend']);
+    Route::post('/instances/{name}/unsuspend', [App\Http\Controllers\Api\ApiController::class, 'unsuspend']);
+    Route::post('/instances/{name}/upgrade', [App\Http\Controllers\Api\ApiController::class, 'upgrade']);
+    Route::get('/instances/{name}/stats', [App\Http\Controllers\Api\ApiController::class, 'stats']);
 
     // Packages
     Route::get('/packages', [App\Http\Controllers\Api\ApiController::class, 'listPackages']);

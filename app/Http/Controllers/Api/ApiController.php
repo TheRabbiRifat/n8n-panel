@@ -174,9 +174,9 @@ class ApiController extends Controller
     }
 
     // TERMINATE
-    public function terminate($id)
+    public function terminate($name)
     {
-        $container = Container::findOrFail($id);
+        $container = Container::where('name', $name)->firstOrFail();
 
         try {
             // Cleanup via script
@@ -191,9 +191,9 @@ class ApiController extends Controller
     }
 
     // START
-    public function start($id)
+    public function start($name)
     {
-        $container = Container::findOrFail($id);
+        $container = Container::where('name', $name)->firstOrFail();
 
         // If suspended, do not allow start?
         if ($container->is_suspended) {
@@ -209,9 +209,9 @@ class ApiController extends Controller
     }
 
     // STOP
-    public function stop($id)
+    public function stop($name)
     {
-        $container = Container::findOrFail($id);
+        $container = Container::where('name', $name)->firstOrFail();
         try {
             $this->dockerService->stopContainer($container->docker_id);
             return response()->json(['status' => 'success']);
@@ -221,9 +221,9 @@ class ApiController extends Controller
     }
 
     // SUSPEND
-    public function suspend($id)
+    public function suspend($name)
     {
-        $container = Container::findOrFail($id);
+        $container = Container::where('name', $name)->firstOrFail();
 
         try {
             $this->dockerService->stopContainer($container->docker_id);
@@ -237,9 +237,9 @@ class ApiController extends Controller
     }
 
     // UNSUSPEND
-    public function unsuspend($id)
+    public function unsuspend($name)
     {
-        $container = Container::findOrFail($id);
+        $container = Container::where('name', $name)->firstOrFail();
 
         try {
             $container->is_suspended = false;
@@ -254,13 +254,13 @@ class ApiController extends Controller
     }
 
     // UPGRADE PACKAGE
-    public function upgrade(Request $request, $id)
+    public function upgrade(Request $request, $name)
     {
         $request->validate([
             'package_id' => 'required|exists:packages,id',
         ]);
 
-        $container = Container::findOrFail($id);
+        $container = Container::where('name', $name)->firstOrFail();
         $package = Package::findOrFail($request->package_id);
 
         try {
@@ -298,9 +298,9 @@ class ApiController extends Controller
     }
 
     // STATS
-    public function stats($id)
+    public function stats($name)
     {
-        $container = Container::findOrFail($id);
+        $container = Container::where('name', $name)->firstOrFail();
 
         // Return resource usage
         try {
