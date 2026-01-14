@@ -495,6 +495,12 @@
                                     <li class="mb-2">
                                         <span class="badge bg-warning text-dark me-1">PUT</span> <code>/resellers/{name}</code> - Update reseller
                                     </li>
+                                    <li class="mb-2">
+                                        <span class="badge bg-danger me-1">POST</span> <code>/resellers/{name}/suspend</code> - Suspend reseller
+                                    </li>
+                                    <li class="mb-2">
+                                        <span class="badge bg-success me-1">POST</span> <code>/resellers/{name}/unsuspend</code> - Unsuspend reseller
+                                    </li>
                                     <li>
                                         <span class="badge bg-danger me-1">DELETE</span> <code>/resellers/{name}</code> - Delete reseller
                                     </li>

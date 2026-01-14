@@ -18,13 +18,16 @@ return Application::configure(basePath: dirname(__DIR__))
             'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
             'log.api' => \App\Http\Middleware\LogApiRequests::class,
             'check.api.ip' => \App\Http\Middleware\CheckApiIp::class,
+            'check.suspended' => \App\Http\Middleware\CheckUserSuspended::class,
         ]);
 
         $middleware->api(append: [
+            \App\Http\Middleware\CheckUserSuspended::class,
         ]);
 
         $middleware->web(append: [
             \App\Http\Middleware\CheckSessionIp::class,
+            \App\Http\Middleware\CheckUserSuspended::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
