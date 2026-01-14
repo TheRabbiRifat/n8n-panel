@@ -33,7 +33,7 @@ class CheckApiIp
              if (!empty($ips) && !in_array($request->ip(), $ips)) {
                  return response()->json([
                      'status' => 'error',
-                     'message' => 'Access denied: IP not whitelisted.'
+                     'message' => "Access denied: IP not whitelisted. Please Firsts Whitelist your IP at n8n Panel. Your IP is {$request->ip()} "
                  ], 403);
              }
         }
