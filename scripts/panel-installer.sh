@@ -173,9 +173,13 @@ chmod -R 775 storage bootstrap/cache
 # Install dependencies and setup Laravel
 sudo -u www-data composer install --no-dev --optimize-autoloader
 sudo -u www-data php artisan key:generate --force
+sudo -u www-data php artisan config:clear
+sudo -u www-data php artisan config:clear
 sudo -u www-data php artisan migrate --force
 sudo -u www-data php artisan db:seed --force
-sudo -u www-data php artisan config:clear
+sudo -u www-data php artisan cache:clear
+
+
 sudo -u www-data php artisan config:cache
 sudo -u www-data php artisan route:cache
 sudo -u www-data php artisan view:cache
