@@ -22,23 +22,13 @@ class CheckApiIp
         }
 
         $user = Auth::guard('sanctum')->user();
+        $token = $user->currentAccessToken();
 
-        // If user has 'whitelisted_ips' property or relation
-        // We assume 'whitelisted_ips' is a column or a method on User model returning array or comma-separated string.
-        // If the column doesn't exist, we skip validation (or we can assume empty means allow all).
-
-        // Let's assume User model *might* have it. If not, we skip.
-        // Based on the task, we were supposed to implement it.
-        // Let's check if 'whitelisted_ips' column exists in User model is risky without migration.
-        // But the previous turns supposedly added it?
-        // If not, we should probably implement a check against 'personal_access_tokens' if possible?
-        // Or if the column is missing, we just skip.
-
-        // Given I cannot migrate, I will check if the user has the attribute.
-        if (isset($user->whitelisted_ips) && !empty($user->whitelisted_ips)) {
-             $ips = is_array($user->whitelisted_ips)
-                    ? $user->whitelisted_ips
-                    : array_map('trim', explode(',', $user->whitelisted_ips));
+        // Check if the token has 'allowed_ips' property (saved by ApiTokenController)
+        if ($token && isset($token->allowed_ips) && !empty($token->allowed_ips)) {
+             $ips = is_array($token->allowed_ips)
+                    ? $token->allowed_ips
+                    : array_map('trim', explode(',', $token->allowed_ips));
 
              if (!empty($ips) && !in_array($request->ip(), $ips)) {
                  return response()->json([
