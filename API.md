@@ -89,6 +89,23 @@ Retrieve server health metrics and usage counts. The response varies based on us
 
 ### 2. Instance Management
 
+#### List Instances
+Get all instances accessible to the user.
+
+*   **Endpoint:** `GET /instances`
+*   **Response:**
+    ```json
+    [
+      {
+        "id": 12,
+        "name": "my-instance",
+        "domain": "my-instance.panel-domain.com",
+        "user_id": 1,
+        "package": { ... }
+      }
+    ]
+    ```
+
 #### Create Instance
 Provision a new n8n instance. The instance is assigned to the authenticated user (Admin or Reseller).
 
