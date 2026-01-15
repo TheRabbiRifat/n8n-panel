@@ -198,6 +198,8 @@ Manage reseller accounts.
 *   **Create Reseller:** `POST /resellers`
     *   Body: `name` (Full Name), `username` (Unique), `email`, `password`, `instance_limit` (Optional, default 10)
 *   **Get Reseller:** `GET /resellers/{username}`
+*   **Reseller Stats:** `GET /resellers/{username}/stats`
+    *   Returns total, running, stopped counts and limit.
 *   **Update Reseller:** `PUT /resellers/{username}`
     *   Body: `name`, `username`, `email`, `password`, `instance_limit`
 *   **Suspend Reseller:** `POST /resellers/{username}/suspend`

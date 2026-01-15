@@ -408,6 +408,59 @@ class ApiController extends Controller
         return response()->json(['status' => 'success', 'reseller' => $user]);
     }
 
+    public function resellerStats($username)
+    {
+        if (!auth()->user()->hasRole('admin')) {
+            abort(403, 'Unauthorized');
+        }
+        $user = User::role('reseller')->where('username', $username)->firstOrFail();
+
+        // Get all containers for this reseller
+        $instances = Container::where('user_id', $user->id)->get();
+        $total = $instances->count();
+        $running = 0;
+
+        // Fetch realtime status
+        // Optimization: Fetch all active containers once to match
+        $activeContainers = $this->dockerService->listContainers();
+
+        // Map active docker IDs for O(1) lookup
+        $activeIds = [];
+        foreach($activeContainers as $c) {
+            // DockerService listContainers returns array with 'id', 'names', 'status', etc.
+            // But we store short IDs usually or names?
+            // The docker_id in DB is short ID usually.
+            // Let's assume listContainers returns consistent IDs or we match by Name.
+            // Matching by Name is safer if we control naming.
+            // Container model has 'name' which maps to docker container name (prefixed or not? ApiController creates with prefix or just name?)
+            // create method: $request->name -> slug -> domain.
+            // DockerService->createContainer uses $name for container name.
+
+            // Let's check status string. "Up ..." means running.
+            if (str_contains(strtolower($c['status']), 'up')) {
+                // Remove leading slash from name if present
+                $cName = ltrim($c['names'], '/');
+                $activeIds[$cName] = true;
+            }
+        }
+
+        foreach ($instances as $instance) {
+            if (isset($activeIds[$instance->name])) {
+                $running++;
+            }
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'counts' => [
+                'instances_total' => $total,
+                'instances_running' => $running,
+                'instances_stopped' => $total - $running,
+                'instances_limit' => $user->instance_limit
+            ]
+        ]);
+    }
+
     public function updateReseller(Request $request, $username)
     {
         if (!auth()->user()->hasRole('admin')) {

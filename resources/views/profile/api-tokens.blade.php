@@ -493,6 +493,9 @@
                                         <span class="badge bg-primary me-1">GET</span> <code>/resellers/{username}</code> - Get reseller details
                                     </li>
                                     <li class="mb-2">
+                                        <span class="badge bg-primary me-1">GET</span> <code>/resellers/{username}/stats</code> - Get reseller stats
+                                    </li>
+                                    <li class="mb-2">
                                         <span class="badge bg-warning text-dark me-1">PUT</span> <code>/resellers/{username}</code> - Update reseller
                                     </li>
                                     <li class="mb-2">

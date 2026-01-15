@@ -46,6 +46,7 @@ Route::middleware(['auth:sanctum', 'check.api.ip', 'role:admin|reseller', 'log.a
     Route::get('/resellers', [App\Http\Controllers\Api\ApiController::class, 'indexResellers']);
     Route::post('/resellers', [App\Http\Controllers\Api\ApiController::class, 'createReseller']);
     Route::get('/resellers/{username}', [App\Http\Controllers\Api\ApiController::class, 'showReseller']);
+    Route::get('/resellers/{username}/stats', [App\Http\Controllers\Api\ApiController::class, 'resellerStats']);
     Route::put('/resellers/{username}', [App\Http\Controllers\Api\ApiController::class, 'updateReseller']);
     Route::post('/resellers/{username}/suspend', [App\Http\Controllers\Api\ApiController::class, 'suspendReseller']);
     Route::post('/resellers/{username}/unsuspend', [App\Http\Controllers\Api\ApiController::class, 'unsuspendReseller']);
