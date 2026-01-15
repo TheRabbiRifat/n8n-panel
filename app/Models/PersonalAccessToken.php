@@ -29,20 +29,45 @@ class PersonalAccessToken extends SanctumPersonalAccessToken
      */
     public function getAllowedIpsAttribute($value)
     {
-        // Fix for "String inside JSON" issue (User's current state)
-        if (is_string($value)) {
-             return array_map('trim', explode(',', $value));
+        // 1. If value is already an array (standard cast worked), return it.
+        if (is_array($value)) {
+            return $value;
         }
 
-        // Fix for "Raw CSV" legacy data (if any exists and json_decode failed)
+        // 2. If value is a string, it could be JSON (new format) or CSV (legacy).
+        if (is_string($value)) {
+            // Try to decode as JSON
+            $decoded = json_decode($value, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                return $decoded;
+            }
+
+            // Fallback: Treat as CSV
+            $ips = [];
+            $rawIps = explode(',', $value);
+            foreach ($rawIps as $ip) {
+                $trimmed = trim($ip);
+                if (!empty($trimmed)) {
+                    $ips[] = $trimmed;
+                }
+            }
+            return $ips;
+        }
+
+        // 3. Handle null/empty from cast failure or empty DB
         // If cast failed, $value is null. We check raw attributes.
         if (is_null($value) && !empty($this->attributes['allowed_ips'])) {
              $raw = $this->attributes['allowed_ips'];
 
-             // If raw is not empty string
-             if (!empty($raw) && is_string($raw)) {
-                 // We assume it is CSV if it failed JSON decode (which resulted in null)
-                 return array_map('trim', explode(',', $raw));
+             if (is_string($raw)) {
+                 // Try JSON first on raw
+                 $decoded = json_decode($raw, true);
+                 if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                    return $decoded;
+                 }
+
+                 // Fallback CSV on raw
+                 return array_values(array_filter(array_map('trim', explode(',', $raw))));
              }
         }
 
