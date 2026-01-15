@@ -604,10 +604,10 @@ class ApiController extends Controller
     public function sso(Request $request)
     {
         $request->validate([
-            'email' => 'required|email|exists:users,email',
+            'username' => 'required|string|exists:users,username',
         ]);
 
-        $user = User::where('email', $request->email)->firstOrFail();
+        $user = User::where('username', $request->username)->firstOrFail();
 
         // Security checks
         if (auth()->user()->hasRole('reseller')) {
