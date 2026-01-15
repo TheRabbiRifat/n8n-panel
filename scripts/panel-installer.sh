@@ -118,6 +118,13 @@ fi
 nginx -t
 systemctl reload nginx
 
+# Download custom 502 and default index pages
+mkdir -p /usr/share/nginx/html/errors
+bash -c "curl -fsSL https://raw.githubusercontent.com/TheRabbiRifat/n8n-panel/main/default/502.html -o /usr/share/nginx/html/errors/502.html"
+
+mkdir -p /var/www/html
+bash -c "curl -fsSL https://raw.githubusercontent.com/TheRabbiRifat/n8n-panel/main/default/index.html -o /var/www/html/index.html"
+
 #################################
 # 6. POSTGRESQL CLEAN + SETUP
 #################################
