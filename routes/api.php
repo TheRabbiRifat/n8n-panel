@@ -45,11 +45,11 @@ Route::middleware(['auth:sanctum', 'check.api.ip', 'role:admin|reseller', 'log.a
     // Reseller Management
     Route::get('/resellers', [App\Http\Controllers\Api\ApiController::class, 'indexResellers']);
     Route::post('/resellers', [App\Http\Controllers\Api\ApiController::class, 'createReseller']);
-    Route::get('/resellers/{name}', [App\Http\Controllers\Api\ApiController::class, 'showReseller']);
-    Route::put('/resellers/{name}', [App\Http\Controllers\Api\ApiController::class, 'updateReseller']);
-    Route::post('/resellers/{name}/suspend', [App\Http\Controllers\Api\ApiController::class, 'suspendReseller']);
-    Route::post('/resellers/{name}/unsuspend', [App\Http\Controllers\Api\ApiController::class, 'unsuspendReseller']);
-    Route::delete('/resellers/{name}', [App\Http\Controllers\Api\ApiController::class, 'destroyReseller']);
+    Route::get('/resellers/{username}', [App\Http\Controllers\Api\ApiController::class, 'showReseller']);
+    Route::put('/resellers/{username}', [App\Http\Controllers\Api\ApiController::class, 'updateReseller']);
+    Route::post('/resellers/{username}/suspend', [App\Http\Controllers\Api\ApiController::class, 'suspendReseller']);
+    Route::post('/resellers/{username}/unsuspend', [App\Http\Controllers\Api\ApiController::class, 'unsuspendReseller']);
+    Route::delete('/resellers/{username}', [App\Http\Controllers\Api\ApiController::class, 'destroyReseller']);
 
     // User SSO
     Route::post('/users/sso', [App\Http\Controllers\Api\ApiController::class, 'sso']);

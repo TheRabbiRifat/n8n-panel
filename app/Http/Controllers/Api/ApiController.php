@@ -395,34 +395,36 @@ class ApiController extends Controller
         if (!auth()->user()->hasRole('admin')) {
             abort(403, 'Unauthorized');
         }
-        $resellers = User::role('reseller')->get(['id', 'name', 'email', 'instance_limit', 'created_at']);
+        $resellers = User::role('reseller')->get(['id', 'username', 'name', 'email', 'instance_limit', 'created_at']);
         return response()->json(['status' => 'success', 'resellers' => $resellers]);
     }
 
-    public function showReseller($name)
+    public function showReseller($username)
     {
         if (!auth()->user()->hasRole('admin')) {
             abort(403, 'Unauthorized');
         }
-        $user = User::role('reseller')->where('name', $name)->firstOrFail();
+        $user = User::role('reseller')->where('username', $username)->firstOrFail();
         return response()->json(['status' => 'success', 'reseller' => $user]);
     }
 
-    public function updateReseller(Request $request, $name)
+    public function updateReseller(Request $request, $username)
     {
         if (!auth()->user()->hasRole('admin')) {
             abort(403, 'Unauthorized');
         }
-        $user = User::role('reseller')->where('name', $name)->firstOrFail();
+        $user = User::role('reseller')->where('username', $username)->firstOrFail();
 
         $request->validate([
-            'name' => 'nullable|string|unique:users,name,' . $user->id,
+            'name' => 'nullable|string',
+            'username' => 'nullable|string|alpha_dash|unique:users,username,' . $user->id,
             'email' => 'nullable|email|unique:users,email,' . $user->id,
             'password' => 'nullable|string|min:8',
             'instance_limit' => 'nullable|integer|min:1',
         ]);
 
         if ($request->filled('name')) $user->name = $request->name;
+        if ($request->filled('username')) $user->username = $request->username;
         if ($request->filled('email')) $user->email = $request->email;
         if ($request->filled('password')) $user->password = Hash::make($request->password);
         if ($request->filled('instance_limit')) $user->instance_limit = $request->instance_limit;
@@ -431,12 +433,12 @@ class ApiController extends Controller
         return response()->json(['status' => 'success', 'message' => 'Reseller updated.']);
     }
 
-    public function suspendReseller(Request $request, $name)
+    public function suspendReseller(Request $request, $username)
     {
         if (!auth()->user()->hasRole('admin')) {
             abort(403, 'Unauthorized');
         }
-        $user = User::role('reseller')->where('name', $name)->firstOrFail();
+        $user = User::role('reseller')->where('username', $username)->firstOrFail();
 
         $user->is_suspended = true;
         $user->save();
@@ -458,12 +460,12 @@ class ApiController extends Controller
         return response()->json(['status' => 'success', 'message' => 'Reseller suspended and instances stopped.']);
     }
 
-    public function unsuspendReseller(Request $request, $name)
+    public function unsuspendReseller(Request $request, $username)
     {
         if (!auth()->user()->hasRole('admin')) {
             abort(403, 'Unauthorized');
         }
-        $user = User::role('reseller')->where('name', $name)->firstOrFail();
+        $user = User::role('reseller')->where('username', $username)->firstOrFail();
 
         $user->is_suspended = false;
         $user->save();
@@ -471,12 +473,12 @@ class ApiController extends Controller
         return response()->json(['status' => 'success', 'message' => 'Reseller unsuspended.']);
     }
 
-    public function destroyReseller($name)
+    public function destroyReseller($username)
     {
         if (!auth()->user()->hasRole('admin')) {
             abort(403, 'Unauthorized');
         }
-        $user = User::role('reseller')->where('name', $name)->firstOrFail();
+        $user = User::role('reseller')->where('username', $username)->firstOrFail();
 
         // Terminate all instances first
         $containers = Container::where('user_id', $user->id)->get();
@@ -502,16 +504,19 @@ class ApiController extends Controller
 
         // Admin only (enforced by route middleware)
         $request->validate([
-            'name' => 'required|string|unique:users,name',
+            'name' => 'required|string',
+            'username' => 'required|string|alpha_dash|unique:users,username',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:8',
+            'instance_limit' => 'nullable|integer|min:1',
         ]);
 
         $user = User::create([
             'name' => $request->name,
+            'username' => $request->username,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'instance_limit' => 10, // Higher limit for resellers
+            'instance_limit' => $request->instance_limit ?: 10, // Default to 10 if not set
         ]);
 
         $user->assignRole('reseller');

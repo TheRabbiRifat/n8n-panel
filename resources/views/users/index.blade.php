@@ -14,6 +14,7 @@
                     <tr>
                         <th>ID</th>
                         <th>Name</th>
+                        <th>Username</th>
                         <th>Email</th>
                         <th>Roles</th>
                         <th>Instances</th>
@@ -28,6 +29,7 @@
                         <td>
                             <div class="fw-bold">{{ $user->name }}</div>
                         </td>
+                        <td>{{ $user->username }}</td>
                         <td>{{ $user->email }}</td>
                         <td>
                             @foreach($user->roles as $role)
