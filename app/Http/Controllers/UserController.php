@@ -28,6 +28,7 @@ class UserController extends Controller
         $this->authorize('manage_users');
         $request->validate([
             'name' => 'required',
+            'username' => 'required|string|alpha_dash|unique:users',
             'email' => 'required|email|unique:users',
             'password' => 'required|min:8',
             'role' => 'required|exists:roles,name',
@@ -36,6 +37,7 @@ class UserController extends Controller
 
         $user = User::create([
             'name' => $request->name,
+            'username' => $request->username,
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'instance_limit' => $request->instance_limit,
@@ -58,6 +60,7 @@ class UserController extends Controller
         $this->authorize('manage_users');
         $request->validate([
             'name' => 'required',
+            'username' => 'required|string|alpha_dash|unique:users,username,' . $user->id,
             'email' => 'required|email|unique:users,email,' . $user->id,
             'password' => 'nullable|min:8',
             'role' => 'required|exists:roles,name',
@@ -66,6 +69,7 @@ class UserController extends Controller
 
         $user->update([
             'name' => $request->name,
+            'username' => $request->username,
             'email' => $request->email,
             'instance_limit' => $request->instance_limit,
         ]);

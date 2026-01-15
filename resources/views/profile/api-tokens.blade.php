@@ -490,19 +490,19 @@
                                         <span class="badge bg-success me-1">POST</span> <code>/resellers</code> - Create reseller
                                     </li>
                                     <li class="mb-2">
-                                        <span class="badge bg-primary me-1">GET</span> <code>/resellers/{name}</code> - Get reseller details
+                                        <span class="badge bg-primary me-1">GET</span> <code>/resellers/{username}</code> - Get reseller details
                                     </li>
                                     <li class="mb-2">
-                                        <span class="badge bg-warning text-dark me-1">PUT</span> <code>/resellers/{name}</code> - Update reseller
+                                        <span class="badge bg-warning text-dark me-1">PUT</span> <code>/resellers/{username}</code> - Update reseller
                                     </li>
                                     <li class="mb-2">
-                                        <span class="badge bg-danger me-1">POST</span> <code>/resellers/{name}/suspend</code> - Suspend reseller
+                                        <span class="badge bg-danger me-1">POST</span> <code>/resellers/{username}/suspend</code> - Suspend reseller
                                     </li>
                                     <li class="mb-2">
-                                        <span class="badge bg-success me-1">POST</span> <code>/resellers/{name}/unsuspend</code> - Unsuspend reseller
+                                        <span class="badge bg-success me-1">POST</span> <code>/resellers/{username}/unsuspend</code> - Unsuspend reseller
                                     </li>
                                     <li>
-                                        <span class="badge bg-danger me-1">DELETE</span> <code>/resellers/{name}</code> - Delete reseller
+                                        <span class="badge bg-danger me-1">DELETE</span> <code>/resellers/{username}</code> - Delete reseller
                                     </li>
                                 </ul>
                             </div>

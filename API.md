@@ -196,14 +196,14 @@ Manage reseller accounts.
 
 *   **List Resellers:** `GET /resellers`
 *   **Create Reseller:** `POST /resellers`
-    *   Body: `name` (Unique Username), `email`, `password`
-*   **Get Reseller:** `GET /resellers/{name}`
-*   **Update Reseller:** `PUT /resellers/{name}`
-    *   Body: `name`, `email`, `password`, `instance_limit`
-*   **Suspend Reseller:** `POST /resellers/{name}/suspend`
+    *   Body: `name` (Full Name), `username` (Unique), `email`, `password`, `instance_limit` (Optional, default 10)
+*   **Get Reseller:** `GET /resellers/{username}`
+*   **Update Reseller:** `PUT /resellers/{username}`
+    *   Body: `name`, `username`, `email`, `password`, `instance_limit`
+*   **Suspend Reseller:** `POST /resellers/{username}/suspend`
     *   Stops login, API access, and all owned instances.
-*   **Unsuspend Reseller:** `POST /resellers/{name}/unsuspend`
-*   **Delete Reseller:** `DELETE /resellers/{name}`
+*   **Unsuspend Reseller:** `POST /resellers/{username}/unsuspend`
+*   **Delete Reseller:** `DELETE /resellers/{username}`
 
 #### User SSO
 Generate a temporary auto-login URL for a specific user. Resellers can only access their own users.
