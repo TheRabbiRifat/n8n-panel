@@ -153,6 +153,13 @@ server {
         # Long timeout for n8n
         proxy_read_timeout 3600;
     }
+
+    # Serve custom 502 page
+    error_page 502 /errors/502.html;
+    location = /errors/502.html {
+        root /usr/share/nginx/html;
+        internal;
+    }
 }
 EOF
 
