@@ -215,6 +215,33 @@
                         </div>
                     </div>
 
+                    <!-- List Instances -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed py-2" type="button" data-bs-toggle="collapse" data-bs-target="#api-list-instances">
+                                <span class="badge bg-primary me-2">GET</span> /instances
+                            </button>
+                        </h2>
+                        <div id="api-list-instances" class="accordion-collapse collapse" data-bs-parent="#apiDocs">
+                            <div class="accordion-body bg-light">
+                                <p class="small">List all instances you have access to.</p>
+                                <pre class="small bg-dark text-white p-3 rounded mb-0 text-break" style="white-space: pre-wrap;">curl -X GET "{{ $apiBase }}/instances" \
+  -H "Authorization: Bearer YOUR_API_TOKEN"</pre>
+                                <div class="mt-3">
+                                    <h6 class="small fw-bold text-muted">Response</h6>
+                                    <pre class="small bg-light border p-3 rounded mb-0 text-muted text-break" style="white-space: pre-wrap;">[
+  {
+    "id": 1,
+    "name": "my-instance",
+    "domain": "my-instance.n8n.local",
+    "user_id": 1
+  }
+]</pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Create Instance -->
                     <div class="accordion-item">
                         <h2 class="accordion-header">
