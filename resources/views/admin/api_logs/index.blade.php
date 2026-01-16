@@ -1,14 +1,14 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+<div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center mb-4 gap-3">
     <div>
         <h3 class="fw-bold mb-1">API Logs</h3>
         <p class="text-secondary mb-0">View history of API requests.</p>
     </div>
 
-    <div class="d-flex flex-wrap gap-2">
-        <form action="{{ route('admin.api_logs.index') }}" method="GET" class="d-flex">
+    <div class="d-flex flex-column flex-sm-row gap-2">
+        <form action="{{ route('admin.api_logs.index') }}" method="GET" class="d-flex flex-grow-1">
             <div class="input-group">
                 <input type="text" name="search" class="form-control form-control-sm" placeholder="Search logs..." value="{{ request('search') }}">
                 <button class="btn btn-outline-secondary btn-sm" type="submit"><i class="bi bi-search"></i></button>
@@ -18,10 +18,10 @@
             </div>
         </form>
 
-        <form action="{{ route('admin.api_logs.destroy') }}" method="POST" onsubmit="return confirm('Are you sure you want to delete ALL logs? This cannot be undone.');">
+        <form action="{{ route('admin.api_logs.destroy') }}" method="POST" onsubmit="return confirm('Are you sure you want to delete ALL logs? This cannot be undone.');" class="d-grid d-sm-block">
             @csrf
             @method('DELETE')
-            <button type="submit" class="btn btn-danger btn-sm shadow-sm text-nowrap">
+            <button type="submit" class="btn btn-danger btn-sm shadow-sm text-nowrap w-100">
                 <i class="bi bi-trash-fill me-1"></i> Purge All
             </button>
         </form>
