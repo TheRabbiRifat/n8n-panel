@@ -25,6 +25,7 @@ class User extends Authenticatable
         'email',
         'password',
         'instance_limit',
+        'package_id',
         'reseller_id',
         'whitelisted_ips',
         'is_suspended',
@@ -57,6 +58,11 @@ class User extends Authenticatable
     public function instances()
     {
         return $this->hasMany(Container::class);
+    }
+
+    public function package()
+    {
+        return $this->belongsTo(Package::class);
     }
 
     public function reseller()

@@ -70,9 +70,36 @@ class ApiController extends Controller
 
         $targetUser = Auth::user();
 
-        // Check Instance Limit
+        // Check Instance Limit (Count)
         if ($targetUser->instances()->count() >= $targetUser->instance_limit) {
             abort(403, 'Instance limit reached for this user.');
+        }
+
+        // Check Reseller Resource Limits (if applicable)
+        if ($targetUser->hasRole('reseller') && $targetUser->package) {
+            $package = Package::instance()->findOrFail($request->package_id); // The package for the NEW instance
+
+            // Calculate current usage
+            // We need to sum the resources of all EXISTING instances belonging to this reseller
+            // This assumes instances have a 'package' relationship loaded or accessible.
+            // Container model has 'package_id'.
+
+            $existingInstances = $targetUser->instances()->with('package')->get();
+
+            $totalCpu = $existingInstances->sum(fn($i) => $i->package->cpu_limit ?? 0);
+            $totalRam = $existingInstances->sum(fn($i) => $i->package->ram_limit ?? 0); // stored as GB usually
+
+            // Add new instance resources
+            $newCpu = $package->cpu_limit ?? 0;
+            $newRam = $package->ram_limit ?? 0;
+
+            if (($totalCpu + $newCpu) > $targetUser->package->cpu_limit) {
+                 abort(403, "CPU limit exceeded. Your plan allows {$targetUser->package->cpu_limit} CPUs.");
+            }
+
+            if (($totalRam + $newRam) > $targetUser->package->ram_limit) {
+                 abort(403, "RAM limit exceeded. Your plan allows {$targetUser->package->ram_limit} GB RAM.");
+            }
         }
 
         $version = $request->version ?: 'latest';
@@ -473,14 +500,19 @@ class ApiController extends Controller
             'username' => 'nullable|string|alpha_dash|unique:users,username,' . $user->id,
             'email' => 'nullable|email|unique:users,email,' . $user->id,
             'password' => 'nullable|string|min:8',
-            'instance_limit' => 'nullable|integer|min:1',
+            'package_id' => 'nullable|exists:packages,id',
         ]);
 
         if ($request->filled('name')) $user->name = $request->name;
         if ($request->filled('username')) $user->username = $request->username;
         if ($request->filled('email')) $user->email = $request->email;
         if ($request->filled('password')) $user->password = Hash::make($request->password);
-        if ($request->filled('instance_limit')) $user->instance_limit = $request->instance_limit;
+
+        if ($request->filled('package_id')) {
+            $package = Package::reseller()->findOrFail($request->package_id);
+            $user->package_id = $package->id;
+            $user->instance_limit = $package->instance_count; // Sync limit
+        }
 
         $user->save();
         return response()->json(['status' => 'success', 'message' => 'Reseller updated.']);
@@ -561,15 +593,18 @@ class ApiController extends Controller
             'username' => 'required|string|alpha_dash|unique:users,username',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:8',
-            'instance_limit' => 'nullable|integer|min:1',
+            'package_id' => 'required|exists:packages,id',
         ]);
+
+        $package = Package::reseller()->findOrFail($request->package_id);
 
         $user = User::create([
             'name' => $request->name,
             'username' => $request->username,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'instance_limit' => $request->instance_limit ?: 10, // Default to 10 if not set
+            'instance_limit' => $package->instance_count, // Redundant but kept for fallback
+            'package_id' => $package->id,
         ]);
 
         $user->assignRole('reseller');
