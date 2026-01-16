@@ -180,9 +180,11 @@
                     @endphp
 
                     <div class="mb-3">
-                        <label class="form-label">N8N Encryption Key</label>
-                        <input type="text" class="form-control" name="N8N_ENCRYPTION_KEY" value="{{ $encryptionKey }}" readonly>
-                        <div class="form-text">This key is auto-generated and cannot be changed.</div>
+                        <label class="form-label">N8N Encryption Key <span class="badge bg-danger">CAUTION</span></label>
+                        <input type="text" class="form-control font-monospace" name="N8N_ENCRYPTION_KEY" value="{{ $encryptionKey }}">
+                        <div class="form-text text-danger">
+                            <i class="bi bi-exclamation-triangle"></i> <strong>Warning:</strong> Changing this key will make existing credentials in n8n unreadable. Only change if restoring a backup.
+                        </div>
                     </div>
 
                     <div class="mb-3">

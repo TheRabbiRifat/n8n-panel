@@ -368,12 +368,16 @@ class ContainerController extends Controller
 
         $envArray = array_merge($envArray, $fixedAndDynamic);
 
-        // User Configurable: Timezone + Preserve Encryption Key
+        // User Configurable: Timezone + Preserve/Update Encryption Key
         $existingEnv = $container->environment ? json_decode($container->environment, true) : [];
         $userEnv = [
             'GENERIC_TIMEZONE' => $request->generic_timezone,
         ];
-        if (isset($existingEnv['N8N_ENCRYPTION_KEY'])) {
+
+        // Allow updating encryption key if provided, otherwise preserve existing
+        if ($request->filled('N8N_ENCRYPTION_KEY')) {
+             $userEnv['N8N_ENCRYPTION_KEY'] = $request->input('N8N_ENCRYPTION_KEY');
+        } elseif (isset($existingEnv['N8N_ENCRYPTION_KEY'])) {
             $userEnv['N8N_ENCRYPTION_KEY'] = $existingEnv['N8N_ENCRYPTION_KEY'];
         }
 
