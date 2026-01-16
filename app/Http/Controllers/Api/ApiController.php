@@ -439,7 +439,7 @@ class ApiController extends Controller
             // Let's check status string. "Up ..." means running.
             if (str_contains(strtolower($c['status']), 'up')) {
                 // Remove leading slash from name if present
-                $cName = ltrim($c['names'], '/');
+                $cName = ltrim($c['name'], '/');
                 $activeIds[$cName] = true;
             }
         }
