@@ -18,13 +18,14 @@
                 <thead class="bg-light">
                     <tr>
                         <th class="ps-4">Name</th>
+                        <th>Type</th>
                         <th>CPU Limit</th>
                         <th>RAM Limit</th>
                         <th>Disk Limit</th>
+                        <th>Instances</th>
                         @role('admin')
                         <th>Owner</th>
                         @endrole
-                        <th>Created At</th>
                         <th class="text-end pe-4">Actions</th>
                     </tr>
                 </thead>
@@ -32,9 +33,17 @@
                     @forelse($packages as $package)
                     <tr>
                         <td class="ps-4 fw-bold">{{ $package->name }}</td>
+                        <td>
+                            @if($package->type == 'reseller')
+                                <span class="badge bg-primary">Reseller</span>
+                            @else
+                                <span class="badge bg-success">Instance</span>
+                            @endif
+                        </td>
                         <td>{{ $package->cpu_limit ?? 'Unlimited' }}</td>
                         <td>{{ $package->ram_limit ?? 'Unlimited' }}</td>
                         <td>{{ $package->disk_limit ?? 'Unlimited' }}</td>
+                        <td>{{ $package->instance_count ?? '-' }}</td>
                         @role('admin')
                         <td>
                             <span class="badge bg-secondary">{{ $package->user->name }}</span>

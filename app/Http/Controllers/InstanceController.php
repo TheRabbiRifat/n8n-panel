@@ -102,14 +102,33 @@ class InstanceController extends Controller
 
         // Check Instance Limit
         $user = Auth::user();
+        $package = Package::instance()->findOrFail($request->package_id);
+
         if (!$user->hasRole('admin')) {
+            // Count Check
             $count = $user->instances()->count();
             if ($count >= $user->instance_limit) {
                 return back()->with('error', "Instance limit reached ({$user->instance_limit}). Please contact admin to increase limit.");
             }
-        }
 
-        $package = Package::findOrFail($request->package_id);
+            // Reseller Resource Check
+            if ($user->hasRole('reseller') && $user->package) {
+                $existingInstances = $user->instances()->with('package')->get();
+                $totalCpu = $existingInstances->sum(fn($i) => $i->package->cpu_limit ?? 0);
+                $totalRam = $existingInstances->sum(fn($i) => $i->package->ram_limit ?? 0);
+
+                $newCpu = $package->cpu_limit ?? 0;
+                $newRam = $package->ram_limit ?? 0;
+
+                if (($totalCpu + $newCpu) > $user->package->cpu_limit) {
+                     return back()->with('error', "CPU limit exceeded. Plan allows {$user->package->cpu_limit} CPUs.");
+                }
+
+                if (($totalRam + $newRam) > $user->package->ram_limit) {
+                     return back()->with('error', "RAM limit exceeded. Plan allows {$user->package->ram_limit} GB RAM.");
+                }
+            }
+        }
 
         // 1. Assign Port
         $port = $this->portAllocator->allocate();
