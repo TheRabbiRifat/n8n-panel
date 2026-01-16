@@ -85,6 +85,7 @@ Route::middleware(['auth'])->group(function () {
 
         // API Logs
         Route::get('api-logs', [App\Http\Controllers\ApiLogController::class, 'index'])->name('admin.api_logs.index');
+        Route::delete('api-logs', [App\Http\Controllers\ApiLogController::class, 'destroy'])->name('admin.api_logs.destroy');
 
         // Roles & Permissions
         Route::resource('roles', \App\Http\Controllers\RoleController::class);

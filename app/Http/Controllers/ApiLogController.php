@@ -13,4 +13,11 @@ class ApiLogController extends Controller
         $logs = ApiLog::with('user')->latest()->paginate(20);
         return view('admin.api_logs.index', compact('logs'));
     }
+
+    public function destroy()
+    {
+        $this->authorize('view_logs'); // Reuse same permission or stricter if exists
+        ApiLog::truncate();
+        return back()->with('success', 'All API logs have been purged.');
+    }
 }

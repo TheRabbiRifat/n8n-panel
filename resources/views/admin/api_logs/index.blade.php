@@ -1,14 +1,24 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="mb-4">
-    <h3 class="fw-bold mb-1">API Logs</h3>
-    <p class="text-secondary">View history of API requests.</p>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">API Logs</h3>
+        <p class="text-secondary mb-0">View history of API requests.</p>
+    </div>
+    <form action="{{ route('admin.api_logs.destroy') }}" method="POST" onsubmit="return confirm('Are you sure you want to delete ALL logs? This cannot be undone.');">
+        @csrf
+        @method('DELETE')
+        <button type="submit" class="btn btn-danger btn-sm shadow-sm">
+            <i class="bi bi-trash-fill me-1"></i> Purge All Logs
+        </button>
+    </form>
 </div>
 
-<div class="card">
-    <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
             <thead>
                 <tr class="text-secondary text-uppercase small">
                     <th class="ps-4">Date</th>
@@ -68,7 +78,9 @@
             </tbody>
         </table>
     </div>
-    <div class="card-footer bg-transparent border-top p-3">
+        </div>
+    </div>
+    <div class="card-footer bg-white border-top p-3">
         {{ $logs->links() }}
     </div>
 </div>
