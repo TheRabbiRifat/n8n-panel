@@ -166,8 +166,8 @@
         }
 
         /* Content */
-        #content-wrapper { flex-grow: 1; display: flex; flex-direction: column; min-width: 0; }
-        .main-content { padding: 2.5rem; flex-grow: 1; overflow-x: hidden; }
+        #content-wrapper { flex-grow: 1; display: flex; flex-direction: column; min-width: 0; min-height: 100vh; }
+        .main-content { padding: 2.5rem; flex-grow: 1; overflow-x: hidden; width: 100%; }
 
         /* Modern Card */
         .card {
