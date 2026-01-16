@@ -29,16 +29,35 @@ class InstanceController extends Controller
         $this->portAllocator = $portAllocator;
     }
 
-    public function index()
+    public function index(Request $request)
     {
         $user = Auth::user();
+        $query = Container::with('package');
+
         if ($user->hasRole('admin')) {
-            $instances = Container::with('package', 'user')->get();
+            $query->with('user');
         } else {
-            $instances = Container::with('package')->where('user_id', $user->id)->get();
+            $query->where('user_id', $user->id);
         }
 
-        // Populate status using DockerService
+        if ($request->has('search')) {
+            $search = $request->get('search');
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('domain', 'like', "%{$search}%")
+                  ->orWhere('docker_id', 'like', "%{$search}%")
+                  ->orWhere('image_tag', 'like', "%{$search}%")
+                  ->orWhereHas('user', function($q) use ($search) {
+                      $q->where('name', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        $instances = $query->paginate(20)->withQueryString();
+
+        // Populate status using DockerService (Optimization: fetch mostly relevant?)
+        // Fetching ALL containers is potentially expensive if thousands exist,
+        // but for now consistent with previous logic.
         $statsMap = [];
         $allContainers = $this->dockerService->listContainers();
 
