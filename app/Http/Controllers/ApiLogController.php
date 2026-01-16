@@ -7,10 +7,27 @@ use Illuminate\Http\Request;
 
 class ApiLogController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $this->authorize('view_logs');
-        $logs = ApiLog::with('user')->latest()->paginate(20);
+
+        $query = ApiLog::with('user')->latest();
+
+        if ($request->has('search')) {
+            $search = $request->get('search');
+            $query->where(function($q) use ($search) {
+                $q->where('method', 'like', "%{$search}%")
+                  ->orWhere('endpoint', 'like', "%{$search}%")
+                  ->orWhere('ip_address', 'like', "%{$search}%")
+                  ->orWhere('response_code', 'like', "%{$search}%")
+                  ->orWhereHas('user', function($q) use ($search) {
+                      $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        $logs = $query->paginate(20)->withQueryString();
         return view('admin.api_logs.index', compact('logs'));
     }
 

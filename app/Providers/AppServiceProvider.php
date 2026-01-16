@@ -8,6 +8,7 @@ use App\Services\SystemStatusService;
 use Laravel\Sanctum\Sanctum;
 use App\Models\PersonalAccessToken;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Pagination\Paginator;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -24,6 +25,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(SystemStatusService $systemStatusService): void
     {
+        Paginator::useBootstrapFive();
         Sanctum::usePersonalAccessTokenModel(PersonalAccessToken::class);
 
         // Implicitly grant "Super Admin" role all permissions
