@@ -273,6 +273,19 @@ systemctl reload nginx
 if [ ! -z "$EMAIL" ]; then
     echo "Attempting SSL certification..."
     certbot --nginx -d "$DOMAIN" --non-interactive --agree-tos --email "$EMAIL" --redirect || echo "SSL setup failed, but continuing."
+
+    # 5. Enforce TLS 1.2+ (Fix for err_ssl_version_or_cipher_mismatch)
+    if [ -f "$NGINX_CONF" ] && grep -q "listen.*443.*ssl" "$NGINX_CONF"; then
+        echo "Enforcing TLS 1.2+ configuration..."
+        # If ssl_protocols exists, update it; otherwise insert it
+        if grep -q "ssl_protocols" "$NGINX_CONF"; then
+            sed -i 's/ssl_protocols.*/ssl_protocols TLSv1.2 TLSv1.3;/' "$NGINX_CONF"
+        else
+            # Insert after the listen 443 line
+            sed -i '/listen.*443.*ssl/a \    ssl_protocols TLSv1.2 TLSv1.3;' "$NGINX_CONF"
+        fi
+        systemctl reload nginx
+    fi
 fi
 
 echo "Instance $NAME created successfully."
