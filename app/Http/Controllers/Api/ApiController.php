@@ -173,6 +173,8 @@ class ApiController extends Controller
                 'db_password' => $dbConfig['password'],
             ]);
 
+            $panelDbUser = config('database.connections.pgsql.username');
+
             $instanceDocker = $this->dockerService->createContainer(
                 $image,
                 $request->name,
@@ -186,7 +188,8 @@ class ApiController extends Controller
                 $subdomain,
                 $email,
                 $container->id,
-                $dbConfig
+                $dbConfig,
+                $panelDbUser
             );
 
             $container->update([

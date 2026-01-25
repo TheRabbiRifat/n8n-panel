@@ -30,6 +30,11 @@
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="logs-tab" data-bs-toggle="tab" data-bs-target="#logs" type="button" role="tab">Live Logs</button>
             </li>
+            @role('admin')
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="database-tab" data-bs-toggle="tab" data-bs-target="#database" type="button" role="tab">Database</button>
+            </li>
+            @endrole
         </ul>
     </div>
     <div class="card-body">
@@ -238,6 +243,51 @@
                     }
                 </style>
             </div>
+
+            <!-- Database Tab (Admin Only) -->
+            @role('admin')
+            <div class="tab-pane fade" id="database" role="tabpanel">
+                @if($container->db_database)
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle-fill me-2"></i>
+                        Database: <strong>{{ $container->db_database }}</strong> | User: <strong>{{ $container->db_username }}</strong>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card mb-3">
+                                <div class="card-header bg-light fw-bold">Export Database</div>
+                                <div class="card-body">
+                                    <p class="small text-muted">Download a SQL dump of the current database.</p>
+                                    <a href="{{ route('containers.db.export', $container->id) }}" class="btn btn-primary">
+                                        <i class="bi bi-download me-1"></i> Export .sql
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card mb-3">
+                                <div class="card-header bg-light fw-bold">Import Database</div>
+                                <div class="card-body">
+                                    <p class="small text-muted">Restore a SQL dump. <strong>Warning:</strong> This will overwrite existing data and restart the instance.</p>
+                                    <form action="{{ route('containers.db.import', $container->id) }}" method="POST" enctype="multipart/form-data">
+                                        @csrf
+                                        <div class="input-group mb-3">
+                                            <input type="file" class="form-control" name="sql_file" required accept=".sql,.txt">
+                                            <button class="btn btn-danger" type="submit" onclick="return confirm('Overwrite database? This cannot be undone.')">Import</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @else
+                    <div class="alert alert-warning">
+                        This instance does not use the managed PostgreSQL system (SQLite or Legacy).
+                    </div>
+                @endif
+            </div>
+            @endrole
         </div>
     </div>
 </div>
