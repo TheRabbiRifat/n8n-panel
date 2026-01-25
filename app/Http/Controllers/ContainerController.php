@@ -252,6 +252,8 @@ class ContainerController extends Controller
             $email = env('MAIL_FROM_ADDRESS', 'admin@example.com');
             $image = "n8nio/n8n:" . $imageTag;
 
+            $panelDbUser = config('database.connections.pgsql.username');
+
             $instance = $this->dockerService->createContainer(
                 $image,
                 $request->name,
@@ -265,7 +267,8 @@ class ContainerController extends Controller
                 $subdomain,
                 $email,
                 $container->id,
-                $dbConfig
+                $dbConfig,
+                $panelDbUser
             );
 
             // Update DB with real ID
@@ -448,6 +451,8 @@ class ContainerController extends Controller
 
             $email = Auth::user()->email ?? env('MAIL_FROM_ADDRESS', 'admin@example.com');
 
+            $panelDbUser = config('database.connections.pgsql.username');
+
             $instance = $this->dockerService->createContainer(
                 $image,
                 $container->name,
@@ -461,7 +466,8 @@ class ContainerController extends Controller
                 $container->domain,
                 $email,
                 $container->id,
-                $dbConfig
+                $dbConfig,
+                $panelDbUser
             );
 
             // 4. Update DB
@@ -538,5 +544,90 @@ class ContainerController extends Controller
             return true;
         }
         abort(403);
+    }
+
+    public function exportDatabase($id)
+    {
+        if (!Auth::user()->hasRole('admin')) {
+            abort(403, 'Unauthorized');
+        }
+
+        $container = Container::findOrFail($id);
+
+        if (!$container->db_database || !$container->db_username) {
+            return back()->with('error', 'This instance does not use an external PostgreSQL database.');
+        }
+
+        $dbName = $container->db_database;
+        $dbUser = $container->db_username; // Used for context if needed, but we execute as postgres superuser usually
+        // Or better, execute as the panel user who now has access?
+        // But the script is PHP. We can use `sudo -u postgres pg_dump`
+
+        $filename = "backup-{$container->name}-" . date('Y-m-d-H-i') . ".sql";
+
+        return response()->streamDownload(function () use ($dbName) {
+            $cmd = "sudo -u postgres pg_dump {$dbName}";
+            $fp = popen($cmd, 'r');
+            while (!feof($fp)) {
+                echo fread($fp, 1024);
+            }
+            pclose($fp);
+        }, $filename);
+    }
+
+    public function importDatabase(Request $request, $id)
+    {
+        if (!Auth::user()->hasRole('admin')) {
+            abort(403, 'Unauthorized');
+        }
+
+        $container = Container::findOrFail($id);
+
+        $request->validate([
+            'sql_file' => 'required|file|mimes:sql,txt|max:102400', // 100MB max
+        ]);
+
+        if (!$container->db_database) {
+            return back()->with('error', 'Instance has no configured database.');
+        }
+
+        $dbName = $container->db_database;
+        $file = $request->file('sql_file');
+        $path = $file->getRealPath();
+
+        try {
+            // Stop container first to prevent locks/issues?
+            // Optional but recommended.
+            $this->dockerService->stopContainer($container->docker_id);
+
+            // Import
+            // We use 'psql' to restore.
+            // Drop/Create is risky if connections exist, but usually standard restore for clean state.
+            // But pg_dump might not include CREATE DATABASE. It usually includes CREATE TABLE.
+            // So we just run psql -d dbname -f file
+
+            // We might need to clear existing tables first?
+            // `pg_dump` usually adds DROP TABLE IF EXISTS? No, only if requested (-c).
+            // Let's assume we want a clean import.
+            // Dropping the DB and recreating it is cleanest, but requires disconnecting users (which stopping container does).
+
+            // Recreate DB logic via shell command
+            $recreateCmd = "sudo -u postgres psql -c 'DROP DATABASE \"{$dbName}\"; CREATE DATABASE \"{$dbName}\" OWNER \"{$container->db_username}\"; GRANT ALL PRIVILEGES ON DATABASE \"{$dbName}\" TO \"{$container->db_username}\";'";
+            \Illuminate\Support\Facades\Process::run($recreateCmd);
+
+            // Import
+            // Cat file | psql
+            $importCmd = "sudo -u postgres psql -d \"{$dbName}\" -f \"{$path}\"";
+             \Illuminate\Support\Facades\Process::run($importCmd);
+
+            // Restart container
+            $this->dockerService->startContainer($container->docker_id);
+
+            return back()->with('success', 'Database imported successfully.');
+        } catch (\Exception $e) {
+            // Try to restart anyway
+            try { $this->dockerService->startContainer($container->docker_id); } catch (\Exception $ex) {}
+            return back()->with('error', 'Import failed: ' . $e->getMessage());
+        }
     }
 }

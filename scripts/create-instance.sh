@@ -21,6 +21,7 @@ DB_PORT="5432"
 DB_NAME=""
 DB_USER=""
 DB_PASS=""
+PANEL_DB_USER=""
 
 # Parse arguments
 for i in "$@"
@@ -67,6 +68,9 @@ case $i in
     ;;
     --db-pass=*)
     DB_PASS="${i#*=}"
+    ;;
+    --panel-db-user=*)
+    PANEL_DB_USER="${i#*=}"
     ;;
     *)
             # unknown option
@@ -141,6 +145,15 @@ if [ ! -z "$DB_NAME" ] && [ ! -z "$DB_USER" ] && [ ! -z "$DB_PASS" ]; then
 
         # Grant privileges
         sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE ${DB_NAME} TO ${DB_USER}"
+
+        # Grant Panel User privileges (for SSO/Admin access)
+        if [ ! -z "$PANEL_DB_USER" ]; then
+             # Check if panel user exists
+             if sudo -u postgres psql -tc "SELECT 1 FROM pg_roles WHERE rolname = '${PANEL_DB_USER}'" | grep -q 1; then
+                  echo "Granting ${PANEL_DB_USER} access to ${DB_USER} role..."
+                  sudo -u postgres psql -c "GRANT ${DB_USER} TO ${PANEL_DB_USER}" || true
+             fi
+        fi
     fi
 fi
 

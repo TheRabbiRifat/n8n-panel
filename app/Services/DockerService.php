@@ -37,7 +37,7 @@ class DockerService
         return $containers;
     }
 
-    public function createContainer(string $image, string $name, int $port, int $internalPort = 5678, $cpu = null, $memory = null, array $environment = [], array $volumes = [], array $labels = [], string $domain = '', string $email = '', ?int $dbId = null, array $dbConfig = [])
+    public function createContainer(string $image, string $name, int $port, int $internalPort = 5678, $cpu = null, $memory = null, array $environment = [], array $volumes = [], array $labels = [], string $domain = '', string $email = '', ?int $dbId = null, array $dbConfig = [], string $panelDbUser = '')
     {
         // Extract tag from image (e.g. n8nio/n8n:latest -> latest)
         $imageParts = explode(':', $image);
@@ -77,6 +77,10 @@ class DockerService
             if (!empty($dbConfig['database'])) $command[] = "--db-name={$dbConfig['database']}";
             if (!empty($dbConfig['username'])) $command[] = "--db-user={$dbConfig['username']}";
             if (!empty($dbConfig['password'])) $command[] = "--db-pass={$dbConfig['password']}";
+        }
+
+        if ($panelDbUser) {
+            $command[] = "--panel-db-user={$panelDbUser}";
         }
 
         // Execute with timeout for pulling image

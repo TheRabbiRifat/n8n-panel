@@ -203,6 +203,8 @@ class InstanceController extends Controller
             // Pass domain and email for Nginx/Certbot setup inside the script
             $email = env('MAIL_FROM_ADDRESS', 'admin@example.com');
 
+            $panelDbUser = config('database.connections.pgsql.username');
+
             $instance = $this->dockerService->createContainer(
                 $image,
                 $request->name,
@@ -216,7 +218,8 @@ class InstanceController extends Controller
                 $subdomain,
                 $email,
                 $container->id, // Pass DB ID for volume path
-                $dbConfig
+                $dbConfig,
+                $panelDbUser
             );
 
             // Update DB Record with real Docker ID
