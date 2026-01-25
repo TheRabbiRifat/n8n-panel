@@ -15,6 +15,13 @@ DOMAIN=""
 EMAIL=""
 ENV_JSON="{}"
 
+# DB Args
+DB_HOST=""
+DB_PORT="5432"
+DB_NAME=""
+DB_USER=""
+DB_PASS=""
+
 # Parse arguments
 for i in "$@"
 do
@@ -45,6 +52,21 @@ case $i in
     ;;
     --env-json=*)
     ENV_JSON="${i#*=}"
+    ;;
+    --db-host=*)
+    DB_HOST="${i#*=}"
+    ;;
+    --db-port=*)
+    DB_PORT="${i#*=}"
+    ;;
+    --db-name=*)
+    DB_NAME="${i#*=}"
+    ;;
+    --db-user=*)
+    DB_USER="${i#*=}"
+    ;;
+    --db-pass=*)
+    DB_PASS="${i#*=}"
     ;;
     *)
             # unknown option
@@ -84,6 +106,13 @@ if [ ! -z "$PG_CONF_FILE" ] && [ ! -z "$PG_HBA_FILE" ]; then
         PG_RELOAD_NEEDED=true
     fi
 
+    # 3. HBA Config -> Safety check for 127.0.0.1 (Panel Access)
+    if ! grep -q "127.0.0.1/32" "$PG_HBA_FILE"; then
+         # This should usually exist, but if broken, restore it.
+         echo "host    all             all             127.0.0.1/32            md5" >> "$PG_HBA_FILE"
+         PG_RELOAD_NEEDED=true
+    fi
+
     if [ "$PG_RELOAD_NEEDED" = true ]; then
         echo "Updating PostgreSQL configuration..."
         systemctl restart postgresql
@@ -93,32 +122,26 @@ fi
 # ----------------------------------------------------------------
 # 0.5 PostgreSQL User & DB Provisioning
 # ----------------------------------------------------------------
-# Sanitize NAME to be safe for DB name/user (only alphanumeric)
-SAFE_NAME=$(echo "$NAME" | tr -cd 'a-z0-9')
-DB_USER="n8n_${SAFE_NAME}"
-DB_NAME="n8n_${SAFE_NAME}"
+# Only provision if credentials are provided
+if [ ! -z "$DB_NAME" ] && [ ! -z "$DB_USER" ] && [ ! -z "$DB_PASS" ]; then
+    # Provision if we found Postgres config (implies Postgres is installed on host)
+    if [ ! -z "$PG_CONF_FILE" ]; then
+        echo "Provisioning PostgreSQL database ($DB_NAME) and user ($DB_USER)..."
 
-# Generate a random password (using urandom fallback if openssl missing, though panel script installed openssl/ca-certificates)
-# We use tr to ensure safe chars
-DB_PASS=$(LC_ALL=C tr -dc 'a-zA-Z0-9' < /dev/urandom | head -c 16)
+        # Create User if not exists
+        sudo -u postgres psql -tc "SELECT 1 FROM pg_roles WHERE rolname = '${DB_USER}'" | grep -q 1 || \
+        sudo -u postgres psql -c "CREATE USER ${DB_USER} WITH PASSWORD '${DB_PASS}'"
 
-# Provision if we found Postgres config (implies Postgres is installed)
-if [ ! -z "$PG_CONF_FILE" ]; then
-    echo "Provisioning PostgreSQL database ($DB_NAME) and user ($DB_USER)..."
+        # Always update password to ensure it matches the container env (and passed arg)
+        sudo -u postgres psql -c "ALTER USER ${DB_USER} WITH PASSWORD '${DB_PASS}'"
 
-    # Create User if not exists
-    sudo -u postgres psql -tc "SELECT 1 FROM pg_roles WHERE rolname = '${DB_USER}'" | grep -q 1 || \
-    sudo -u postgres psql -c "CREATE USER ${DB_USER} WITH PASSWORD '${DB_PASS}'"
+        # Create Database if not exists
+        sudo -u postgres psql -tc "SELECT 1 FROM pg_database WHERE datname = '${DB_NAME}'" | grep -q 1 || \
+        sudo -u postgres psql -c "CREATE DATABASE ${DB_NAME} OWNER ${DB_USER}"
 
-    # Always update password to ensure it matches the container env
-    sudo -u postgres psql -c "ALTER USER ${DB_USER} WITH PASSWORD '${DB_PASS}'"
-
-    # Create Database if not exists
-    sudo -u postgres psql -tc "SELECT 1 FROM pg_database WHERE datname = '${DB_NAME}'" | grep -q 1 || \
-    sudo -u postgres psql -c "CREATE DATABASE ${DB_NAME} OWNER ${DB_USER}"
-
-    # Grant privileges
-    sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE ${DB_NAME} TO ${DB_USER}"
+        # Grant privileges
+        sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE ${DB_NAME} TO ${DB_USER}"
+    fi
 fi
 
 # Use ID for volume path if provided, else fallback to NAME (for backward compatibility or recovery)
@@ -154,11 +177,14 @@ if [ ! -z "$MEMORY" ]; then
 fi
 
 # Inject Default PostgreSQL Configuration
-# (Placed before ENV_JSON to allow user override if needed, though rare)
-if [ ! -z "$PG_CONF_FILE" ]; then
+# Only if DB credentials provided
+if [ ! -z "$DB_NAME" ] && [ ! -z "$DB_USER" ] && [ ! -z "$DB_PASS" ]; then
+    # Use provided host or fallback to gateway
+    USE_HOST="${DB_HOST:-$DOCKER_GATEWAY}"
+
     CMD_ARGS+=("-e" "DB_TYPE=postgresdb")
-    CMD_ARGS+=("-e" "DB_POSTGRESDB_HOST=${DOCKER_GATEWAY}")
-    CMD_ARGS+=("-e" "DB_POSTGRESDB_PORT=5432")
+    CMD_ARGS+=("-e" "DB_POSTGRESDB_HOST=${USE_HOST}")
+    CMD_ARGS+=("-e" "DB_POSTGRESDB_PORT=${DB_PORT}")
     CMD_ARGS+=("-e" "DB_POSTGRESDB_DATABASE=${DB_NAME}")
     CMD_ARGS+=("-e" "DB_POSTGRESDB_USER=${DB_USER}")
     CMD_ARGS+=("-e" "DB_POSTGRESDB_PASSWORD=${DB_PASS}")

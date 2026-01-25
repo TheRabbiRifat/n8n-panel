@@ -8,6 +8,8 @@ set -e
 ID=""
 NAME=""
 DOMAIN=""
+DB_USER=""
+DB_NAME=""
 
 for i in "$@"
 do
@@ -20,6 +22,12 @@ case $i in
     ;;
     --domain=*)
     DOMAIN="${i#*=}"
+    ;;
+    --db-name=*)
+    DB_NAME="${i#*=}"
+    ;;
+    --db-user=*)
+    DB_USER="${i#*=}"
     ;;
     *)
     ;;
@@ -34,13 +42,9 @@ fi
 echo "Deleting instance $NAME..."
 
 # 0. PostgreSQL Cleanup
-SAFE_NAME=$(echo "$NAME" | tr -cd 'a-z0-9')
-DB_USER="n8n_${SAFE_NAME}"
-DB_NAME="n8n_${SAFE_NAME}"
-
-# Check if psql exists and runs (assuming sudo access)
-if command -v psql &> /dev/null; then
-    echo "Removing PostgreSQL database and user..."
+# Only delete if explicit arguments are provided (Prevent accidental deletion during updates)
+if command -v psql &> /dev/null && [ ! -z "$DB_NAME" ] && [ ! -z "$DB_USER" ]; then
+    echo "Removing PostgreSQL database ($DB_NAME) and user ($DB_USER)..."
     sudo -u postgres psql -c "DROP DATABASE IF EXISTS ${DB_NAME}" || true
     sudo -u postgres psql -c "DROP USER IF EXISTS ${DB_USER}" || true
 fi

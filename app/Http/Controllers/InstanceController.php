@@ -168,6 +168,16 @@ class InstanceController extends Controller
 
         $image = 'n8nio/n8n:' . $request->version;
 
+        // DB Credentials
+        $safeName = preg_replace('/[^a-z0-9]/', '', $request->name);
+        $dbConfig = [
+            'host' => '172.17.0.1', // Default Docker Gateway
+            'port' => 5432,
+            'database' => "n8n_{$safeName}",
+            'username' => "n8n_{$safeName}",
+            'password' => Str::random(16),
+        ];
+
         DB::beginTransaction();
         $instance = null;
 
@@ -182,6 +192,11 @@ class InstanceController extends Controller
                 'domain' => $subdomain,
                 'image_tag' => $request->version,
                 'environment' => json_encode($instanceEnv),
+                'db_host' => $dbConfig['host'],
+                'db_port' => $dbConfig['port'],
+                'db_database' => $dbConfig['database'],
+                'db_username' => $dbConfig['username'],
+                'db_password' => $dbConfig['password'],
             ]);
 
             // Docker Create
@@ -200,7 +215,8 @@ class InstanceController extends Controller
                 [],
                 $subdomain,
                 $email,
-                $container->id // Pass DB ID for volume path
+                $container->id, // Pass DB ID for volume path
+                $dbConfig
             );
 
             // Update DB Record with real Docker ID
@@ -249,7 +265,12 @@ class InstanceController extends Controller
             // Remove Container & Associated Resources (Nginx, Volume) via Script
             // We pass the domain to allow Nginx cleanup
             // Pass DB ID for volume cleanup
-            $this->dockerService->removeContainer($container->docker_id, $container->domain, $container->id);
+            // Pass DB Config for database cleanup
+            $dbConfig = [
+                'database' => $container->db_database,
+                'username' => $container->db_username,
+            ];
+            $this->dockerService->removeContainer($container->docker_id, $container->domain, $container->id, $dbConfig);
 
             // Remove DB
             $containerName = $container->name;
