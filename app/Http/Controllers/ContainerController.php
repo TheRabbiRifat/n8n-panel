@@ -566,7 +566,8 @@ class ContainerController extends Controller
         $filename = "backup-{$container->name}-" . date('Y-m-d-H-i') . ".sql";
 
         return response()->streamDownload(function () use ($dbName) {
-            $cmd = "sudo -u postgres pg_dump {$dbName}";
+            $script = base_path('scripts/db-manager.sh');
+            $cmd = "sudo {$script} --action=export --db-name={$dbName}";
             $fp = popen($cmd, 'r');
             while (!feof($fp)) {
                 echo fread($fp, 1024);
@@ -592,33 +593,28 @@ class ContainerController extends Controller
         }
 
         $dbName = $container->db_database;
+        $dbUser = $container->db_username;
         $file = $request->file('sql_file');
         $path = $file->getRealPath();
 
         try {
-            // Stop container first to prevent locks/issues?
-            // Optional but recommended.
+            // Stop container first to prevent locks/issues
             $this->dockerService->stopContainer($container->docker_id);
 
-            // Import
-            // We use 'psql' to restore.
-            // Drop/Create is risky if connections exist, but usually standard restore for clean state.
-            // But pg_dump might not include CREATE DATABASE. It usually includes CREATE TABLE.
-            // So we just run psql -d dbname -f file
+            // Execute Import via Script
+            $script = base_path('scripts/db-manager.sh');
+            $process = \Illuminate\Support\Facades\Process::run([
+                'sudo',
+                $script,
+                '--action=import',
+                "--db-name={$dbName}",
+                "--db-user={$dbUser}",
+                "--file={$path}"
+            ]);
 
-            // We might need to clear existing tables first?
-            // `pg_dump` usually adds DROP TABLE IF EXISTS? No, only if requested (-c).
-            // Let's assume we want a clean import.
-            // Dropping the DB and recreating it is cleanest, but requires disconnecting users (which stopping container does).
-
-            // Recreate DB logic via shell command
-            $recreateCmd = "sudo -u postgres psql -c 'DROP DATABASE \"{$dbName}\"; CREATE DATABASE \"{$dbName}\" OWNER \"{$container->db_username}\"; GRANT ALL PRIVILEGES ON DATABASE \"{$dbName}\" TO \"{$container->db_username}\";'";
-            \Illuminate\Support\Facades\Process::run($recreateCmd);
-
-            // Import
-            // Cat file | psql
-            $importCmd = "sudo -u postgres psql -d \"{$dbName}\" -f \"{$path}\"";
-             \Illuminate\Support\Facades\Process::run($importCmd);
+            if (!$process->successful()) {
+                throw new \Exception("Import Script Failed: " . $process->errorOutput());
+            }
 
             // Restart container
             $this->dockerService->startContainer($container->docker_id);
