@@ -75,14 +75,14 @@ Route::middleware(['auth'])->group(function () {
     Route::post('containers/{id}/stop', [ContainerController::class, 'stop'])->name('containers.stop');
     Route::delete('containers/{id}', [ContainerController::class, 'destroy'])->name('containers.destroy');
 
+    // Database Management (Import/Export) - Auth check in Controller
+    Route::get('containers/{id}/export-db', [ContainerController::class, 'exportDatabase'])->name('containers.db.export');
+    Route::post('containers/{id}/import-db', [ContainerController::class, 'importDatabase'])->name('containers.db.import');
+
     // Admin Routes Continued
     Route::middleware(['role:admin'])->group(function () {
         // Ownership Transfer
         Route::post('containers/{id}/transfer', [ContainerController::class, 'transferOwnership'])->name('instances.transfer');
-
-        // Database Management (Import/Export)
-        Route::get('containers/{id}/export-db', [ContainerController::class, 'exportDatabase'])->name('containers.db.export');
-        Route::post('containers/{id}/import-db', [ContainerController::class, 'importDatabase'])->name('containers.db.import');
 
         // Service Management
         Route::post('services/{service}/{action}', [ServiceController::class, 'handle'])->name('services.handle');
