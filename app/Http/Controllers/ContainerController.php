@@ -218,6 +218,19 @@ class ContainerController extends Controller
             // Volume Config
             $volumes = [$volumeHostPath => '/home/node/.n8n'];
 
+            // DB Credentials (Import new DB if needed, or maybe we should reuse if we could extract?)
+            // For import, we generate new postgres credentials to enforce the policy "use database postgresql".
+            // If the user wants to keep SQLite data, they'd need to migrate.
+            // But if we just inject envs, n8n might respect them and switch DB.
+            $safeName = preg_replace('/[^a-z0-9]/', '', $request->name);
+            $dbConfig = [
+                'host' => '172.17.0.1',
+                'port' => 5432,
+                'database' => "n8n_{$safeName}",
+                'username' => "n8n_{$safeName}",
+                'password' => Str::random(16),
+            ];
+
             // 4. Create DB Record (to get ID)
             $container = Container::create([
                 'user_id' => $request->user_id,
@@ -228,6 +241,11 @@ class ContainerController extends Controller
                 'domain' => $subdomain,
                 'image_tag' => $imageTag,
                 'environment' => json_encode($preservedEnvs),
+                'db_host' => $dbConfig['host'],
+                'db_port' => $dbConfig['port'],
+                'db_database' => $dbConfig['database'],
+                'db_username' => $dbConfig['username'],
+                'db_password' => $dbConfig['password'],
             ]);
 
             // 5. Create New Container (with Nginx + SSL)
@@ -246,7 +264,8 @@ class ContainerController extends Controller
                 [],
                 $subdomain,
                 $email,
-                $container->id
+                $container->id,
+                $dbConfig
             );
 
             // Update DB with real ID
@@ -392,10 +411,33 @@ class ContainerController extends Controller
         $package = Package::findOrFail($request->package_id);
         // Resellers can use any package, no ownership check needed anymore.
 
+        // Retrieve or Generate DB Credentials
+        $dbConfig = [];
+        if ($container->db_database && $container->db_username) {
+            $dbConfig = [
+                'host' => $container->db_host,
+                'port' => $container->db_port,
+                'database' => $container->db_database,
+                'username' => $container->db_username,
+                'password' => $container->db_password, // Decrypted by model cast
+            ];
+        } else {
+            // Legacy/Missing - Generate
+            $safeName = preg_replace('/[^a-z0-9]/', '', $container->name);
+            $dbConfig = [
+                'host' => '172.17.0.1',
+                'port' => 5432,
+                'database' => "n8n_{$safeName}",
+                'username' => "n8n_{$safeName}",
+                'password' => Str::random(16),
+            ];
+        }
+
         DB::beginTransaction();
         try {
             // 2. Stop and Remove old container
             try {
+                // Do NOT pass dbConfig here, we don't want to drop the DB on update/recreation!
                 $this->dockerService->removeContainer($container->docker_id);
             } catch (\Exception $e) {
                 // Ignore if already gone
@@ -418,7 +460,8 @@ class ContainerController extends Controller
                 [], // labels
                 $container->domain,
                 $email,
-                $container->id
+                $container->id,
+                $dbConfig
             );
 
             // 4. Update DB
@@ -427,6 +470,12 @@ class ContainerController extends Controller
                 'docker_id' => $instance->getShortDockerIdentifier(),
                 'package_id' => $package->id,
                 'environment' => json_encode($userEnv),
+                // Ensure legacy containers get updated DB fields if generated
+                'db_host' => $dbConfig['host'],
+                'db_port' => $dbConfig['port'],
+                'db_database' => $dbConfig['database'],
+                'db_username' => $dbConfig['username'],
+                'db_password' => $dbConfig['password'],
             ]);
 
             DB::commit();

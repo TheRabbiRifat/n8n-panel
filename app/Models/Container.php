@@ -18,10 +18,20 @@ class Container extends Model
         'domain',
         'environment',
         'image_tag',
+        'db_host',
+        'db_port',
+        'db_database',
+        'db_username',
+        'db_password',
+    ];
+
+    protected $hidden = [
+        'db_password',
     ];
 
     protected $casts = [
         'environment' => 'array',
+        'db_password' => 'encrypted',
     ];
 
     public function user()

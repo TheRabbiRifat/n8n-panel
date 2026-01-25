@@ -37,7 +37,7 @@ class DockerService
         return $containers;
     }
 
-    public function createContainer(string $image, string $name, int $port, int $internalPort = 5678, $cpu = null, $memory = null, array $environment = [], array $volumes = [], array $labels = [], string $domain = '', string $email = '', ?int $dbId = null)
+    public function createContainer(string $image, string $name, int $port, int $internalPort = 5678, $cpu = null, $memory = null, array $environment = [], array $volumes = [], array $labels = [], string $domain = '', string $email = '', ?int $dbId = null, array $dbConfig = [])
     {
         // Extract tag from image (e.g. n8nio/n8n:latest -> latest)
         $imageParts = explode(':', $image);
@@ -68,6 +68,15 @@ class DockerService
         }
         if ($memory) {
              $command[] = "--memory={$memory}";
+        }
+
+        // DB Configuration
+        if (!empty($dbConfig)) {
+            if (!empty($dbConfig['host'])) $command[] = "--db-host={$dbConfig['host']}";
+            if (!empty($dbConfig['port'])) $command[] = "--db-port={$dbConfig['port']}";
+            if (!empty($dbConfig['database'])) $command[] = "--db-name={$dbConfig['database']}";
+            if (!empty($dbConfig['username'])) $command[] = "--db-user={$dbConfig['username']}";
+            if (!empty($dbConfig['password'])) $command[] = "--db-pass={$dbConfig['password']}";
         }
 
         // Execute with timeout for pulling image
@@ -120,7 +129,7 @@ class DockerService
         }
     }
 
-    public function removeContainer(string $id, string $domain = '', ?int $dbId = null)
+    public function removeContainer(string $id, string $domain = '', ?int $dbId = null, array $dbConfig = [])
     {
         $name = $this->getNameById($id);
         // If name not found (already deleted?), fallback to docker rm
@@ -132,6 +141,9 @@ class DockerService
              if ($dbId) {
                  $command[] = "--id={$dbId}";
              }
+             if (!empty($dbConfig['database'])) $command[] = "--db-name={$dbConfig['database']}";
+             if (!empty($dbConfig['username'])) $command[] = "--db-user={$dbConfig['username']}";
+
              Process::run($command);
         } else {
              Process::run("docker rm -f $id");

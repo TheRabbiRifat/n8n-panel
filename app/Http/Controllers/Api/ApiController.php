@@ -140,6 +140,16 @@ class ApiController extends Controller
 
         $image = 'n8nio/n8n:' . $version;
 
+        // DB Credentials
+        $safeName = preg_replace('/[^a-z0-9]/', '', $request->name);
+        $dbConfig = [
+            'host' => '172.17.0.1', // Default Docker Gateway
+            'port' => 5432,
+            'database' => "n8n_{$safeName}",
+            'username' => "n8n_{$safeName}",
+            'password' => Str::random(16),
+        ];
+
         DB::beginTransaction();
         $instanceDocker = null;
 
@@ -156,6 +166,11 @@ class ApiController extends Controller
                 'domain' => $subdomain,
                 'image_tag' => $version,
                 'environment' => json_encode($instanceEnv),
+                'db_host' => $dbConfig['host'],
+                'db_port' => $dbConfig['port'],
+                'db_database' => $dbConfig['database'],
+                'db_username' => $dbConfig['username'],
+                'db_password' => $dbConfig['password'],
             ]);
 
             $instanceDocker = $this->dockerService->createContainer(
@@ -170,7 +185,8 @@ class ApiController extends Controller
                 [],
                 $subdomain,
                 $email,
-                $container->id
+                $container->id,
+                $dbConfig
             );
 
             $container->update([
@@ -203,7 +219,11 @@ class ApiController extends Controller
 
         try {
             // Cleanup via script
-            $this->dockerService->removeContainer($container->docker_id, $container->domain, $container->id);
+            $dbConfig = [
+                'database' => $container->db_database,
+                'username' => $container->db_username,
+            ];
+            $this->dockerService->removeContainer($container->docker_id, $container->domain, $container->id, $dbConfig);
 
             $container->delete();
 
