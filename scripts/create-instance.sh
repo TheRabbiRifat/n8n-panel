@@ -58,6 +58,69 @@ if [ -z "$NAME" ] || [ -z "$PORT" ] || [ -z "$DOMAIN" ]; then
     exit 1
 fi
 
+# ----------------------------------------------------------------
+# 0. PostgreSQL Network Setup (Idempotent)
+# ----------------------------------------------------------------
+# Detect Docker Bridge Gateway and Subnet
+DOCKER_GATEWAY=$(docker network inspect bridge --format='{{(index .IPAM.Config 0).Gateway}}')
+DOCKER_SUBNET=$(docker network inspect bridge --format='{{(index .IPAM.Config 0).Subnet}}')
+
+# Find config files (dynamically as version might vary)
+PG_CONF_FILE=$(find /etc/postgresql -name postgresql.conf 2>/dev/null | head -n 1)
+PG_HBA_FILE=$(find /etc/postgresql -name pg_hba.conf 2>/dev/null | head -n 1)
+
+if [ ! -z "$PG_CONF_FILE" ] && [ ! -z "$PG_HBA_FILE" ]; then
+    PG_RELOAD_NEEDED=false
+
+    # 1. Listen Addresses -> '*'
+    if ! grep -q "^listen_addresses = '*'" "$PG_CONF_FILE"; then
+        sed -i "s/^#\?listen_addresses =.*/listen_addresses = '*'/" "$PG_CONF_FILE"
+        PG_RELOAD_NEEDED=true
+    fi
+
+    # 2. HBA Config -> Allow Docker Subnet
+    if ! grep -q "$DOCKER_SUBNET" "$PG_HBA_FILE"; then
+        echo "host    all             all             $DOCKER_SUBNET            md5" >> "$PG_HBA_FILE"
+        PG_RELOAD_NEEDED=true
+    fi
+
+    if [ "$PG_RELOAD_NEEDED" = true ]; then
+        echo "Updating PostgreSQL configuration..."
+        systemctl restart postgresql
+    fi
+fi
+
+# ----------------------------------------------------------------
+# 0.5 PostgreSQL User & DB Provisioning
+# ----------------------------------------------------------------
+# Sanitize NAME to be safe for DB name/user (only alphanumeric)
+SAFE_NAME=$(echo "$NAME" | tr -cd 'a-z0-9')
+DB_USER="n8n_${SAFE_NAME}"
+DB_NAME="n8n_${SAFE_NAME}"
+
+# Generate a random password (using urandom fallback if openssl missing, though panel script installed openssl/ca-certificates)
+# We use tr to ensure safe chars
+DB_PASS=$(LC_ALL=C tr -dc 'a-zA-Z0-9' < /dev/urandom | head -c 16)
+
+# Provision if we found Postgres config (implies Postgres is installed)
+if [ ! -z "$PG_CONF_FILE" ]; then
+    echo "Provisioning PostgreSQL database ($DB_NAME) and user ($DB_USER)..."
+
+    # Create User if not exists
+    sudo -u postgres psql -tc "SELECT 1 FROM pg_roles WHERE rolname = '${DB_USER}'" | grep -q 1 || \
+    sudo -u postgres psql -c "CREATE USER ${DB_USER} WITH PASSWORD '${DB_PASS}'"
+
+    # Always update password to ensure it matches the container env
+    sudo -u postgres psql -c "ALTER USER ${DB_USER} WITH PASSWORD '${DB_PASS}'"
+
+    # Create Database if not exists
+    sudo -u postgres psql -tc "SELECT 1 FROM pg_database WHERE datname = '${DB_NAME}'" | grep -q 1 || \
+    sudo -u postgres psql -c "CREATE DATABASE ${DB_NAME} OWNER ${DB_USER}"
+
+    # Grant privileges
+    sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE ${DB_NAME} TO ${DB_USER}"
+fi
+
 # Use ID for volume path if provided, else fallback to NAME (for backward compatibility or recovery)
 if [ ! -z "$ID" ]; then
     VOLUME_HOST_PATH="/var/lib/n8n/instances/${ID}"
@@ -88,6 +151,17 @@ if [ ! -z "$MEMORY" ]; then
     else
         CMD_ARGS+=("--memory=${MEMORY}")
     fi
+fi
+
+# Inject Default PostgreSQL Configuration
+# (Placed before ENV_JSON to allow user override if needed, though rare)
+if [ ! -z "$PG_CONF_FILE" ]; then
+    CMD_ARGS+=("-e" "DB_TYPE=postgresdb")
+    CMD_ARGS+=("-e" "DB_POSTGRESDB_HOST=${DOCKER_GATEWAY}")
+    CMD_ARGS+=("-e" "DB_POSTGRESDB_PORT=5432")
+    CMD_ARGS+=("-e" "DB_POSTGRESDB_DATABASE=${DB_NAME}")
+    CMD_ARGS+=("-e" "DB_POSTGRESDB_USER=${DB_USER}")
+    CMD_ARGS+=("-e" "DB_POSTGRESDB_PASSWORD=${DB_PASS}")
 fi
 
 # Environment Variables

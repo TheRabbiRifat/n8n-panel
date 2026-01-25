@@ -33,6 +33,18 @@ fi
 
 echo "Deleting instance $NAME..."
 
+# 0. PostgreSQL Cleanup
+SAFE_NAME=$(echo "$NAME" | tr -cd 'a-z0-9')
+DB_USER="n8n_${SAFE_NAME}"
+DB_NAME="n8n_${SAFE_NAME}"
+
+# Check if psql exists and runs (assuming sudo access)
+if command -v psql &> /dev/null; then
+    echo "Removing PostgreSQL database and user..."
+    sudo -u postgres psql -c "DROP DATABASE IF EXISTS ${DB_NAME}" || true
+    sudo -u postgres psql -c "DROP USER IF EXISTS ${DB_USER}" || true
+fi
+
 # 1. Remove Container
 if docker ps -a --format '{{.Names}}' | grep -q "^${NAME}$"; then
     docker rm -f "$NAME" || true
