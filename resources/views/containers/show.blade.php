@@ -107,6 +107,19 @@
                                 <td>{{ $container->port }}</td>
                             </tr>
                             <tr>
+                                <th>Database:</th>
+                                <td>
+                                    @if($container->db_database)
+                                        <div class="font-monospace small text-muted">
+                                            <div><i class="bi bi-database me-1"></i> {{ $container->db_database }}</div>
+                                            <div><i class="bi bi-person me-1"></i> {{ $container->db_username }}</div>
+                                        </div>
+                                    @else
+                                        <span class="text-muted">SQLite / Internal</span>
+                                    @endif
+                                </td>
+                            </tr>
+                            <tr>
                                 <th>Package:</th>
                                 <td>{{ $container->package->name ?? 'None' }}</td>
                             </tr>

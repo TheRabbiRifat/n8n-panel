@@ -32,6 +32,7 @@
                     <tr class="text-secondary text-uppercase small border-bottom">
                         <th class="ps-4 py-3">Name</th>
                         <th class="py-3">Domain</th>
+                        <th class="py-3">Database</th>
                         <th class="py-3">Version</th>
                         <th class="py-3">Status</th>
                         <th class="py-3">Resources</th>
@@ -53,6 +54,13 @@
                                 <a href="https://{{ $instance->domain }}" target="_blank" class="text-decoration-none fw-medium">{{ $instance->domain }} <i class="bi bi-box-arrow-up-right small ms-1 text-muted"></i></a>
                             @else
                                 <span class="badge bg-light text-secondary border">No Domain</span>
+                            @endif
+                        </td>
+                        <td>
+                            @if($instance->db_database)
+                                <span class="text-secondary small font-monospace"><i class="bi bi-database me-1"></i> {{ $instance->db_database }}</span>
+                            @else
+                                <span class="badge bg-secondary bg-opacity-10 text-secondary border">SQLite / Internal</span>
                             @endif
                         </td>
                         <td>
