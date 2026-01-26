@@ -107,6 +107,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('backups', [\App\Http\Controllers\BackupController::class, 'index'])->name('admin.backups.index');
         Route::post('backups', [\App\Http\Controllers\BackupController::class, 'update'])->name('admin.backups.update');
         Route::post('backups/run', [\App\Http\Controllers\BackupController::class, 'run'])->name('admin.backups.run');
+        Route::get('backups/download', [\App\Http\Controllers\BackupController::class, 'download'])->name('admin.backups.download');
         Route::post('system/reboot', [\App\Http\Controllers\SystemController::class, 'reboot'])->name('admin.system.reboot');
         Route::post('system/services/{service}/restart', [\App\Http\Controllers\SystemController::class, 'restartService'])->name('admin.system.service.restart');
     });
