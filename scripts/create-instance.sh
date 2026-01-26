@@ -106,14 +106,14 @@ if [ ! -z "$PG_CONF_FILE" ] && [ ! -z "$PG_HBA_FILE" ]; then
 
     # 2. HBA Config -> Allow Docker Subnet
     if ! grep -q "$DOCKER_SUBNET" "$PG_HBA_FILE"; then
-        echo "host    all             all             $DOCKER_SUBNET            md5" >> "$PG_HBA_FILE"
+        echo "host    all             all             $DOCKER_SUBNET            scram-sha-256" >> "$PG_HBA_FILE"
         PG_RELOAD_NEEDED=true
     fi
 
     # 3. HBA Config -> Safety check for 127.0.0.1 (Panel Access)
     if ! grep -q "127.0.0.1/32" "$PG_HBA_FILE"; then
          # This should usually exist, but if broken, restore it.
-         echo "host    all             all             127.0.0.1/32            md5" >> "$PG_HBA_FILE"
+         echo "host    all             all             127.0.0.1/32            scram-sha-256" >> "$PG_HBA_FILE"
          PG_RELOAD_NEEDED=true
     fi
 
@@ -132,26 +132,26 @@ if [ ! -z "$DB_NAME" ] && [ ! -z "$DB_USER" ] && [ ! -z "$DB_PASS" ]; then
     if [ ! -z "$PG_CONF_FILE" ]; then
         echo "Provisioning PostgreSQL database ($DB_NAME) and user ($DB_USER)..."
 
-        # Create User if not exists
+        # Create User if not exists (Quote identifiers to preserve case)
         sudo -u postgres psql -tc "SELECT 1 FROM pg_roles WHERE rolname = '${DB_USER}'" | grep -q 1 || \
-        sudo -u postgres psql -c "CREATE USER ${DB_USER} WITH PASSWORD '${DB_PASS}'"
+        sudo -u postgres psql -c "CREATE USER \"${DB_USER}\" WITH PASSWORD '${DB_PASS}'"
 
         # Always update password to ensure it matches the container env (and passed arg)
-        sudo -u postgres psql -c "ALTER USER ${DB_USER} WITH PASSWORD '${DB_PASS}'"
+        sudo -u postgres psql -c "ALTER USER \"${DB_USER}\" WITH PASSWORD '${DB_PASS}'"
 
         # Create Database if not exists
         sudo -u postgres psql -tc "SELECT 1 FROM pg_database WHERE datname = '${DB_NAME}'" | grep -q 1 || \
-        sudo -u postgres psql -c "CREATE DATABASE ${DB_NAME} OWNER ${DB_USER}"
+        sudo -u postgres psql -c "CREATE DATABASE \"${DB_NAME}\" OWNER \"${DB_USER}\""
 
         # Grant privileges
-        sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE ${DB_NAME} TO ${DB_USER}"
+        sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE \"${DB_NAME}\" TO \"${DB_USER}\""
 
         # Grant Panel User privileges (for SSO/Admin access)
         if [ ! -z "$PANEL_DB_USER" ]; then
              # Check if panel user exists
              if sudo -u postgres psql -tc "SELECT 1 FROM pg_roles WHERE rolname = '${PANEL_DB_USER}'" | grep -q 1; then
                   echo "Granting ${PANEL_DB_USER} access to ${DB_USER} role..."
-                  sudo -u postgres psql -c "GRANT ${DB_USER} TO ${PANEL_DB_USER}" || true
+                  sudo -u postgres psql -c "GRANT \"${DB_USER}\" TO \"${PANEL_DB_USER}\"" || true
              fi
         fi
     fi
