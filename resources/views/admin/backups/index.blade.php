@@ -24,9 +24,29 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">Cron Schedule</label>
-                        <input type="text" name="cron_expression" class="form-control font-monospace" value="{{ optional($setting)->cron_expression ?? '0 2 * * *' }}">
-                        <div class="form-text">Example: <code>0 2 * * *</code> (Daily at 2am)</div>
+                        <label class="form-label">Schedule</label>
+                        <select id="cron-type" class="form-select mb-2" onchange="toggleCron()">
+                            <option value="daily">Daily</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="hourly">Hourly</option>
+                            <option value="custom">Custom Expression</option>
+                        </select>
+
+                        <div id="cron-time-wrapper" class="row g-2 mb-2">
+                            <div class="col-6">
+                                <label class="small text-muted">Hour (0-23)</label>
+                                <select id="cron-hour" class="form-select form-select-sm" onchange="buildCron()"></select>
+                            </div>
+                            <div class="col-6">
+                                <label class="small text-muted">Minute (0-59)</label>
+                                <select id="cron-min" class="form-select form-select-sm" onchange="buildCron()"></select>
+                            </div>
+                        </div>
+
+                        <div id="cron-custom-wrapper" class="d-none">
+                            <input type="text" name="cron_expression" id="cron_expression" class="form-control font-monospace" value="{{ optional($setting)->cron_expression ?? '0 2 * * *' }}">
+                            <div class="form-text">Example: <code>0 2 * * *</code> (Daily at 2am)</div>
+                        </div>
                     </div>
 
                     <!-- FTP Fields -->
@@ -110,26 +130,54 @@
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead>
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead class="bg-light">
                             <tr>
-                                <th>Filename</th>
-                                <th class="text-end">Action</th>
+                                <th class="ps-4">Instance / Folder</th>
+                                <th class="text-center">Count</th>
+                                <th>Last Backup</th>
+                                <th class="text-end pe-4">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse($backups as $file)
+                            @forelse($backups as $folder)
+                            <tr data-bs-toggle="collapse" data-bs-target="#files-{{ Str::slug($folder['name']) }}" style="cursor: pointer;" class="accordion-toggle">
+                                <td class="ps-4 fw-semibold">
+                                    <i class="bi bi-folder-fill text-warning me-2"></i> {{ $folder['name'] }}
+                                </td>
+                                <td class="text-center"><span class="badge bg-secondary rounded-pill">{{ $folder['count'] }}</span></td>
+                                <td class="text-muted small">{{ $folder['last_backup'] }}</td>
+                                <td class="text-end pe-4">
+                                    <i class="bi bi-chevron-down text-muted"></i>
+                                </td>
+                            </tr>
                             <tr>
-                                <td>{{ basename($file) }}</td>
-                                <td class="text-end">
-                                    <span class="text-muted small">Download via client recommended</span>
-                                    <!-- Download/Restore logic requires more complex streaming for huge files,
-                                         currently purely informational listing based on driver -->
+                                <td colspan="4" class="p-0 border-0">
+                                    <div class="collapse bg-light" id="files-{{ Str::slug($folder['name']) }}">
+                                        <div class="p-3">
+                                            <table class="table table-sm mb-0 table-borderless">
+                                                @foreach($folder['files'] as $file)
+                                                <tr>
+                                                    <td class="ps-4"><i class="bi bi-file-earmark-text me-2 text-muted"></i> {{ $file['name'] }}</td>
+                                                    <td class="text-muted small">{{ $file['date'] }}</td>
+                                                    <td class="text-end">
+                                                        {{-- Download Link (assuming route exists or generic handler, for now just placeholder or generic s3 link if public) --}}
+                                                        {{-- We don't have a download route for admin yet, but user asked for "show". --}}
+                                                        <span class="text-muted small">Available</span>
+                                                    </td>
+                                                </tr>
+                                                @endforeach
+                                            </table>
+                                        </div>
+                                    </div>
                                 </td>
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="2" class="text-center py-4 text-muted">No backups found on configured storage.</td>
+                                <td colspan="4" class="text-center py-5 text-muted">
+                                    <i class="bi bi-archive fs-1 d-block opacity-25 mb-2"></i>
+                                    No backups found on configured storage.
+                                </td>
                             </tr>
                             @endforelse
                         </tbody>
@@ -141,16 +189,12 @@
 </div>
 
 <script>
+    // Driver Toggle
     function toggleFields() {
         const driver = document.getElementById('driver-select').value;
         const ftpFields = document.getElementById('ftp-fields');
         const s3Fields = document.getElementById('s3-fields');
-        const commonUser = document.querySelector('[name="username"]'); // Conflict handling?
 
-        // This simple toggle has a flaw: username/password inputs are duplicated in HTML but share names.
-        // We should disable inputs in hidden divs to prevent submitting wrong data.
-
-        // Better: Use JS to show/hide and enable/disable
         document.querySelectorAll('#ftp-fields input, #ftp-fields select').forEach(el => el.disabled = true);
         document.querySelectorAll('#s3-fields input, #s3-fields select').forEach(el => el.disabled = true);
 
@@ -165,6 +209,90 @@
             document.querySelectorAll('#s3-fields input, #s3-fields select').forEach(el => el.disabled = false);
         }
     }
-    document.addEventListener('DOMContentLoaded', toggleFields);
+
+    // Cron Builder
+    function initCron() {
+        const hourSelect = document.getElementById('cron-hour');
+        const minSelect = document.getElementById('cron-min');
+
+        for(let i=0; i<24; i++) {
+            let val = i.toString().padStart(2, '0'); // Just for display, cron uses number usually or *
+            let opt = document.createElement('option');
+            opt.value = i;
+            opt.innerText = val;
+            hourSelect.appendChild(opt);
+        }
+        for(let i=0; i<60; i+=5) { // 5 min steps
+            let val = i.toString().padStart(2, '0');
+            let opt = document.createElement('option');
+            opt.value = i;
+            opt.innerText = val;
+            minSelect.appendChild(opt);
+        }
+
+        // Try to parse existing cron
+        const currentCron = document.getElementById('cron_expression').value.trim();
+        const parts = currentCron.split(' ');
+        const typeSelect = document.getElementById('cron-type');
+
+        if (parts.length === 5) {
+            if (parts[0] === '0' && parts[1] === '0' && parts[2] === '*' && parts[3] === '*' && parts[4] === '*') {
+                typeSelect.value = 'daily'; // Midnight
+                hourSelect.value = 0; minSelect.value = 0;
+            } else if (parts[2] === '*' && parts[3] === '*' && parts[4] === '*') {
+                // Daily at specific time
+                typeSelect.value = 'daily';
+                minSelect.value = parseInt(parts[0]) || 0;
+                hourSelect.value = parseInt(parts[1]) || 0;
+            } else if (parts[0] === '0' && parts[4] === '0') { // Weekly example?
+                typeSelect.value = 'weekly';
+                // Simplified detection
+            } else {
+                typeSelect.value = 'custom';
+            }
+        } else {
+            typeSelect.value = 'custom';
+        }
+        toggleCron();
+    }
+
+    function toggleCron() {
+        const type = document.getElementById('cron-type').value;
+        const timeWrapper = document.getElementById('cron-time-wrapper');
+        const customWrapper = document.getElementById('cron-custom-wrapper');
+        const cronInput = document.getElementById('cron_expression');
+
+        if (type === 'custom') {
+            timeWrapper.classList.add('d-none');
+            customWrapper.classList.remove('d-none');
+            // Allow manual edit
+            cronInput.readOnly = false;
+        } else {
+            timeWrapper.classList.remove('d-none');
+            customWrapper.classList.add('d-none'); // Hide input but keep it updated
+            // cronInput.readOnly = true;
+            buildCron(); // Update input immediately
+        }
+    }
+
+    function buildCron() {
+        const type = document.getElementById('cron-type').value;
+        const h = document.getElementById('cron-hour').value;
+        const m = document.getElementById('cron-min').value;
+        const cronInput = document.getElementById('cron_expression');
+
+        if (type === 'daily') {
+            cronInput.value = `${m} ${h} * * *`;
+        } else if (type === 'hourly') {
+            cronInput.value = `${m} * * * *`;
+        } else if (type === 'weekly') {
+            cronInput.value = `${m} ${h} * * 0`; // Sunday
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        toggleFields();
+        initCron();
+    });
 </script>
 @endsection
