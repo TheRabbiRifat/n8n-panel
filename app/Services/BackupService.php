@@ -37,7 +37,7 @@ class BackupService
                 'bucket' => $setting->bucket,
                 'endpoint' => $setting->endpoint,
                 'use_path_style_endpoint' => false,
-                'throw' => false,
+                'throw' => true,
             ];
         } elseif ($setting->driver === 'ftp') {
             $config = [
@@ -49,13 +49,14 @@ class BackupService
                 'root' => $setting->path ?: '/',
                 'ssl' => $setting->encryption === 'ssl',
                 'ignorePassiveAddress' => true,
+                'throw' => true,
             ];
         } else {
             // Local
             $config = [
                 'driver' => 'local',
                 'root' => storage_path('app/backups'),
-                'throw' => false,
+                'throw' => true,
             ];
         }
 
@@ -118,14 +119,19 @@ class BackupService
             $stream = fopen($tempFile, 'r+');
             Log::info("Starting upload of {$backupName} to backup disk...");
 
-            $uploaded = Storage::disk('backup')->writeStream($backupName, $stream);
+            try {
+                $uploaded = Storage::disk('backup')->writeStream($backupName, $stream);
+            } catch (\Exception $e) {
+                if (is_resource($stream)) fclose($stream);
+                throw new \Exception("Upload failed: " . $e->getMessage());
+            }
 
             if (is_resource($stream)) {
                 fclose($stream);
             }
 
             if (!$uploaded) {
-                throw new \Exception("Upload failed: Storage driver could not write stream.");
+                throw new \Exception("Upload failed: Storage driver could not write stream (unknown reason).");
             }
 
             Log::info("Upload successful for {$backupName}.");
