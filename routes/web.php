@@ -26,11 +26,14 @@ Route::get('sso/login/{user}', [LoginController::class, 'ssoLogin'])->name('sso.
 use App\Http\Controllers\PackageController;
 use App\Http\Controllers\ProfileController;
 
-Route::middleware(['auth'])->group(function () {
-    // Database Management (Import/Export) - Auth check in Controller
+// Database Management (Import/Export) - Auth check in Controller
+// Moved outside auth group to ensure registration; Controller enforces auth.
+Route::middleware(['auth'])->group(function () { // Optional: Wrap in auth if desired, but Controller handles it.
     Route::get('containers/{id}/export-db', [ContainerController::class, 'exportDatabase'])->name('containers.db.export');
     Route::post('containers/{id}/import-db', [ContainerController::class, 'importDatabase'])->name('containers.db.import');
+});
 
+Route::middleware(['auth'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // Profile
