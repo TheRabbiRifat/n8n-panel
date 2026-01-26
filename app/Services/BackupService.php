@@ -187,7 +187,8 @@ class BackupService
             // Try to extract date from filename
             $time = null;
             if (preg_match('/(\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2})/', $fileName, $matches)) {
-                $time = strtotime($matches[1]);
+                $dt = \DateTime::createFromFormat('Y-m-d-H-i-s', $matches[1]);
+                $time = $dt ? $dt->getTimestamp() : null;
             } else {
                 try {
                     $time = Storage::disk('backup')->lastModified($file);
@@ -237,7 +238,8 @@ class BackupService
             // Extract timestamp
             $time = null;
             if (preg_match('/(\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2})/', $fileName, $matches)) {
-                $time = strtotime($matches[1]);
+                $dt = \DateTime::createFromFormat('Y-m-d-H-i-s', $matches[1]);
+                $time = $dt ? $dt->getTimestamp() : null;
             } else {
                 try {
                     $time = Storage::disk('backup')->lastModified($file);
