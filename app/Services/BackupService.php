@@ -60,6 +60,8 @@ class BackupService
         }
 
         Config::set('filesystems.disks.backup', $config);
+        // Force reload of the disk to pick up new config
+        Storage::forgetDisk('backup');
         return true;
     }
 
@@ -114,10 +116,19 @@ class BackupService
         // 5. Upload to Disk
         if (file_exists($tempFile)) {
             $stream = fopen($tempFile, 'r+');
-            Storage::disk('backup')->writeStream($backupName, $stream);
+            Log::info("Starting upload of {$backupName} to backup disk...");
+
+            $uploaded = Storage::disk('backup')->writeStream($backupName, $stream);
+
             if (is_resource($stream)) {
                 fclose($stream);
             }
+
+            if (!$uploaded) {
+                throw new \Exception("Upload failed: Storage driver could not write stream.");
+            }
+
+            Log::info("Upload successful for {$backupName}.");
         } else {
             throw new \Exception("Backup file creation failed.");
         }
