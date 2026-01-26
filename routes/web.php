@@ -31,6 +31,7 @@ use App\Http\Controllers\ProfileController;
 Route::middleware(['auth'])->group(function () { // Optional: Wrap in auth if desired, but Controller handles it.
     Route::get('containers/{id}/export-db', [ContainerController::class, 'exportDatabase'])->name('containers.db.export');
     Route::post('containers/{id}/import-db', [ContainerController::class, 'importDatabase'])->name('containers.db.import');
+    Route::post('containers/{id}/restore-backup', [ContainerController::class, 'restoreBackup'])->name('containers.db.restore');
 });
 
 Route::middleware(['auth'])->group(function () {
