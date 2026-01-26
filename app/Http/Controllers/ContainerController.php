@@ -7,6 +7,7 @@ use App\Models\Package;
 use App\Models\User;
 use App\Models\GlobalSetting;
 use App\Services\DockerService;
+use App\Services\BackupService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
@@ -16,10 +17,12 @@ use Illuminate\Support\Str;
 class ContainerController extends Controller
 {
     protected $dockerService;
+    protected $backupService;
 
-    public function __construct(DockerService $dockerService)
+    public function __construct(DockerService $dockerService, BackupService $backupService)
     {
         $this->dockerService = $dockerService;
+        $this->backupService = $backupService;
     }
 
     public function create()
@@ -306,7 +309,15 @@ class ContainerController extends Controller
 
         $timezones = \DateTimeZone::listIdentifiers();
 
-        return view('containers.show', compact('container', 'stats', 'logs', 'versions', 'packages', 'timezones'));
+        // Fetch available backups for this instance
+        $backups = [];
+        if (Auth::user()->hasRole('admin')) {
+            try {
+                $backups = $this->backupService->listBackupsForInstance($container->name);
+            } catch (\Exception $e) { /* ignore config errors */ }
+        }
+
+        return view('containers.show', compact('container', 'stats', 'logs', 'versions', 'packages', 'timezones', 'backups'));
     }
 
     public function restart($id)
@@ -599,6 +610,52 @@ class ContainerController extends Controller
         $file = $request->file('sql_file');
         $path = $file->getRealPath();
 
+        return $this->performDatabaseRestore($container, $path);
+    }
+
+    public function restoreBackup(Request $request, $id)
+    {
+        if (!Auth::user()->hasRole('admin')) {
+            abort(403, 'Unauthorized');
+        }
+
+        $container = Container::findOrFail($id);
+        $request->validate(['backup_path' => 'required|string']);
+
+        $dbName = $container->db_database;
+        $backupPath = $request->backup_path;
+
+        try {
+            // Download to temp file
+            $tempPath = storage_path('app/temp/restore_' . Str::random(10) . '.sql');
+            if (!file_exists(dirname($tempPath))) mkdir(dirname($tempPath), 0755, true);
+
+            $stream = \Illuminate\Support\Facades\Storage::disk('backup')->readStream($backupPath);
+            $out = fopen($tempPath, 'w');
+            while (!feof($stream)) {
+                fwrite($out, fread($stream, 8192));
+            }
+            fclose($stream);
+            fclose($out);
+
+            // Execute Restore
+            $result = $this->performDatabaseRestore($container, $tempPath);
+
+            // Cleanup
+            @unlink($tempPath);
+
+            return $result;
+
+        } catch (\Exception $e) {
+            return back()->with('error', 'Restore failed: ' . $e->getMessage());
+        }
+    }
+
+    private function performDatabaseRestore(Container $container, string $filePath)
+    {
+        $dbName = $container->db_database;
+        $dbUser = $container->db_username;
+
         try {
             // Stop container first to prevent locks/issues
             $this->dockerService->stopContainer($container->docker_id);
@@ -611,7 +668,7 @@ class ContainerController extends Controller
                 '--action=import',
                 "--db-name={$dbName}",
                 "--db-user={$dbUser}",
-                "--file={$path}"
+                "--file={$filePath}"
             ]);
 
             if (!$process->successful()) {
@@ -621,11 +678,11 @@ class ContainerController extends Controller
             // Restart container
             $this->dockerService->startContainer($container->docker_id);
 
-            return back()->with('success', 'Database imported successfully.');
+            return back()->with('success', 'Database restored successfully.');
         } catch (\Exception $e) {
             // Try to restart anyway
             try { $this->dockerService->startContainer($container->docker_id); } catch (\Exception $ex) {}
-            return back()->with('error', 'Import failed: ' . $e->getMessage());
+            return back()->with('error', 'Restore failed: ' . $e->getMessage());
         }
     }
 }

@@ -61,6 +61,28 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="col-md-6">
+                            <div class="card mb-3">
+                                <div class="card-header bg-light fw-bold">Restore from Auto-Backup</div>
+                                <div class="card-body">
+                                    <p class="small text-muted">Select a backup file to restore. This will overwrite the current database.</p>
+                                    <form action="{{ route('containers.db.restore', $container->id) }}" method="POST" onsubmit="return confirm('WARNING: This will overwrite the database with the selected backup. Continue?');">
+                                        @csrf
+                                        <div class="input-group mb-3">
+                                            <select class="form-select" name="backup_path" required>
+                                                <option value="" disabled selected>Select a backup...</option>
+                                                @forelse($backups as $backup)
+                                                    <option value="{{ $backup['path'] }}">{{ $backup['date'] }} ({{ $backup['size'] }})</option>
+                                                @empty
+                                                    <option value="" disabled>No backups found</option>
+                                                @endforelse
+                                            </select>
+                                            <button class="btn btn-warning" type="submit">Restore</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
 
                         <div class="mb-4">
                             @php

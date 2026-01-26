@@ -213,7 +213,58 @@ class BackupService
             usort($folder['files'], fn($a, $b) => $b['timestamp'] <=> $a['timestamp']);
         }
 
+        // Hide Root files as requested
+        if (isset($folders['Root'])) {
+            unset($folders['Root']);
+        }
+
         return $folders;
+    }
+
+    public function listBackupsForInstance(string $instanceName)
+    {
+        if (!$this->configureDisk()) {
+            return [];
+        }
+
+        // List files in the instance directory
+        $files = Storage::disk('backup')->files($instanceName);
+        $backups = [];
+
+        foreach ($files as $file) {
+            $fileName = basename($file);
+
+            // Extract timestamp
+            $time = null;
+            if (preg_match('/(\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2})/', $fileName, $matches)) {
+                $time = strtotime($matches[1]);
+            } else {
+                try {
+                    $time = Storage::disk('backup')->lastModified($file);
+                } catch (\Exception $e) { $time = 0; }
+            }
+
+            $backups[] = [
+                'path' => $file, // Full path for retrieval
+                'name' => $fileName,
+                'timestamp' => $time,
+                'date' => $time ? date('Y-m-d H:i:s', $time) : 'Unknown',
+                'size' => $this->formatBytes(Storage::disk('backup')->size($file))
+            ];
+        }
+
+        usort($backups, fn($a, $b) => $b['timestamp'] <=> $a['timestamp']);
+
+        return $backups;
+    }
+
+    private function formatBytes($bytes, $precision = 2) {
+        $units = ['B', 'KB', 'MB', 'GB', 'TB'];
+        $bytes = max($bytes, 0);
+        $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
+        $pow = min($pow, count($units) - 1);
+        $bytes /= pow(1024, $pow);
+        return round($bytes, $precision) . ' ' . $units[$pow];
     }
 
     public function downloadBackup($filename)
