@@ -65,6 +65,10 @@ case $ACTION in
         # Using cat to pipe prevents psql file permission issues if running as postgres user
         cat "$FILE" | sudo -u postgres psql -d "$DB_NAME"
 
+        # Fix Ownership (Objects created by postgres must be transferred to db_user)
+        sudo -u postgres psql -d "$DB_NAME" -c "REASSIGN OWNED BY postgres TO \"${DB_USER}\";"
+        sudo -u postgres psql -d "$DB_NAME" -c "ALTER SCHEMA public OWNER TO \"${DB_USER}\";"
+
         echo "Import successful."
         ;;
     *)
