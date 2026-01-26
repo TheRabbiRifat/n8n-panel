@@ -573,7 +573,9 @@ class ContainerController extends Controller
                 echo fread($fp, 1024);
             }
             pclose($fp);
-        }, $filename);
+        }, $filename, [
+            'Content-Type' => 'application/sql',
+        ]);
     }
 
     public function importDatabase(Request $request, $id)
