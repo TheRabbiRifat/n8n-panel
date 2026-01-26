@@ -93,8 +93,12 @@ class BackupService
     {
         $timestamp = date('Y-m-d-H-i-s');
         // Only backing up SQL as per user request (no zip)
-        $backupName = "backup-{$container->name}-{$timestamp}.sql";
-        $tempFile = storage_path("app/temp/{$backupName}");
+        // Store in instance-specific folder
+        $backupName = "{$container->name}/backup-{$timestamp}.sql";
+
+        // Temp file needs strict filename, not path with slashes for local storage logic here
+        $tempFilename = "backup-{$container->name}-{$timestamp}.sql";
+        $tempFile = storage_path("app/temp/{$tempFilename}");
 
         // Ensure parent dir exists
         if (!file_exists(dirname($tempFile))) {
