@@ -99,10 +99,10 @@ class BackupService
 
         // 2. Dump Database
         if ($container->db_database) {
-            // We can use the db-manager script logic or just pg_dump here directly
-            // Using pg_dump directly is cleaner as we are root/www-data
             $dbFile = "{$tempDir}/database.sql";
-            $cmd = "sudo -u postgres pg_dump --no-owner --no-acl \"{$container->db_database}\" > \"{$dbFile}\"";
+            // Use the wrapper script which is allow-listed in sudoers
+            $script = base_path('scripts/db-manager.sh');
+            $cmd = "sudo {$script} --action=export --db-name=\"{$container->db_database}\" > \"{$dbFile}\"";
             $p = Process::run($cmd);
             if (!$p->successful()) {
                 throw new \Exception("Database dump failed: " . $p->errorOutput());
