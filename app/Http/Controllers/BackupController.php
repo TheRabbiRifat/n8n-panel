@@ -59,4 +59,10 @@ class BackupController extends Controller
             return back()->with('error', 'Backup failed: ' . $e->getMessage());
         }
     }
+
+    public function download(Request $request)
+    {
+        $request->validate(['path' => 'required|string']);
+        return $this->backupService->downloadBackup($request->path);
+    }
 }

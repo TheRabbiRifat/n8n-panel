@@ -227,8 +227,8 @@ class BackupService
             return [];
         }
 
-        // List files in the instance directory
-        $files = Storage::disk('backup')->files($instanceName);
+        // List files in the instance directory (use allFiles for S3 "folders")
+        $files = Storage::disk('backup')->allFiles($instanceName);
         $backups = [];
 
         foreach ($files as $file) {

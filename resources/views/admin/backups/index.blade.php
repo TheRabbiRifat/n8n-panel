@@ -161,9 +161,9 @@
                                                     <td class="ps-4"><i class="bi bi-file-earmark-text me-2 text-muted"></i> {{ $file['name'] }}</td>
                                                     <td class="text-muted small">{{ $file['date'] }}</td>
                                                     <td class="text-end">
-                                                        {{-- Download Link (assuming route exists or generic handler, for now just placeholder or generic s3 link if public) --}}
-                                                        {{-- We don't have a download route for admin yet, but user asked for "show". --}}
-                                                        <span class="text-muted small">Available</span>
+                                                        <a href="{{ route('admin.backups.download', ['path' => $file['path']]) }}" class="btn btn-sm btn-outline-primary">
+                                                            <i class="bi bi-download"></i>
+                                                        </a>
                                                     </td>
                                                 </tr>
                                                 @endforeach
