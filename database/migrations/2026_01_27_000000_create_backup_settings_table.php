@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('driver')->default('local'); // local, s3, ftp
             $table->string('host')->nullable();
             $table->string('username')->nullable();
-            $table->string('password')->nullable();
+            $table->text('password')->nullable();
             $table->string('port')->nullable();
             $table->string('encryption')->nullable(); // For FTP
             $table->string('bucket')->nullable(); // For S3
