@@ -273,7 +273,7 @@
                                     <form action="{{ route('containers.db.import', $container->id) }}" method="POST" enctype="multipart/form-data">
                                         @csrf
                                         <div class="input-group mb-3">
-                                            <input type="file" class="form-control" name="sql_file" required accept=".sql,.txt">
+                                            <input type="file" class="form-control" name="sql_file" required accept=".sql,.txt,application/sql,text/plain">
                                             <button class="btn btn-danger" type="submit" onclick="return confirm('Overwrite database? This cannot be undone.')">Import</button>
                                         </div>
                                     </form>
