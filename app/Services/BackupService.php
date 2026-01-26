@@ -89,79 +89,41 @@ class BackupService
     public function backupInstance(Container $container)
     {
         $timestamp = date('Y-m-d-H-i-s');
-        $backupName = "backup-{$container->name}-{$timestamp}.zip";
-        $tempDir = storage_path("app/temp/backup_{$container->name}_{$timestamp}");
+        // Only backing up SQL as per user request (no zip)
+        $backupName = "backup-{$container->name}-{$timestamp}.sql";
+        $tempFile = storage_path("app/temp/{$backupName}");
 
-        // 1. Prepare Temp Directory
-        if (!file_exists($tempDir)) {
-            mkdir($tempDir, 0755, true);
+        // Ensure parent dir exists
+        if (!file_exists(dirname($tempFile))) {
+            mkdir(dirname($tempFile), 0755, true);
         }
 
         // 2. Dump Database
         if ($container->db_database) {
-            $dbFile = "{$tempDir}/database.sql";
             // Use the wrapper script which is allow-listed in sudoers
             $script = base_path('scripts/db-manager.sh');
-            $cmd = "sudo {$script} --action=export --db-name=\"{$container->db_database}\" > \"{$dbFile}\"";
+            $cmd = "sudo {$script} --action=export --db-name=\"{$container->db_database}\" > \"{$tempFile}\"";
             $p = Process::run($cmd);
             if (!$p->successful()) {
                 throw new \Exception("Database dump failed: " . $p->errorOutput());
             }
-        }
-
-        // 3. Archive Volume Data
-        // Location: /var/lib/n8n/instances/{name} or {id}
-        // We need to resolve path.
-        // create-instance.sh logic: /var/lib/n8n/instances/{id} preferred, fallback {name}
-        // But PHP stores ID.
-        // Let's assume standard path from ContainerController logic:
-        // Note: The Container model doesn't store the exact volume path, but it's predictable.
-        // If create-instance.sh uses ID, we check that.
-        $volumePath = "/var/lib/n8n/instances/" . $container->id;
-        if (!is_dir($volumePath)) {
-             // Fallback
-             $volumePath = "/var/lib/n8n/instances/" . $container->name;
-        }
-
-        if (is_dir($volumePath)) {
-            // Zip volume contents
-            // We avoid zipping the whole path structure, just contents
-            $zipCmd = "cd \"{$volumePath}\" && zip -r \"{$tempDir}/volume.zip\" . -x \"*.sock\"";
-            // Check if zip is installed? It is in panel-installer.
-            $p = Process::run($zipCmd);
-            if (!$p->successful()) {
-                 Log::warning("Volume zip failed for {$container->name} (maybe empty?): " . $p->errorOutput());
-            }
-        }
-
-        // 4. Create Final Zip
-        $finalZipPath = storage_path("app/temp/{$backupName}");
-
-        // Ensure parent dir exists
-        if (!file_exists(dirname($finalZipPath))) {
-            mkdir(dirname($finalZipPath), 0755, true);
-        }
-
-        $createFinalZip = "cd \"{$tempDir}\" && zip -r \"{$finalZipPath}\" .";
-        $zipProcess = Process::run($createFinalZip);
-
-        if (!$zipProcess->successful()) {
-             Log::error("Zip failed: " . $zipProcess->errorOutput() . " " . $zipProcess->output());
+        } else {
+            throw new \Exception("No database configured for this instance.");
         }
 
         // 5. Upload to Disk
-        if (file_exists($finalZipPath)) {
-            $stream = fopen($finalZipPath, 'r+');
+        if (file_exists($tempFile)) {
+            $stream = fopen($tempFile, 'r+');
             Storage::disk('backup')->writeStream($backupName, $stream);
             if (is_resource($stream)) {
                 fclose($stream);
             }
         } else {
-            throw new \Exception("Final backup file creation failed. Output: " . $zipProcess->output() . " Error: " . $zipProcess->errorOutput());
+            throw new \Exception("Backup file creation failed.");
         }
 
         // 6. Cleanup
-        Process::run("rm -rf \"{$tempDir}\" \"{$finalZipPath}\"");
+        Process::run("rm -f \"{$tempFile}\"");
     }
 
     public function listBackups()
