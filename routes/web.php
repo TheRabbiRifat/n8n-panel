@@ -27,6 +27,10 @@ use App\Http\Controllers\PackageController;
 use App\Http\Controllers\ProfileController;
 
 Route::middleware(['auth'])->group(function () {
+    // Database Management (Import/Export) - Auth check in Controller
+    Route::get('containers/{id}/export-db', [ContainerController::class, 'exportDatabase'])->name('containers.db.export');
+    Route::post('containers/{id}/import-db', [ContainerController::class, 'importDatabase'])->name('containers.db.import');
+
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // Profile
@@ -74,10 +78,6 @@ Route::middleware(['auth'])->group(function () {
     Route::post('containers/{id}/start', [ContainerController::class, 'start'])->name('containers.start');
     Route::post('containers/{id}/stop', [ContainerController::class, 'stop'])->name('containers.stop');
     Route::delete('containers/{id}', [ContainerController::class, 'destroy'])->name('containers.destroy');
-
-    // Database Management (Import/Export) - Auth check in Controller
-    Route::get('containers/{id}/export-db', [ContainerController::class, 'exportDatabase'])->name('containers.db.export');
-    Route::post('containers/{id}/import-db', [ContainerController::class, 'importDatabase'])->name('containers.db.import');
 
     // Admin Routes Continued
     Route::middleware(['role:admin'])->group(function () {
