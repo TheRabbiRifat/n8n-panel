@@ -101,6 +101,11 @@ Route::middleware(['auth'])->group(function () {
         // System Settings
         Route::get('system', [\App\Http\Controllers\SystemController::class, 'index'])->name('admin.system.index');
         Route::post('system/hostname', [\App\Http\Controllers\SystemController::class, 'updateHostname'])->name('admin.system.hostname');
+
+        // Global Backups
+        Route::get('backups', [\App\Http\Controllers\BackupController::class, 'index'])->name('admin.backups.index');
+        Route::post('backups', [\App\Http\Controllers\BackupController::class, 'update'])->name('admin.backups.update');
+        Route::post('backups/run', [\App\Http\Controllers\BackupController::class, 'run'])->name('admin.backups.run');
         Route::post('system/reboot', [\App\Http\Controllers\SystemController::class, 'reboot'])->name('admin.system.reboot');
         Route::post('system/services/{service}/restart', [\App\Http\Controllers\SystemController::class, 'restartService'])->name('admin.system.service.restart');
     });
