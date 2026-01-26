@@ -152,7 +152,68 @@ class BackupService
         if (!$this->configureDisk()) {
             return [];
         }
-        return Storage::disk('backup')->files();
+
+        $allFiles = Storage::disk('backup')->allFiles();
+        $folders = [];
+
+        foreach ($allFiles as $file) {
+            $parts = explode('/', $file);
+            // Expected format: instance_name/backup-date.sql
+            // If in root, put in 'Unsorted'
+
+            if (count($parts) > 1) {
+                $folderName = $parts[0];
+                $fileName = $parts[count($parts) - 1];
+            } else {
+                $folderName = 'Root';
+                $fileName = $file;
+            }
+
+            if (!isset($folders[$folderName])) {
+                $folders[$folderName] = [
+                    'name' => $folderName,
+                    'count' => 0,
+                    'last_backup_timestamp' => 0,
+                    'last_backup' => 'N/A',
+                    'files' => []
+                ];
+            }
+
+            // Extract timestamp from filename if possible: backup-NAME-YYYY-MM-DD-HH-II-SS.sql
+            // Or use Storage::lastModified (slow on S3?)
+            // We'll rely on filename parsing for speed if strictly named, else lastModified if needed.
+            // Let's rely on filename sorting or regex.
+
+            // Try to extract date from filename
+            $time = null;
+            if (preg_match('/(\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2})/', $fileName, $matches)) {
+                $time = strtotime($matches[1]);
+            } else {
+                try {
+                    $time = Storage::disk('backup')->lastModified($file);
+                } catch (\Exception $e) { $time = 0; }
+            }
+
+            $folders[$folderName]['count']++;
+            $folders[$folderName]['files'][] = [
+                'path' => $file,
+                'name' => $fileName,
+                'timestamp' => $time,
+                'date' => $time ? date('Y-m-d H:i:s', $time) : 'Unknown'
+            ];
+
+            if ($time > $folders[$folderName]['last_backup_timestamp']) {
+                $folders[$folderName]['last_backup_timestamp'] = $time;
+                $folders[$folderName]['last_backup'] = date('Y-m-d H:i:s', $time);
+            }
+        }
+
+        // Sort files desc
+        foreach ($folders as &$folder) {
+            usort($folder['files'], fn($a, $b) => $b['timestamp'] <=> $a['timestamp']);
+        }
+
+        return $folders;
     }
 
     public function downloadBackup($filename)
