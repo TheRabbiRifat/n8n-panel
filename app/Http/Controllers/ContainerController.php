@@ -222,7 +222,7 @@ class ContainerController extends Controller
             // For import, we generate new postgres credentials to enforce the policy "use database postgresql".
             // If the user wants to keep SQLite data, they'd need to migrate.
             // But if we just inject envs, n8n might respect them and switch DB.
-            $safeName = preg_replace('/[^a-z0-9]/', '', $request->name);
+            $safeName = preg_replace('/[^a-z0-9]/', '', strtolower($request->name)) . '_' . Str::random(4);
             $dbConfig = [
                 'host' => '172.17.0.1',
                 'port' => 5432,
@@ -426,7 +426,7 @@ class ContainerController extends Controller
             ];
         } else {
             // Legacy/Missing - Generate
-            $safeName = preg_replace('/[^a-z0-9]/', '', $container->name);
+            $safeName = preg_replace('/[^a-z0-9]/', '', strtolower($container->name)) . '_' . Str::random(4);
             $dbConfig = [
                 'host' => '172.17.0.1',
                 'port' => 5432,

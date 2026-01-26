@@ -169,7 +169,8 @@ class InstanceController extends Controller
         $image = 'n8nio/n8n:' . $request->version;
 
         // DB Credentials
-        $safeName = preg_replace('/[^a-z0-9]/', '', $request->name);
+        // Use lowercase, strip special chars but append random string to ensure uniqueness
+        $safeName = preg_replace('/[^a-z0-9]/', '', strtolower($request->name)) . '_' . Str::random(4);
         $dbConfig = [
             'host' => '172.17.0.1', // Default Docker Gateway
             'port' => 5432,
