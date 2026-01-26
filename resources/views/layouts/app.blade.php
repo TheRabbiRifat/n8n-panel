@@ -256,6 +256,9 @@
                 <a href="{{ route('admin.environment.index') }}" class="nav-link {{ request()->routeIs('admin.environment.*') ? 'active' : '' }}">
                     <i class="bi bi-sliders"></i> Settings
                 </a>
+                <a href="{{ route('admin.backups.index') }}" class="nav-link {{ request()->routeIs('admin.backups.*') ? 'active' : '' }}">
+                    <i class="bi bi-cloud-arrow-up"></i> Backups
+                </a>
                 <a href="{{ route('containers.orphans') }}" class="nav-link {{ request()->routeIs('containers.orphans') ? 'active' : '' }}">
                     <i class="bi bi-search"></i> Docker Discovery
                 </a>
