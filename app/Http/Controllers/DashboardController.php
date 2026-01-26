@@ -30,7 +30,6 @@ class DashboardController extends Controller
         $user = Auth::user();
         $systemStats = null;
         $nginxStatus = 'Unknown';
-        $mysqlStatus = 'Unknown';
 
         // Fetch all docker containers once
         $dockerContainers = $this->dockerService->listContainers();
@@ -47,7 +46,6 @@ class DashboardController extends Controller
             $systemStats['user_count'] = \App\Models\User::count();
             $systemStats['panel_version'] = '1.0.0';
 
-            $mysqlStatus = $this->serviceManager->getStatus('mysql');
             $nginxStatus = $this->serviceManager->getStatus('nginx');
             $postgresStatus = $this->serviceManager->getStatus('postgresql');
             $dockerStatus = $this->serviceManager->getStatus('docker');
@@ -84,6 +82,6 @@ class DashboardController extends Controller
             ];
         });
 
-        return view('dashboard.index', compact('containers', 'systemStats', 'nginxStatus', 'mysqlStatus', 'postgresStatus', 'dockerStatus'));
+        return view('dashboard.index', compact('containers', 'systemStats', 'nginxStatus', 'postgresStatus', 'dockerStatus'));
     }
 }
