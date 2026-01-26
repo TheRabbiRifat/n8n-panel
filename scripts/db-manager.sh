@@ -62,12 +62,12 @@ case $ACTION in
         sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE \"${DB_NAME}\" TO \"${DB_USER}\";"
 
         # Import Dump
-        # Using cat to pipe prevents psql file permission issues if running as postgres user
-        cat "$FILE" | sudo -u postgres psql -d "$DB_NAME"
+        # Switch to the target user role so created objects are owned by them correctly
+        # This avoids the need for REASSIGN OWNED which fails on system objects
+        (echo "SET ROLE \"${DB_USER}\";"; cat "$FILE") | sudo -u postgres psql -d "$DB_NAME"
 
-        # Fix Ownership (Objects created by postgres must be transferred to db_user)
-        sudo -u postgres psql -d "$DB_NAME" -c "REASSIGN OWNED BY postgres TO \"${DB_USER}\";"
-        sudo -u postgres psql -d "$DB_NAME" -c "ALTER SCHEMA public OWNER TO \"${DB_USER}\";"
+        # Ensure schema ownership is correct (ignore errors if already correct)
+        sudo -u postgres psql -d "$DB_NAME" -c "ALTER SCHEMA public OWNER TO \"${DB_USER}\";" || true
 
         echo "Import successful."
         ;;
