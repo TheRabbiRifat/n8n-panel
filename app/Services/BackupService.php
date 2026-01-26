@@ -136,8 +136,18 @@ class BackupService
 
         // 4. Create Final Zip
         $finalZipPath = storage_path("app/temp/{$backupName}");
+
+        // Ensure parent dir exists
+        if (!file_exists(dirname($finalZipPath))) {
+            mkdir(dirname($finalZipPath), 0755, true);
+        }
+
         $createFinalZip = "cd \"{$tempDir}\" && zip -r \"{$finalZipPath}\" .";
-        Process::run($createFinalZip);
+        $zipProcess = Process::run($createFinalZip);
+
+        if (!$zipProcess->successful()) {
+             Log::error("Zip failed: " . $zipProcess->errorOutput() . " " . $zipProcess->output());
+        }
 
         // 5. Upload to Disk
         if (file_exists($finalZipPath)) {
@@ -147,7 +157,7 @@ class BackupService
                 fclose($stream);
             }
         } else {
-            throw new \Exception("Final backup file creation failed.");
+            throw new \Exception("Final backup file creation failed. Output: " . $zipProcess->output() . " Error: " . $zipProcess->errorOutput());
         }
 
         // 6. Cleanup
