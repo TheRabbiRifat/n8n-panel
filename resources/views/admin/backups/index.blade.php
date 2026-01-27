@@ -23,31 +23,7 @@
                         </select>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">Schedule</label>
-                        <select id="cron-type" class="form-select mb-2" onchange="toggleCron()">
-                            <option value="daily">Daily</option>
-                            <option value="weekly">Weekly</option>
-                            <option value="hourly">Hourly</option>
-                            <option value="custom">Custom Expression</option>
-                        </select>
-
-                        <div id="cron-time-wrapper" class="row g-2 mb-2">
-                            <div class="col-6">
-                                <label class="small text-muted">Hour (0-23)</label>
-                                <select id="cron-hour" class="form-select form-select-sm" onchange="buildCron()"></select>
-                            </div>
-                            <div class="col-6">
-                                <label class="small text-muted">Minute (0-59)</label>
-                                <select id="cron-min" class="form-select form-select-sm" onchange="buildCron()"></select>
-                            </div>
-                        </div>
-
-                        <div id="cron-custom-wrapper" class="d-none">
-                            <input type="text" name="cron_expression" id="cron_expression" class="form-control font-monospace" value="{{ optional($setting)->cron_expression ?? '0 2 * * *' }}">
-                            <div class="form-text">Example: <code>0 2 * * *</code> (Daily at 2am)</div>
-                        </div>
-                    </div>
+                    {{-- Cron Schedule removed in favor of manual crontab management --}}
 
                     <!-- FTP Fields -->
                     <div id="ftp-fields" class="d-none">
@@ -112,13 +88,13 @@
         <div class="card shadow-sm mb-4">
             <div class="card-header bg-white fw-bold">System Cron</div>
             <div class="card-body">
-                <p class="small text-muted mb-2">The system automatically manages the cron entry for <code>www-data</code>. If needed, you can add this manually:</p>
+                <p class="small text-muted mb-2">Add this command to your system crontab (`crontab -e`) to schedule backups:</p>
                 <div class="input-group">
-                    <input type="text" class="form-control font-monospace form-control-sm" value="* * * * * cd /var/n8n-panel && /usr/bin/php artisan schedule:run >> /dev/null 2>&1" readonly id="cron-cmd">
+                    <input type="text" class="form-control font-monospace form-control-sm" value="0 2 * * * cd /var/n8n-panel && /usr/bin/php artisan backup:run >> /var/log/n8n-backup.log 2>&1" readonly id="cron-cmd">
                     <button class="btn btn-outline-secondary btn-sm" onclick="navigator.clipboard.writeText(document.getElementById('cron-cmd').value)"><i class="bi bi-clipboard"></i></button>
                 </div>
                 <div class="mt-2">
-                    <span class="badge bg-success bg-opacity-10 text-success border border-success"><i class="bi bi-check-circle me-1"></i> Auto-Managed</span>
+                    <span class="badge bg-info bg-opacity-10 text-info border border-info"><i class="bi bi-info-circle me-1"></i> Manual Setup Required</span>
                 </div>
             </div>
         </div>
@@ -224,89 +200,8 @@
         }
     }
 
-    // Cron Builder
-    function initCron() {
-        const hourSelect = document.getElementById('cron-hour');
-        const minSelect = document.getElementById('cron-min');
-
-        for(let i=0; i<24; i++) {
-            let val = i.toString().padStart(2, '0'); // Just for display, cron uses number usually or *
-            let opt = document.createElement('option');
-            opt.value = i;
-            opt.innerText = val;
-            hourSelect.appendChild(opt);
-        }
-        for(let i=0; i<60; i+=5) { // 5 min steps
-            let val = i.toString().padStart(2, '0');
-            let opt = document.createElement('option');
-            opt.value = i;
-            opt.innerText = val;
-            minSelect.appendChild(opt);
-        }
-
-        // Try to parse existing cron
-        const currentCron = document.getElementById('cron_expression').value.trim();
-        const parts = currentCron.split(' ');
-        const typeSelect = document.getElementById('cron-type');
-
-        if (parts.length === 5) {
-            if (parts[0] === '0' && parts[1] === '0' && parts[2] === '*' && parts[3] === '*' && parts[4] === '*') {
-                typeSelect.value = 'daily'; // Midnight
-                hourSelect.value = 0; minSelect.value = 0;
-            } else if (parts[2] === '*' && parts[3] === '*' && parts[4] === '*') {
-                // Daily at specific time
-                typeSelect.value = 'daily';
-                minSelect.value = parseInt(parts[0]) || 0;
-                hourSelect.value = parseInt(parts[1]) || 0;
-            } else if (parts[0] === '0' && parts[4] === '0') { // Weekly example?
-                typeSelect.value = 'weekly';
-                // Simplified detection
-            } else {
-                typeSelect.value = 'custom';
-            }
-        } else {
-            typeSelect.value = 'custom';
-        }
-        toggleCron();
-    }
-
-    function toggleCron() {
-        const type = document.getElementById('cron-type').value;
-        const timeWrapper = document.getElementById('cron-time-wrapper');
-        const customWrapper = document.getElementById('cron-custom-wrapper');
-        const cronInput = document.getElementById('cron_expression');
-
-        if (type === 'custom') {
-            timeWrapper.classList.add('d-none');
-            customWrapper.classList.remove('d-none');
-            // Allow manual edit
-            cronInput.readOnly = false;
-        } else {
-            timeWrapper.classList.remove('d-none');
-            customWrapper.classList.add('d-none'); // Hide input but keep it updated
-            // cronInput.readOnly = true;
-            buildCron(); // Update input immediately
-        }
-    }
-
-    function buildCron() {
-        const type = document.getElementById('cron-type').value;
-        const h = document.getElementById('cron-hour').value;
-        const m = document.getElementById('cron-min').value;
-        const cronInput = document.getElementById('cron_expression');
-
-        if (type === 'daily') {
-            cronInput.value = `${m} ${h} * * *`;
-        } else if (type === 'hourly') {
-            cronInput.value = `${m} * * * *`;
-        } else if (type === 'weekly') {
-            cronInput.value = `${m} ${h} * * 0`; // Sunday
-        }
-    }
-
     document.addEventListener('DOMContentLoaded', () => {
         toggleFields();
-        initCron();
     });
 </script>
 @endsection
