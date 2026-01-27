@@ -106,16 +106,26 @@ class BackupService
         }
 
         // 2. Dump Database
-        if ($container->db_database) {
-            // Use the wrapper script which is allow-listed in sudoers
-            $script = base_path('scripts/db-manager.sh');
-            $cmd = "sudo {$script} --action=export --db-name=\"{$container->db_database}\" > \"{$tempFile}\"";
-            $p = Process::run($cmd);
+        if ($container->db_database && $container->db_username && $container->db_password) {
+            // Use instance credentials directly as requested
+            // Host: Use configured host or fallback to localhost if 172.17.0.1 (gateway is accessible as localhost usually, or explicitly)
+            // But we should use the stored host if possible.
+            $dbHost = $container->db_host ?: '127.0.0.1';
+            $dbPort = $container->db_port ?: 5432;
+            $dbUser = $container->db_username;
+            $dbName = $container->db_database;
+
+            // We use PGPASSWORD env var for safety
+            $command = "pg_dump -h {$dbHost} -p {$dbPort} -U {$dbUser} --no-owner --no-acl \"{$dbName}\" > \"{$tempFile}\"";
+
+            $p = Process::env(['PGPASSWORD' => $container->db_password])->run($command);
+
             if (!$p->successful()) {
-                throw new \Exception("Database dump failed: " . $p->errorOutput());
+                // If failed, try sudo fallback? No, user explicitly asked for instance credentials approach.
+                throw new \Exception("Database dump failed (Credentials): " . $p->errorOutput() . " " . $p->output());
             }
         } else {
-            throw new \Exception("No database configured for this instance.");
+            throw new \Exception("No database credentials configured for this instance.");
         }
 
         // 5. Upload to Disk
