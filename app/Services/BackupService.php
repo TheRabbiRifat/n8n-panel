@@ -191,6 +191,11 @@ class BackupService
                 $fileName = $file;
             }
 
+            // Skip key.txt
+            if ($fileName === 'key.txt') {
+                continue;
+            }
+
             if (!isset($folders[$folderName])) {
                 $folders[$folderName] = [
                     'name' => $folderName,
@@ -256,6 +261,11 @@ class BackupService
 
         foreach ($files as $file) {
             $fileName = basename($file);
+
+            // Skip key.txt
+            if ($fileName === 'key.txt') {
+                continue;
+            }
 
             // Extract timestamp
             $time = null;
