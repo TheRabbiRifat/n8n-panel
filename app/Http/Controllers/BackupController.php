@@ -40,6 +40,12 @@ class BackupController extends Controller
             'region' => 'nullable|required_if:driver,s3',
         ]);
 
+        try {
+            $this->backupService->testConnection($request->all());
+        } catch (\Exception $e) {
+            return back()->with('error', 'Connection test failed: ' . $e->getMessage())->withInput();
+        }
+
         $setting = BackupSetting::firstOrNew();
         $setting->fill($request->all());
         $setting->enabled = $request->has('enabled');
