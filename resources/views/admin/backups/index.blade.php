@@ -23,34 +23,7 @@
                         </select>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">Schedule Frequency</label>
-                        <select id="cron-type" class="form-select mb-2" onchange="toggleCron()">
-                            <option value="hourly">Hourly</option>
-                            <option value="daily" selected>Daily</option>
-                            <option value="weekly">Weekly</option>
-                            <option value="monthly">Monthly</option>
-                            <option value="custom">Custom Expression</option>
-                        </select>
-
-                        <div id="cron-time-wrapper" class="row g-2 mb-2">
-                            <div class="col-6">
-                                <label class="small text-muted">Hour (0-23)</label>
-                                <select id="cron-hour" class="form-select form-select-sm" onchange="buildCron()"></select>
-                            </div>
-                            <div class="col-6">
-                                <label class="small text-muted">Minute (0-59)</label>
-                                <select id="cron-min" class="form-select form-select-sm" onchange="buildCron()"></select>
-                            </div>
-                        </div>
-
-                        <div id="cron-custom-wrapper" class="d-none">
-                            <input type="text" name="cron_expression" id="cron_expression" class="form-control font-monospace" value="{{ optional($setting)->cron_expression ?? '0 2 * * *' }}" oninput="parseCronInput()">
-                            <div class="form-text">Example: <code>0 2 * * *</code> (Daily at 2:00 AM)</div>
-                        </div>
-                        <!-- Hidden input to store value if not in custom mode (or synched) -->
-                        <!-- Actually we can just use the name='cron_expression' on the input above and keep it updated -->
-                    </div>
+                    {{-- Cron Schedule removed in favor of manual crontab management --}}
 
                     <!-- FTP Fields -->
                     <div id="ftp-fields" class="d-none">
@@ -113,15 +86,15 @@
         </div>
 
         <div class="card shadow-sm mb-4">
-            <div class="card-header bg-white fw-bold">System Scheduler</div>
+            <div class="card-header bg-white fw-bold">System Cron</div>
             <div class="card-body">
-                <p class="small text-muted mb-2">Ensure this single command is in your crontab to enable UI scheduling:</p>
+                <p class="small text-muted mb-2">Add this command to your system crontab (`crontab -e`) to schedule backups:</p>
                 <div class="input-group">
-                    <input type="text" class="form-control font-monospace form-control-sm" value="* * * * * cd /var/n8n-panel && /usr/bin/php artisan schedule:run >> /dev/null 2>&1" readonly id="cron-cmd">
+                    <input type="text" class="form-control font-monospace form-control-sm" value="0 2 * * * cd /var/n8n-panel && /usr/bin/php artisan backup:run >> /var/log/n8n-backup.log 2>&1" readonly id="cron-cmd">
                     <button class="btn btn-outline-secondary btn-sm" onclick="navigator.clipboard.writeText(document.getElementById('cron-cmd').value)"><i class="bi bi-clipboard"></i></button>
                 </div>
                 <div class="mt-2">
-                    <span class="badge bg-success bg-opacity-10 text-success border border-success"><i class="bi bi-check-circle me-1"></i> Managed via UI</span>
+                    <span class="badge bg-info bg-opacity-10 text-info border border-info"><i class="bi bi-info-circle me-1"></i> Manual Setup Required</span>
                 </div>
             </div>
         </div>
@@ -227,125 +200,8 @@
         }
     }
 
-    // Cron Logic
-    function initCron() {
-        const hourSelect = document.getElementById('cron-hour');
-        const minSelect = document.getElementById('cron-min');
-
-        // Populate Hours
-        for(let i=0; i<24; i++) {
-            let val = i.toString();
-            let label = i.toString().padStart(2, '0');
-            let opt = document.createElement('option');
-            opt.value = val;
-            opt.innerText = label;
-            hourSelect.appendChild(opt);
-        }
-        // Populate Minutes
-        for(let i=0; i<60; i+=5) {
-            let val = i.toString();
-            let label = i.toString().padStart(2, '0');
-            let opt = document.createElement('option');
-            opt.value = val;
-            opt.innerText = label;
-            minSelect.appendChild(opt);
-        }
-
-        // Parse initial value
-        const initial = document.getElementById('cron_expression').value || '0 0 * * *';
-        parseCronToUI(initial);
-    }
-
-    function parseCronToUI(expression) {
-        const parts = expression.trim().split(/\s+/);
-        const typeSelect = document.getElementById('cron-type');
-        const hourSelect = document.getElementById('cron-hour');
-        const minSelect = document.getElementById('cron-min');
-        const customWrapper = document.getElementById('cron-custom-wrapper');
-        const timeWrapper = document.getElementById('cron-time-wrapper');
-
-        if (parts.length < 5) {
-            typeSelect.value = 'custom';
-            toggleCron();
-            return;
-        }
-
-        const [min, hour, dom, month, dow] = parts;
-
-        // Heuristic detection
-        if (min !== '*' && hour === '*' && dom === '*' && month === '*' && dow === '*') {
-             // Hourly: "30 * * * *"
-             typeSelect.value = 'hourly';
-             minSelect.value = parseInt(min) || 0;
-        } else if (min !== '*' && hour !== '*' && dom === '*' && month === '*' && dow === '*') {
-             // Daily: "0 2 * * *"
-             typeSelect.value = 'daily';
-             minSelect.value = parseInt(min) || 0;
-             hourSelect.value = parseInt(hour) || 0;
-        } else if (min !== '*' && hour !== '*' && dom === '*' && month === '*' && dow !== '*') {
-             // Weekly: "0 2 * * 1"
-             typeSelect.value = 'weekly';
-             minSelect.value = parseInt(min) || 0;
-             hourSelect.value = parseInt(hour) || 0;
-             // Note: We don't support picking the DOW in simple UI yet, defaulting to Sunday/Monday?
-             // Just show as Custom if DOW is specific?
-             // Or simplifiy: Weekly = Sunday
-        } else if (min !== '*' && hour !== '*' && dom !== '*' && month === '*' && dow === '*') {
-             // Monthly: "0 2 1 * *"
-             typeSelect.value = 'monthly';
-             minSelect.value = parseInt(min) || 0;
-             hourSelect.value = parseInt(hour) || 0;
-        } else {
-             typeSelect.value = 'custom';
-        }
-
-        toggleCron();
-    }
-
-    function toggleCron() {
-        const type = document.getElementById('cron-type').value;
-        const timeWrapper = document.getElementById('cron-time-wrapper');
-        const customWrapper = document.getElementById('cron-custom-wrapper');
-        const cronInput = document.getElementById('cron_expression');
-
-        if (type === 'custom') {
-            timeWrapper.classList.add('d-none');
-            customWrapper.classList.remove('d-none');
-            cronInput.readOnly = false;
-        } else {
-            timeWrapper.classList.remove('d-none');
-            customWrapper.classList.add('d-none');
-            cronInput.readOnly = true;
-            buildCron();
-        }
-    }
-
-    function buildCron() {
-        const type = document.getElementById('cron-type').value;
-        const h = document.getElementById('cron-hour').value;
-        const m = document.getElementById('cron-min').value;
-        const cronInput = document.getElementById('cron_expression');
-
-        if (type === 'hourly') {
-            cronInput.value = `${m} * * * *`;
-        } else if (type === 'daily') {
-            cronInput.value = `${m} ${h} * * *`;
-        } else if (type === 'weekly') {
-            // Default to Sunday (0)
-            cronInput.value = `${m} ${h} * * 0`;
-        } else if (type === 'monthly') {
-            // Default to 1st of month
-            cronInput.value = `${m} ${h} 1 * *`;
-        }
-    }
-
-    function parseCronInput() {
-        // Just allows manual typing in custom mode without overriding logic
-    }
-
     document.addEventListener('DOMContentLoaded', () => {
         toggleFields();
-        initCron();
     });
 </script>
 @endsection
