@@ -9,6 +9,7 @@ Artisan::command('inspire', function () {
 
 use App\Models\BackupSetting;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Schedule;
 
 if (Schema::hasTable('backup_settings')) {
     $setting = BackupSetting::first();
