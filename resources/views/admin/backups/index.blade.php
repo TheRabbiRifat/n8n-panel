@@ -109,6 +109,20 @@
             </div>
         </div>
 
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white fw-bold">System Cron</div>
+            <div class="card-body">
+                <p class="small text-muted mb-2">The system automatically manages the cron entry for <code>www-data</code>. If needed, you can add this manually:</p>
+                <div class="input-group">
+                    <input type="text" class="form-control font-monospace form-control-sm" value="* * * * * cd /var/n8n-panel && php artisan schedule:run >> /dev/null 2>&1" readonly id="cron-cmd">
+                    <button class="btn btn-outline-secondary btn-sm" onclick="navigator.clipboard.writeText(document.getElementById('cron-cmd').value)"><i class="bi bi-clipboard"></i></button>
+                </div>
+                <div class="mt-2">
+                    <span class="badge bg-success bg-opacity-10 text-success border border-success"><i class="bi bi-check-circle me-1"></i> Auto-Managed</span>
+                </div>
+            </div>
+        </div>
+
         <div class="card shadow-sm">
             <div class="card-header bg-white fw-bold">Manual Actions</div>
             <div class="card-body">
