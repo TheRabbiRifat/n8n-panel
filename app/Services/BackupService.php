@@ -19,10 +19,18 @@ class BackupService
             return false;
         }
 
-        $config = [];
+        $config = $this->getDiskConfig($setting);
 
+        Config::set('filesystems.disks.backup', $config);
+        // Force reload of the disk to pick up new config
+        Storage::forgetDisk('backup');
+        return true;
+    }
+
+    protected function getDiskConfig($setting)
+    {
         if ($setting->driver === 's3') {
-            $config = [
+            return [
                 'driver' => 's3',
                 'key' => $setting->username, // Assuming username field stores Access Key
                 'secret' => $setting->password, // Stores Secret Key
@@ -33,7 +41,7 @@ class BackupService
                 'throw' => true,
             ];
         } elseif ($setting->driver === 'ftp') {
-            $config = [
+            return [
                 'driver' => 'ftp',
                 'host' => $setting->host,
                 'username' => $setting->username,
@@ -47,17 +55,30 @@ class BackupService
             ];
         } else {
             // Local
-            $config = [
+            return [
                 'driver' => 'local',
                 'root' => storage_path('app/backups'),
                 'throw' => true,
             ];
         }
+    }
 
-        Config::set('filesystems.disks.backup', $config);
-        // Force reload of the disk to pick up new config
-        Storage::forgetDisk('backup');
-        return true;
+    public function testConnection(array $data)
+    {
+        $setting = new BackupSetting($data);
+        $config = $this->getDiskConfig($setting);
+
+        Config::set('filesystems.disks.backup_test', $config);
+        Storage::forgetDisk('backup_test');
+
+        try {
+            $testFile = 'connection_test_' . time() . '.txt';
+            Storage::disk('backup_test')->put($testFile, 'test');
+            Storage::disk('backup_test')->delete($testFile);
+            return true;
+        } finally {
+            Storage::forgetDisk('backup_test');
+        }
     }
 
     public function backupAll()
