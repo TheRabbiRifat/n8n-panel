@@ -103,7 +103,7 @@ class ApiController extends Controller
         }
 
         $version = $request->version ?: 'latest';
-        $genericTimezone = 'Asia/Dhaka'; // Default or from request
+        $genericTimezone = config('app.timezone'); // Default or from request
 
         $package = Package::findOrFail($request->package_id);
 
