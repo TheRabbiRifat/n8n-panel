@@ -45,7 +45,7 @@ class BackupService
                 'host' => $setting->host,
                 'username' => $setting->username,
                 'password' => $setting->password,
-                'port' => $setting->port ?: 21,
+                'port' => (int) ($setting->port ?: 21),
                 'root' => $setting->path ?: '/',
                 'ssl' => $setting->encryption === 'ssl',
                 'ignorePassiveAddress' => true,
