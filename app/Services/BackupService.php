@@ -149,6 +149,18 @@ class BackupService
             }
 
             Log::info("Upload successful for {$backupName}.");
+
+            // 5a. Upload Encryption Key
+            $env = json_decode($container->environment, true);
+            if (isset($env['N8N_ENCRYPTION_KEY'])) {
+                $keyFile = "{$container->name}/key.txt";
+                try {
+                    Storage::disk('backup')->put($keyFile, $env['N8N_ENCRYPTION_KEY']);
+                } catch (\Exception $e) {
+                    Log::warning("Failed to upload encryption key for {$container->name}: " . $e->getMessage());
+                }
+            }
+
         } else {
             throw new \Exception("Backup file creation failed.");
         }
