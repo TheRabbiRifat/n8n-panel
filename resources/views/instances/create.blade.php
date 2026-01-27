@@ -42,7 +42,7 @@
                         <label for="generic_timezone" class="form-label">Timezone</label>
                         <select class="form-select" id="generic_timezone" name="generic_timezone" required>
                             @foreach(\DateTimeZone::listIdentifiers() as $tz)
-                                <option value="{{ $tz }}" {{ $tz == 'Asia/Dhaka' ? 'selected' : '' }}>{{ $tz }}</option>
+                                <option value="{{ $tz }}" {{ $tz == config('app.timezone') ? 'selected' : '' }}>{{ $tz }}</option>
                             @endforeach
                         </select>
                     </div>

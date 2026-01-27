@@ -215,7 +215,7 @@
 
                     @php
                         $currentEnv = $container->environment ? json_decode($container->environment, true) : [];
-                        $currentTimezone = $currentEnv['GENERIC_TIMEZONE'] ?? 'Asia/Dhaka';
+                        $currentTimezone = $currentEnv['GENERIC_TIMEZONE'] ?? config('app.timezone');
                         $encryptionKey = $currentEnv['N8N_ENCRYPTION_KEY'] ?? '';
                     @endphp
 
