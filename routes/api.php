@@ -10,7 +10,7 @@ use App\Models\Container;
 |--------------------------------------------------------------------------
 */
 
-Route::middleware(['auth:sanctum', 'check.api.ip', 'throttle:60,1'])->group(function () {
+Route::middleware(['auth:sanctum', 'check.api.ip'])->group(function () {
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
@@ -26,7 +26,7 @@ Route::middleware(['auth:sanctum', 'check.api.ip', 'throttle:60,1'])->group(func
 });
 
 // External Integration API
-Route::middleware(['auth:sanctum', 'check.api.ip', 'role:admin|reseller', 'log.api', 'throttle:60,1'])->prefix('integration')->group(function () {
+Route::middleware(['auth:sanctum', 'check.api.ip', 'role:admin|reseller', 'log.api'])->prefix('integration')->group(function () {
 
     // Instance Management
     Route::post('/instances/create', [App\Http\Controllers\Api\ApiController::class, 'create']);
