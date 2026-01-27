@@ -10,7 +10,7 @@ use App\Models\Container;
 |--------------------------------------------------------------------------
 */
 
-Route::middleware(['auth:sanctum', 'check.api.ip'])->group(function () {
+Route::middleware(['auth:sanctum', 'check.api.ip', 'throttle:60,1'])->group(function () {
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
