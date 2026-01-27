@@ -12,13 +12,6 @@ use Illuminate\Support\Str;
 
 class BackupService
 {
-    protected $dockerService;
-
-    public function __construct(DockerService $dockerService)
-    {
-        $this->dockerService = $dockerService;
-    }
-
     public function configureDisk()
     {
         $setting = BackupSetting::first();
@@ -49,6 +42,7 @@ class BackupService
                 'root' => $setting->path ?: '/',
                 'ssl' => $setting->encryption === 'ssl',
                 'ignorePassiveAddress' => true,
+                'timeout' => 30,
                 'throw' => true,
             ];
         } else {
