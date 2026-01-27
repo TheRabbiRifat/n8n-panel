@@ -622,10 +622,14 @@ class ContainerController extends Controller
         $container = Container::findOrFail($id);
         $request->validate(['backup_path' => 'required|string']);
 
-        $dbName = $container->db_database;
         $backupPath = $request->backup_path;
 
         try {
+            // Ensure disk is configured
+            if (!$this->backupService->configureDisk()) {
+                 throw new \Exception("Backup system not configured.");
+            }
+
             // Download to temp file
             $tempPath = storage_path('app/temp/restore_' . Str::random(10) . '.sql');
             if (!file_exists(dirname($tempPath))) mkdir(dirname($tempPath), 0755, true);
