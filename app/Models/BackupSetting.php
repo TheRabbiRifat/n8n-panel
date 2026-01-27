@@ -24,5 +24,6 @@ class BackupSetting extends Model
     protected $casts = [
         'password' => 'encrypted',
         'enabled' => 'boolean',
+        'port' => 'integer',
     ];
 }
