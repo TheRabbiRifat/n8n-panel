@@ -114,7 +114,7 @@
             <div class="card-body">
                 <p class="small text-muted mb-2">The system automatically manages the cron entry for <code>www-data</code>. If needed, you can add this manually:</p>
                 <div class="input-group">
-                    <input type="text" class="form-control font-monospace form-control-sm" value="* * * * * cd /var/n8n-panel && php artisan schedule:run >> /dev/null 2>&1" readonly id="cron-cmd">
+                    <input type="text" class="form-control font-monospace form-control-sm" value="* * * * * cd /var/n8n-panel && /usr/bin/php artisan schedule:run >> /dev/null 2>&1" readonly id="cron-cmd">
                     <button class="btn btn-outline-secondary btn-sm" onclick="navigator.clipboard.writeText(document.getElementById('cron-cmd').value)"><i class="bi bi-clipboard"></i></button>
                 </div>
                 <div class="mt-2">
