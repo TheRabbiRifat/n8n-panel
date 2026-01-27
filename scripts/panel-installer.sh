@@ -76,10 +76,11 @@ apt install -y \
     postgresql postgresql-contrib \
     php8.2-fpm php8.2-cli php8.2-pgsql php8.2-mbstring php8.2-bcmath \
     php8.2-curl php8.2-xml php8.2-zip php8.2-intl php8.2-gd \
-    unzip composer \
+    unzip zip composer cron \
     certbot python3-certbot-nginx ufw
 
 systemctl enable --now docker
+systemctl enable --now cron
 
 #################################
 # 2. FIREWALL
@@ -247,6 +248,11 @@ systemctl reload nginx
 # CLEANUP
 #################################
 rm -rf "$TMP_DIR"
+
+# Setup Auto-Backup Cron (ensure it exists)
+echo "Configuring automatic backups scheduler..."
+CRON_JOB="* * * * * cd ${APP_DIR} && /usr/bin/php artisan schedule:run >> /dev/null 2>&1"
+(crontab -u www-data -l 2>/dev/null; echo "$CRON_JOB") | sort -u | crontab -u www-data -
 
 echo "======================================"
 echo "✅ n8n Panel installed successfully"

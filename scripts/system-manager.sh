@@ -79,7 +79,9 @@ case $ACTION in
         esac
         ;;
     update-cron)
-        CRON_JOB="* * * * * cd /var/n8n-panel && php artisan schedule:run >> /dev/null 2>&1"
+        # Use full path to PHP and ensure cron package is active
+        PHP_BIN=$(which php || echo "/usr/bin/php")
+        CRON_JOB="* * * * * cd /var/n8n-panel && $PHP_BIN artisan schedule:run >> /dev/null 2>&1"
         USER="www-data"
 
         # Check if job exists
