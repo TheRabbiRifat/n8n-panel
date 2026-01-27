@@ -108,9 +108,9 @@ class BackupService
         // 2. Dump Database
         if ($container->db_database && $container->db_username && $container->db_password) {
             // Use instance credentials directly as requested
-            // Host: Use configured host or fallback to localhost if 172.17.0.1 (gateway is accessible as localhost usually, or explicitly)
-            // But we should use the stored host if possible.
-            $dbHost = $container->db_host ?: '127.0.0.1';
+            // Host: Force localhost (127.0.0.1) for backup process running on the host itself
+            // This avoids routing issues where connection to 172.17.0.1 appears as public IP blocked by pg_hba
+            $dbHost = '127.0.0.1';
             $dbPort = $container->db_port ?: 5432;
             $dbUser = $container->db_username;
             $dbName = $container->db_database;
