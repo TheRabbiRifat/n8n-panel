@@ -78,6 +78,18 @@ case $ACTION in
                 ;;
         esac
         ;;
+    update-cron)
+        CRON_JOB="* * * * * cd /var/n8n-panel && php artisan schedule:run >> /dev/null 2>&1"
+        USER="www-data"
+
+        # Check if job exists
+        if ! crontab -u "$USER" -l 2>/dev/null | grep -Fq "$CRON_JOB"; then
+            (crontab -u "$USER" -l 2>/dev/null; echo "$CRON_JOB") | crontab -u "$USER" -
+            echo "Cron job added."
+        else
+            echo "Cron job already exists."
+        fi
+        ;;
     *)
         echo "Invalid action: $ACTION"
         exit 1

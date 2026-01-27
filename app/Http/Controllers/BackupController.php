@@ -46,6 +46,11 @@ class BackupController extends Controller
         $setting->enabled = $request->has('enabled');
         $setting->save();
 
+        // Ensure system cron is updated to run scheduler
+        if ($setting->enabled) {
+            \Illuminate\Support\Facades\Process::run(['sudo', base_path('scripts/system-manager.sh'), '--action=update-cron']);
+        }
+
         return back()->with('success', 'Backup settings saved.');
     }
 
