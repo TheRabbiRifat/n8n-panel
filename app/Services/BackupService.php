@@ -326,4 +326,20 @@ class BackupService
         }
         return Storage::disk('backup')->download($filename);
     }
+
+    public function deleteBackup(string $instanceName)
+    {
+        if (!$this->configureDisk()) {
+            return;
+        }
+
+        try {
+            if (Storage::disk('backup')->exists($instanceName)) {
+                Storage::disk('backup')->deleteDirectory($instanceName);
+                Log::info("Deleted backups for terminated instance: {$instanceName}");
+            }
+        } catch (\Exception $e) {
+            Log::warning("Failed to delete backups for {$instanceName}: " . $e->getMessage());
+        }
+    }
 }

@@ -8,6 +8,7 @@ use App\Models\Container;
 use App\Models\User;
 use App\Models\Package;
 use App\Models\GlobalSetting;
+use App\Services\BackupService;
 use App\Services\DockerService;
 use App\Services\NginxService;
 use App\Services\PortAllocator;
@@ -25,15 +26,18 @@ class ApiController extends Controller
     protected $dockerService;
     protected $nginxService;
     protected $portAllocator;
+    protected $backupService;
 
     public function __construct(
         DockerService $dockerService,
         NginxService $nginxService,
-        PortAllocator $portAllocator
+        PortAllocator $portAllocator,
+        BackupService $backupService
     ) {
         $this->dockerService = $dockerService;
         $this->nginxService = $nginxService;
         $this->portAllocator = $portAllocator;
+        $this->backupService = $backupService;
     }
 
     /**
@@ -227,6 +231,9 @@ class ApiController extends Controller
                 'username' => $container->db_username,
             ];
             $this->dockerService->removeContainer($container->docker_id, $container->domain, $container->id, $dbConfig);
+
+            // Attempt to remove backups
+            $this->backupService->deleteBackup($container->name);
 
             $container->delete();
 
