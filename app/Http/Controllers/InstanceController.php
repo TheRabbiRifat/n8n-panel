@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Container;
 use App\Models\Package;
 use App\Models\GlobalSetting;
+use App\Services\BackupService;
 use App\Services\DockerService;
 use App\Services\NginxService;
 use App\Services\PortAllocator;
@@ -18,15 +19,18 @@ class InstanceController extends Controller
     protected $dockerService;
     protected $nginxService;
     protected $portAllocator;
+    protected $backupService;
 
     public function __construct(
         DockerService $dockerService,
         NginxService $nginxService,
-        PortAllocator $portAllocator
+        PortAllocator $portAllocator,
+        BackupService $backupService
     ) {
         $this->dockerService = $dockerService;
         $this->nginxService = $nginxService;
         $this->portAllocator = $portAllocator;
+        $this->backupService = $backupService;
     }
 
     public function index(Request $request)
@@ -275,6 +279,9 @@ class InstanceController extends Controller
                 'username' => $container->db_username,
             ];
             $this->dockerService->removeContainer($container->docker_id, $container->domain, $container->id, $dbConfig);
+
+            // Attempt to remove backups
+            $this->backupService->deleteBackup($container->name);
 
             // Remove DB
             $containerName = $container->name;
