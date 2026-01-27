@@ -161,7 +161,7 @@ class InstanceController extends Controller
         // Generate Instance Specific Envs (Important for n8n persistence)
         $instanceEnv = [
             'N8N_ENCRYPTION_KEY' => Str::random(32),
-            'GENERIC_TIMEZONE' => $request->generic_timezone ?: config('app.timezone'),
+            'GENERIC_TIMEZONE' => $request->generic_timezone ?: 'Asia/Dhaka',
             'N8N_BLOCK_ENV_ACCESS_IN_NODE' => 'true',
         ];
         $envArray = array_merge($envArray, $instanceEnv);

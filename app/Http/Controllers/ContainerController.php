@@ -211,7 +211,7 @@ class ContainerController extends Controller
             }
             // Ensure timezone exists
             if (!isset($preservedEnvs['GENERIC_TIMEZONE'])) {
-                $preservedEnvs['GENERIC_TIMEZONE'] = config('app.timezone');
+                $preservedEnvs['GENERIC_TIMEZONE'] = 'UTC';
             }
 
             // Merge: Global -> Preserved (User) -> System (Overrides)
