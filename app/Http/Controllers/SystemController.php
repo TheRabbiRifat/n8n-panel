@@ -19,7 +19,7 @@ class SystemController extends Controller
     {
         $this->authorize('view_system');
         $hostname = gethostname();
-        $services = ['nginx' => 'Nginx', 'mysql' => 'MySQL', 'postgresql' => 'PostgreSQL', 'docker' => 'Docker'];
+        $services = ['nginx' => 'Nginx', 'postgresql' => 'PostgreSQL', 'docker' => 'Docker'];
         $serviceStatus = [];
         foreach($services as $key => $name){
             $serviceStatus[$key] = $this->serviceManager->getStatus($key);

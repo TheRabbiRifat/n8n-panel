@@ -89,12 +89,6 @@
                 <div class="text-uppercase small fw-bold text-secondary mb-1">Service Status</div>
                 <div class="d-flex flex-column gap-1 mt-2">
                     <div class="d-flex justify-content-between small">
-                        <span>MySQL</span>
-                        <span class="badge {{ $mysqlStatus === 'active' ? 'bg-success' : 'bg-danger' }}">
-                             {{ $mysqlStatus === 'active' ? 'UP' : 'DOWN' }}
-                        </span>
-                    </div>
-                    <div class="d-flex justify-content-between small">
                         <span>Nginx</span>
                         <span class="badge {{ $nginxStatus === 'active' ? 'bg-success' : 'bg-danger' }}">
                              {{ $nginxStatus === 'active' ? 'UP' : 'DOWN' }}
