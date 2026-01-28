@@ -218,6 +218,15 @@ class ContainerController extends Controller
             // Order implies: Global defaults < User Existing < System Enforced
             $finalEnv = array_merge($envArray, $preservedEnvs, $systemEnvs);
 
+            // Remove SMTP keys (ensure clean slate on import)
+            $smtpKeys = [
+                'N8N_EMAIL_MODE', 'N8N_SMTP_HOST', 'N8N_SMTP_PORT',
+                'N8N_SMTP_USER', 'N8N_SMTP_PASS', 'N8N_SMTP_SENDER', 'N8N_SMTP_SSL'
+            ];
+            foreach ($smtpKeys as $key) {
+                unset($finalEnv[$key]);
+            }
+
             // Volume Config
             $volumes = [$volumeHostPath => '/home/node/.n8n'];
 
@@ -469,6 +478,17 @@ class ContainerController extends Controller
         // User Configurable Envs (from DB)
         $userEnv = $container->environment ? json_decode($container->environment, true) : [];
         $envArray = array_merge($envArray, $userEnv);
+
+        // Remove SMTP keys if present (only injected in recovery mode)
+        // We remove them after merging global and user envs to ensure they are cleared
+        // unless explicitly re-added by the recovery block below.
+        $smtpKeys = [
+            'N8N_EMAIL_MODE', 'N8N_SMTP_HOST', 'N8N_SMTP_PORT',
+            'N8N_SMTP_USER', 'N8N_SMTP_PASS', 'N8N_SMTP_SENDER', 'N8N_SMTP_SSL'
+        ];
+        foreach ($smtpKeys as $key) {
+            unset($envArray[$key]);
+        }
 
         // Recovery Mode - Inject SMTP
         if ($container->is_recovery_mode) {
