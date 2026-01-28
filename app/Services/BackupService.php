@@ -41,12 +41,18 @@ class BackupService
                 'throw' => true,
             ];
         } elseif ($setting->driver === 'ftp') {
+            // Explicitly cast port to int and provide default
+            $port = 21;
+            if (isset($setting->port) && is_numeric($setting->port)) {
+                $port = (int) $setting->port;
+            }
+
             return [
                 'driver' => 'ftp',
                 'host' => $setting->host,
                 'username' => $setting->username,
                 'password' => $setting->password,
-                'port' => (int) ($setting->port ?: 21),
+                'port' => $port,
                 'root' => $setting->path ?: '/',
                 'ssl' => $setting->encryption === 'ssl',
                 'ignorePassiveAddress' => true,

@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <link rel="icon" href="{{ asset('favicon.png') }}" type="image/png">
     <title>n8n Panel</title>
 
     <!-- Fonts -->
@@ -210,7 +211,7 @@
         <!-- Sidebar -->
         <aside id="sidebar">
             <a href="{{ route('dashboard') }}" class="brand">
-                n8n Panel
+                <img src="{{ asset('images/logo.png') }}" alt="n8n Panel" style="max-height: 40px; width: auto;">
             </a>
 
             <div class="search-wrapper">
