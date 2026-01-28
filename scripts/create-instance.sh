@@ -174,7 +174,7 @@ mkdir -p "$VOLUME_HOST_PATH"
 chmod 777 "$VOLUME_HOST_PATH"
 
 # 2. Build Docker Command using Arrays (Safety)
-CMD_ARGS=("run" "-d" "--name" "$NAME" "--restart" "unless-stopped" "-p" "${PORT}:5678")
+CMD_ARGS=("run" "-d" "--name" "$NAME" "--restart" "unless-stopped" "--cap-drop=ALL" "--security-opt" "apparmor=docker-default" "-p" "127.0.0.1:${PORT}:5678")
 
 # Resources
 if [ ! -z "$CPU" ]; then
@@ -238,6 +238,45 @@ CMD_ARGS+=("${FULL_IMAGE}")
 # Run Docker
 echo "Executing: docker ${CMD_ARGS[*]}"
 docker "${CMD_ARGS[@]}"
+
+# 2.5 Network Speed Limiting (8MB/s ~= 64Mbit)
+echo "Applying network speed limits (8MB/s)..."
+# Give container a moment to initialize network
+sleep 2
+
+# We turn off exit-on-error temporarily for network setup to avoid breaking the script if tc fails
+set +e
+
+# Get Container iflink index
+IFLINK=$(docker exec "$NAME" cat /sys/class/net/eth0/iflink 2>/dev/null | tr -d '\r')
+
+if [ ! -z "$IFLINK" ]; then
+    # Find veth interface on host
+    VETH=$(ip link | grep "^$IFLINK:" | awk -F': ' '{print $2}' | cut -d'@' -f1)
+
+    if [ ! -z "$VETH" ]; then
+        echo "Found interface: $VETH"
+
+        # Clear existing qdiscs
+        tc qdisc del dev "$VETH" root 2>/dev/null || true
+        tc qdisc del dev "$VETH" ingress 2>/dev/null || true
+
+        # Limit Egress (Host -> Container download speed)
+        tc qdisc add dev "$VETH" root tbf rate 64mbit burst 32kbit latency 400ms
+
+        # Limit Ingress (Container -> Host upload speed)
+        tc qdisc add dev "$VETH" handle ffff: ingress
+        tc filter add dev "$VETH" parent ffff: protocol ip u32 match u32 0 0 police rate 64mbit burst 64k drop flowid :1
+
+        echo "Network limits applied."
+    else
+        echo "Warning: Could not determine host veth interface for $NAME. Network limits skipped."
+    fi
+else
+    echo "Warning: Could not determine container interface index for $NAME. Network limits skipped."
+fi
+
+set -e
 
 # 3. Nginx Configuration
 # Config location: /var/lib/n8n/nginx/$NAME.conf
