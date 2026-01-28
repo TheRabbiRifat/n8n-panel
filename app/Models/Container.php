@@ -17,6 +17,7 @@ class Container extends Model
         'port',
         'domain',
         'environment',
+        'is_recovery_mode',
         'image_tag',
         'db_host',
         'db_port',
@@ -31,6 +32,7 @@ class Container extends Model
 
     protected $casts = [
         'environment' => 'array',
+        'is_recovery_mode' => 'boolean',
         'db_password' => 'encrypted',
     ];
 

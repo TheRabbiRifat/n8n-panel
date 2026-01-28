@@ -100,6 +100,32 @@
                             <span class="ms-2 text-muted">Since {{ $container->updated_at->diffForHumans() }}</span>
                         </div>
 
+                        <div class="mb-4">
+                            @if($container->is_recovery_mode)
+                                <div class="alert alert-warning border-warning">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <strong><i class="bi bi-shield-exclamation"></i> Recovery Mode Active</strong><br>
+                                            <span class="small">SMTP credentials are injected. Disable to remove them.</span>
+                                        </div>
+                                        <form action="{{ route('containers.recovery', $container->id) }}" method="POST">
+                                            @csrf
+                                            <input type="hidden" name="recovery_mode" value="0">
+                                            <button class="btn btn-sm btn-outline-dark" onclick="return confirm('Disable recovery mode? Instance will restart.')">Disable</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            @else
+                                <form action="{{ route('containers.recovery', $container->id) }}" method="POST" class="d-inline-block mb-3">
+                                    @csrf
+                                    <input type="hidden" name="recovery_mode" value="1">
+                                    <button class="btn btn-outline-secondary btn-sm" onclick="return confirm('Enable recovery mode? This will restart the instance with SMTP credentials injected.')">
+                                        <i class="bi bi-life-preserver"></i> Enable Recovery Mode
+                                    </button>
+                                </form>
+                            @endif
+                        </div>
+
                         <div class="d-flex gap-2 mb-4" id="actions-wrapper">
                             @if($isRunning)
                                 <button class="btn btn-warning" onclick="performAction('stop')"><i class="bi bi-stop-circle"></i> Stop</button>

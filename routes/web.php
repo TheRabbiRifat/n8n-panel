@@ -81,6 +81,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::post('containers/{id}/start', [ContainerController::class, 'start'])->name('containers.start');
     Route::post('containers/{id}/stop', [ContainerController::class, 'stop'])->name('containers.stop');
+    Route::post('containers/{id}/recovery', [ContainerController::class, 'toggleRecovery'])->name('containers.recovery');
     Route::delete('containers/{id}', [ContainerController::class, 'destroy'])->name('containers.destroy');
 
     // Admin Routes Continued
