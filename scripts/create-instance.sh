@@ -242,10 +242,20 @@ docker "${CMD_ARGS[@]}"
 # 2.5 Network Speed Limiting (8MB/s ~= 64Mbit)
 echo "Applying network speed limits (8MB/s)..."
 # Give container a moment to initialize network
-sleep 2
+sleep 5
 
 # We turn off exit-on-error temporarily for network setup to avoid breaking the script if tc fails
 set +e
+
+# Wait for container to be fully running (max 20s)
+for i in {1..10}; do
+    IS_RUNNING=$(docker inspect -f '{{.State.Running}}' "$NAME" 2>/dev/null)
+    if [ "$IS_RUNNING" == "true" ]; then
+        break
+    fi
+    echo "Waiting for container to be running... ($i/10)"
+    sleep 2
+done
 
 # Get Container iflink index
 IFLINK=$(docker exec "$NAME" cat /sys/class/net/eth0/iflink 2>/dev/null | tr -d '\r')
