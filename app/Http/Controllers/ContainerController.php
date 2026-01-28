@@ -381,12 +381,77 @@ class ContainerController extends Controller
             'generic_timezone' => 'required|string',
         ]);
 
+        $package = Package::findOrFail($request->package_id);
+
+        // User Configurable Envs (Timezone + Encryption Key)
+        $existingEnv = $container->environment ? json_decode($container->environment, true) : [];
+        $userEnv = [
+            'GENERIC_TIMEZONE' => $request->generic_timezone,
+        ];
+
+        // Allow updating encryption key if provided, otherwise preserve existing
+        if ($request->filled('N8N_ENCRYPTION_KEY')) {
+             $userEnv['N8N_ENCRYPTION_KEY'] = $request->input('N8N_ENCRYPTION_KEY');
+        } elseif (isset($existingEnv['N8N_ENCRYPTION_KEY'])) {
+            $userEnv['N8N_ENCRYPTION_KEY'] = $existingEnv['N8N_ENCRYPTION_KEY'];
+        }
+
+        // We update the DB object with new user preferences BEFORE recreation logic uses it?
+        // Actually, we should pass these explicit values to our helper.
+
+        DB::beginTransaction();
+        try {
+            // Update the container record with user intent (but not Docker ID yet)
+            $container->fill([
+                'image_tag' => $request->image_tag,
+                'package_id' => $package->id,
+                'environment' => json_encode($userEnv),
+            ]);
+            $container->save();
+
+            // Perform Recreation
+            $this->recreateContainer($container);
+
+            DB::commit();
+            return back()->with('success', 'Instance updated and recreated successfully.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Update failed: ' . $e->getMessage());
+        }
+    }
+
+    public function toggleRecovery(Request $request, $id)
+    {
+        $container = Container::findOrFail($id);
+        $this->authorizeAccess($container);
+
+        $isRecovery = $request->boolean('recovery_mode');
+
+        // Toggle state
+        $container->is_recovery_mode = $isRecovery;
+        $container->save();
+
+        try {
+            $this->recreateContainer($container);
+            $status = $isRecovery ? 'enabled' : 'disabled';
+            return back()->with('success', "Recovery mode {$status}. Instance recreated.");
+        } catch (\Exception $e) {
+            return back()->with('error', 'Failed to toggle recovery mode: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Shared logic to destroy and recreate a container with current DB settings.
+     */
+    private function recreateContainer(Container $container)
+    {
         // 1. Prepare Configuration
         // Global Env
         $globalEnv = GlobalSetting::where('key', 'n8n_env')->first();
         $envArray = $globalEnv ? json_decode($globalEnv->value, true) : [];
 
-        // Fixed & Dynamic Envs (Not editable by user)
+        // Fixed & Dynamic Envs
         $fixedAndDynamic = [
             'N8N_HOST' => $container->domain,
             'N8N_PORT' => 5678,
@@ -401,29 +466,29 @@ class ContainerController extends Controller
 
         $envArray = array_merge($envArray, $fixedAndDynamic);
 
-        // User Configurable: Timezone + Preserve/Update Encryption Key
-        $existingEnv = $container->environment ? json_decode($container->environment, true) : [];
-        $userEnv = [
-            'GENERIC_TIMEZONE' => $request->generic_timezone,
-        ];
-
-        // Allow updating encryption key if provided, otherwise preserve existing
-        if ($request->filled('N8N_ENCRYPTION_KEY')) {
-             $userEnv['N8N_ENCRYPTION_KEY'] = $request->input('N8N_ENCRYPTION_KEY');
-        } elseif (isset($existingEnv['N8N_ENCRYPTION_KEY'])) {
-            $userEnv['N8N_ENCRYPTION_KEY'] = $existingEnv['N8N_ENCRYPTION_KEY'];
-        }
-
-        // Merge with Global for Docker creation
+        // User Configurable Envs (from DB)
+        $userEnv = $container->environment ? json_decode($container->environment, true) : [];
         $envArray = array_merge($envArray, $userEnv);
+
+        // Recovery Mode - Inject SMTP
+        if ($container->is_recovery_mode) {
+            $smtpEnv = [
+                'N8N_EMAIL_MODE' => 'smtp',
+                'N8N_SMTP_HOST' => config('mail.mailers.smtp.host'),
+                'N8N_SMTP_PORT' => config('mail.mailers.smtp.port'),
+                'N8N_SMTP_USER' => config('mail.mailers.smtp.username'),
+                'N8N_SMTP_PASS' => config('mail.mailers.smtp.password'),
+                'N8N_SMTP_SENDER' => config('mail.from.address'),
+                'N8N_SMTP_SSL' => (config('mail.mailers.smtp.scheme') === 'tls') ? 'true' : 'false',
+            ];
+            // Filter out nulls just in case
+            $smtpEnv = array_filter($smtpEnv, fn($v) => !is_null($v));
+            $envArray = array_merge($envArray, $smtpEnv);
+        }
 
         // Volume Path
         $volumeHostPath = "/var/lib/n8n/instances/{$container->name}";
         $volumes = [$volumeHostPath => '/home/node/.n8n'];
-
-        // Package
-        $package = Package::findOrFail($request->package_id);
-        // Resellers can use any package, no ownership check needed anymore.
 
         // Retrieve or Generate DB Credentials
         $dbConfig = [];
@@ -433,10 +498,10 @@ class ContainerController extends Controller
                 'port' => $container->db_port,
                 'database' => $container->db_database,
                 'username' => $container->db_username,
-                'password' => $container->db_password, // Decrypted by model cast
+                'password' => $container->db_password,
             ];
         } else {
-            // Legacy/Missing - Generate
+             // Generate if missing (Legacy support)
             $safeName = preg_replace('/[^a-z0-9]/', '', strtolower($container->name)) . '_' . Str::random(4);
             $dbConfig = [
                 'host' => '172.17.0.1',
@@ -447,61 +512,45 @@ class ContainerController extends Controller
             ];
         }
 
-        DB::beginTransaction();
+        // 2. Stop and Remove old container
         try {
-            // 2. Stop and Remove old container
-            try {
-                // Do NOT pass dbConfig here, we don't want to drop the DB on update/recreation!
-                $this->dockerService->removeContainer($container->docker_id);
-            } catch (\Exception $e) {
-                // Ignore if already gone
-            }
-
-            // 3. Create New Container
-            $image = 'n8nio/n8n:' . $request->image_tag;
-
-            $email = Auth::user()->email ?? env('MAIL_FROM_ADDRESS', 'admin@example.com');
-
-            $panelDbUser = config('database.connections.pgsql.username');
-
-            $instance = $this->dockerService->createContainer(
-                $image,
-                $container->name,
-                $container->port,
-                5678,
-                $package->cpu_limit,
-                $package->ram_limit,
-                $envArray,
-                $volumes,
-                [], // labels
-                $container->domain,
-                $email,
-                $container->id,
-                $dbConfig,
-                $panelDbUser
-            );
-
-            // 4. Update DB
-            $container->update([
-                'image_tag' => $request->image_tag,
-                'docker_id' => $instance->getShortDockerIdentifier(),
-                'package_id' => $package->id,
-                'environment' => json_encode($userEnv),
-                // Ensure legacy containers get updated DB fields if generated
-                'db_host' => $dbConfig['host'],
-                'db_port' => $dbConfig['port'],
-                'db_database' => $dbConfig['database'],
-                'db_username' => $dbConfig['username'],
-                'db_password' => $dbConfig['password'],
-            ]);
-
-            DB::commit();
-            return back()->with('success', 'Instance updated and recreated successfully.');
-
+            $this->dockerService->removeContainer($container->docker_id);
         } catch (\Exception $e) {
-            DB::rollBack();
-            return back()->with('error', 'Update failed: ' . $e->getMessage());
+            // Ignore if already gone
         }
+
+        // 3. Create New Container
+        $image = 'n8nio/n8n:' . ($container->image_tag ?? 'latest');
+        $email = Auth::user()->email ?? env('MAIL_FROM_ADDRESS', 'admin@example.com');
+        $panelDbUser = config('database.connections.pgsql.username');
+        $package = $container->package; // Relations should be loaded or lazy loaded
+
+        $instance = $this->dockerService->createContainer(
+            $image,
+            $container->name,
+            $container->port,
+            5678,
+            $package->cpu_limit ?? 1,
+            $package->ram_limit ?? 1,
+            $envArray,
+            $volumes,
+            [], // labels
+            $container->domain,
+            $email,
+            $container->id,
+            $dbConfig,
+            $panelDbUser
+        );
+
+        // 4. Update DB details (Docker ID and potentially DB creds if generated)
+        $container->update([
+            'docker_id' => $instance->getShortDockerIdentifier(),
+            'db_host' => $dbConfig['host'],
+            'db_port' => $dbConfig['port'],
+            'db_database' => $dbConfig['database'],
+            'db_username' => $dbConfig['username'],
+            'db_password' => $dbConfig['password'],
+        ]);
     }
 
     public function deleteOrphan(Request $request)
