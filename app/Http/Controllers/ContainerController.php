@@ -451,15 +451,6 @@ class ContainerController extends Controller
         $globalEnv = GlobalSetting::where('key', 'n8n_env')->first();
         $envArray = $globalEnv ? json_decode($globalEnv->value, true) : [];
 
-        // Filter out SMTP keys (only allowed in Recovery Mode)
-        $smtpKeys = [
-            'N8N_EMAIL_MODE', 'N8N_SMTP_HOST', 'N8N_SMTP_PORT',
-            'N8N_SMTP_USER', 'N8N_SMTP_PASS', 'N8N_SMTP_SENDER', 'N8N_SMTP_SSL'
-        ];
-        foreach ($smtpKeys as $key) {
-            unset($envArray[$key]);
-        }
-
         // Fixed & Dynamic Envs
         $fixedAndDynamic = [
             'N8N_HOST' => $container->domain,
