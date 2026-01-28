@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>n8n Panel Login</title>
+    <link rel="icon" href="{{ asset('favicon.png') }}" type="image/png">
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
     <!-- Bootstrap -->
@@ -55,9 +56,6 @@
         }
 
         .login-logo {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #ff6c2c; /* WHM Orange */
             margin-bottom: 2rem;
             text-align: center;
         }
@@ -99,7 +97,7 @@
 
     <div class="login-card">
         <div class="login-logo">
-            n8n Panel
+            <img src="{{ asset('images/logo.png') }}" alt="n8n Panel" style="max-width: 180px; height: auto;">
         </div>
 
         @if ($errors->any())
