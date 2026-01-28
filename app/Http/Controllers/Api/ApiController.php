@@ -126,16 +126,6 @@ class ApiController extends Controller
         // 4. Env Prep
         $globalEnv = GlobalSetting::where('key', 'n8n_env')->first();
         $envArray = $globalEnv ? json_decode($globalEnv->value, true) : [];
-
-        // Filter out SMTP keys to enforce "No SMTP on creation" rule
-        $smtpKeys = [
-            'N8N_EMAIL_MODE', 'N8N_SMTP_HOST', 'N8N_SMTP_PORT',
-            'N8N_SMTP_USER', 'N8N_SMTP_PASS', 'N8N_SMTP_SENDER', 'N8N_SMTP_SSL'
-        ];
-        foreach ($smtpKeys as $key) {
-            unset($envArray[$key]);
-        }
-
         $envArray['N8N_HOST'] = $subdomain;
         $envArray['N8N_PORT'] = 5678;
         $envArray['N8N_PROTOCOL'] = 'https';
