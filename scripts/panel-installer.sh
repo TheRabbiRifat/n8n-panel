@@ -88,6 +88,14 @@ systemctl enable --now cron
 ufw allow 80/tcp
 ufw allow 443/tcp
 ufw allow ${PANEL_PORT}/tcp
+# SSH
+ufw allow 22/tcp
+# FTP
+ufw allow 21/tcp
+# SMTP
+ufw allow 25/tcp
+ufw allow 465/tcp
+ufw allow 587/tcp
 ufw reload || true
 
 #################################
