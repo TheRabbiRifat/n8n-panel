@@ -68,8 +68,8 @@ class ApiController extends Controller
     {
         $request->validate([
             'package_id' => 'required|exists:packages,id',
-            'name' => 'required|string|alpha_dash|unique:containers,name', // Instance Name
-            'version' => 'nullable|string', // Default 'latest'
+            'name' => 'required|string|alpha_dash|max:64|unique:containers,name', // Instance Name
+            'version' => 'nullable|string|max:32', // Default 'latest'
         ]);
 
         $targetUser = Auth::user();
@@ -526,9 +526,9 @@ class ApiController extends Controller
         $user = User::role('reseller')->where('username', $username)->firstOrFail();
 
         $request->validate([
-            'name' => 'nullable|string',
-            'username' => 'nullable|string|alpha_dash|unique:users,username,' . $user->id,
-            'email' => 'nullable|email|unique:users,email,' . $user->id,
+            'name' => 'nullable|string|max:255',
+            'username' => 'nullable|string|alpha_dash|max:255|unique:users,username,' . $user->id,
+            'email' => 'nullable|email|max:255|unique:users,email,' . $user->id,
             'password' => 'nullable|string|min:8',
             'package_id' => 'nullable|exists:packages,id',
         ]);
@@ -619,9 +619,9 @@ class ApiController extends Controller
 
         // Admin only (enforced by route middleware)
         $request->validate([
-            'name' => 'required|string',
-            'username' => 'required|string|alpha_dash|unique:users,username',
-            'email' => 'required|email|unique:users,email',
+            'name' => 'required|string|max:255',
+            'username' => 'required|string|alpha_dash|max:255|unique:users,username',
+            'email' => 'required|email|max:255|unique:users,email',
             'password' => 'required|string|min:8',
             'package_id' => 'required|exists:packages,id',
         ]);

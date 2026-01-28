@@ -98,10 +98,10 @@ class InstanceController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|alpha_dash|unique:containers,name',
-            'version' => 'required|string',
-            'package_id' => 'required|exists:packages,id',
-            'generic_timezone' => 'required|string',
+            'name' => ['required', 'string', 'alpha_dash', 'max:64', 'unique:containers,name'],
+            'version' => ['required', 'string', 'in:stable,latest,beta'],
+            'package_id' => ['required', 'exists:packages,id'],
+            'generic_timezone' => ['required', 'string', 'max:100'],
         ]);
 
         // Check Instance Limit

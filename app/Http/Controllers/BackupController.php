@@ -6,6 +6,7 @@ use App\Models\BackupSetting;
 use App\Services\BackupService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
+use App\Rules\CronExpression; // You might need a custom rule or strict regex
 
 class BackupController extends Controller
 {
@@ -33,12 +34,25 @@ class BackupController extends Controller
     {
         $request->validate([
             'driver' => 'required|in:local,ftp,s3',
-            'host' => 'nullable|required_if:driver,ftp',
-            'username' => 'nullable|required_if:driver,ftp,s3',
-            'password' => 'nullable|required_if:driver,ftp,s3',
-            'bucket' => 'nullable|required_if:driver,s3',
-            'region' => 'nullable|required_if:driver,s3',
+            'host' => 'nullable|required_if:driver,ftp|string|max:255',
+            'username' => 'nullable|required_if:driver,ftp,s3|string|max:255',
+            'password' => 'nullable|required_if:driver,ftp,s3|string|max:255',
+            'bucket' => 'nullable|required_if:driver,s3|string|max:255',
+            'region' => 'nullable|required_if:driver,s3|string|max:100',
+            'endpoint' => 'nullable|url|max:255',
+            'port' => 'nullable|integer|min:1|max:65535',
+            'path' => 'nullable|string|max:255',
+            'cron_expression' => 'nullable|string|max:255', // Could add more strict cron regex
         ]);
+
+        // Simple cron validation if provided
+        if ($request->filled('cron_expression')) {
+            // Very basic check, standard cron usually has 5 parts
+            $parts = explode(' ', $request->cron_expression);
+            if (count($parts) < 5) {
+                return back()->with('error', 'Invalid cron expression format.')->withInput();
+            }
+        }
 
         try {
             $this->backupService->testConnection($request->all());
