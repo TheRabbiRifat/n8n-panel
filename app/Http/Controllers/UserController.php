@@ -27,10 +27,10 @@ class UserController extends Controller
     {
         $this->authorize('manage_users');
         $request->validate([
-            'name' => 'required',
-            'username' => 'required|string|alpha_dash|unique:users',
-            'email' => 'required|email|unique:users',
-            'password' => 'required|min:8',
+            'name' => 'required|string|max:255',
+            'username' => 'required|string|alpha_dash|max:255|unique:users',
+            'email' => 'required|email|max:255|unique:users',
+            'password' => 'required|string|min:8',
             'role' => 'required|exists:roles,name',
             'instance_limit' => 'required|integer|min:1',
         ]);
@@ -59,10 +59,10 @@ class UserController extends Controller
     {
         $this->authorize('manage_users');
         $request->validate([
-            'name' => 'required',
-            'username' => 'required|string|alpha_dash|unique:users,username,' . $user->id,
-            'email' => 'required|email|unique:users,email,' . $user->id,
-            'password' => 'nullable|min:8',
+            'name' => 'required|string|max:255',
+            'username' => 'required|string|alpha_dash|max:255|unique:users,username,' . $user->id,
+            'email' => 'required|email|max:255|unique:users,email,' . $user->id,
+            'password' => 'nullable|string|min:8',
             'role' => 'required|exists:roles,name',
             'instance_limit' => 'required|integer|min:1',
         ]);

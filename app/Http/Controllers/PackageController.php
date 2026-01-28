@@ -47,10 +47,10 @@ class PackageController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'type' => 'required|in:instance,reseller',
-            'cpu_limit' => 'required|numeric|min:0.1',
-            'ram_limit' => 'required|numeric|min:0.1', // GB
-            'disk_limit' => 'nullable|numeric|min:0.1', // GB
-            'instance_count' => 'nullable|integer|min:1',
+            'cpu_limit' => 'required|numeric|min:0.1|max:100', // Reasonable max?
+            'ram_limit' => 'required|numeric|min:0.1|max:1024', // GB
+            'disk_limit' => 'nullable|numeric|min:0.1|max:10000', // GB
+            'instance_count' => 'nullable|integer|min:1|max:1000000',
         ]);
 
         // Validate specific fields based on type
@@ -94,10 +94,10 @@ class PackageController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'type' => 'required|in:instance,reseller',
-            'cpu_limit' => 'required|numeric|min:0.1',
-            'ram_limit' => 'required|numeric|min:0.1',
-            'disk_limit' => 'nullable|numeric|min:0.1',
-            'instance_count' => 'nullable|integer|min:1',
+            'cpu_limit' => 'required|numeric|min:0.1|max:100',
+            'ram_limit' => 'required|numeric|min:0.1|max:1024',
+            'disk_limit' => 'nullable|numeric|min:0.1|max:10000',
+            'instance_count' => 'nullable|integer|min:1|max:1000000',
         ]);
 
         // Validate specific fields based on type
