@@ -88,13 +88,16 @@ class ContainerController extends Controller
         $this->authorizeAccess($container);
 
         try {
-            $this->dockerService->removeContainer($container->docker_id);
+            $dbConfig = [
+                'database' => $container->db_database,
+                'username' => $container->db_username,
+            ];
 
-            // DELETE VOLUME
-            $volumePath = "/var/lib/n8n/instances/{$container->name}";
-            if (Str::startsWith($volumePath, '/var/lib/n8n/instances/') && strlen($volumePath) > 23) {
-                 \Illuminate\Support\Facades\Process::run("rm -rf $volumePath");
-            }
+            // Remove Container, Nginx, Volume, DB
+            $this->dockerService->removeContainer($container->docker_id, $container->domain, $container->id, $dbConfig);
+
+            // Remove Backups
+            $this->backupService->deleteBackup($container->name);
 
             $containerName = $container->name;
             $container->delete();
@@ -103,10 +106,16 @@ class ContainerController extends Controller
                 \Illuminate\Support\Facades\Mail::to(Auth::user()->email)->send(new \App\Mail\InstanceDeleted($containerName));
             } catch (\Exception $e) {}
 
-            return back()->with('success', 'Container and volume removed.');
+            return back()->with('success', 'Instance and all associated resources (DB, Volume, Backups) removed.');
         } catch (\Exception $e) {
+             // If docker/script fails, we still try to delete the DB record, or maybe we should keep it?
+             // Usually better to force delete via script if possible, but if script fails we might leave artifacts.
+             // If we delete the record, the user can't retry.
+             // But existing logic deleted it in catch block?
+             // "return back()->with('warning', 'Container removed from database but Docker might have failed..."
+             // I'll keep the behavior of deleting the record if it fails, but maybe log it.
              $container->delete();
-             return back()->with('warning', 'Container removed from database but Docker might have failed: ' . $e->getMessage());
+             return back()->with('warning', 'Instance removed from database but resource cleanup might have failed: ' . $e->getMessage());
         }
     }
 
@@ -219,11 +228,7 @@ class ContainerController extends Controller
             $finalEnv = array_merge($envArray, $preservedEnvs, $systemEnvs);
 
             // Remove SMTP keys (ensure clean slate on import)
-            $smtpKeys = [
-                'N8N_EMAIL_MODE', 'N8N_SMTP_HOST', 'N8N_SMTP_PORT',
-                'N8N_SMTP_USER', 'N8N_SMTP_PASS', 'N8N_SMTP_SENDER', 'N8N_SMTP_SSL'
-            ];
-            foreach ($smtpKeys as $key) {
+            foreach (Container::SMTP_ENV_KEYS as $key) {
                 unset($finalEnv[$key]);
             }
 
@@ -482,11 +487,7 @@ class ContainerController extends Controller
         // Remove SMTP keys if present (only injected in recovery mode)
         // We remove them after merging global and user envs to ensure they are cleared
         // unless explicitly re-added by the recovery block below.
-        $smtpKeys = [
-            'N8N_EMAIL_MODE', 'N8N_SMTP_HOST', 'N8N_SMTP_PORT',
-            'N8N_SMTP_USER', 'N8N_SMTP_PASS', 'N8N_SMTP_SENDER', 'N8N_SMTP_SSL'
-        ];
-        foreach ($smtpKeys as $key) {
+        foreach (Container::SMTP_ENV_KEYS as $key) {
             unset($envArray[$key]);
         }
 

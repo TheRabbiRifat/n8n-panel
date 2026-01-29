@@ -151,11 +151,7 @@ class InstanceController extends Controller
         $envArray = $globalEnv ? json_decode($globalEnv->value, true) : [];
 
         // Remove SMTP keys if present (only injected in recovery mode)
-        $smtpKeys = [
-            'N8N_EMAIL_MODE', 'N8N_SMTP_HOST', 'N8N_SMTP_PORT',
-            'N8N_SMTP_USER', 'N8N_SMTP_PASS', 'N8N_SMTP_SENDER', 'N8N_SMTP_SSL'
-        ];
-        foreach ($smtpKeys as $key) {
+        foreach (Container::SMTP_ENV_KEYS as $key) {
             unset($envArray[$key]);
         }
 
