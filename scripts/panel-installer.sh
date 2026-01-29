@@ -260,7 +260,11 @@ rm -rf "$TMP_DIR"
 # Setup Auto-Backup Cron (ensure it exists)
 echo "Configuring automatic backups scheduler..."
 CRON_JOB="* * * * * cd ${APP_DIR} && /usr/bin/php artisan schedule:run >> /dev/null 2>&1"
-(crontab -u www-data -l 2>/dev/null; echo "$CRON_JOB") | sort -u | crontab -u www-data -
+EXISTING_CRON=$(crontab -u www-data -l 2>/dev/null || true)
+
+if ! echo "$EXISTING_CRON" | grep -Fq "artisan schedule:run"; then
+   (echo "$EXISTING_CRON"; echo "$CRON_JOB") | crontab -u www-data -
+fi
 
 echo "======================================"
 echo "✅ n8n Panel installed successfully"
