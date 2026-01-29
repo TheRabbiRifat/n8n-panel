@@ -9,6 +9,20 @@ class Container extends Model
 {
     use HasFactory;
 
+    /**
+     * List of SMTP-related environment variables that should be stripped
+     * from global settings unless explicitly injected in Recovery Mode.
+     */
+    public const SMTP_ENV_KEYS = [
+        'N8N_EMAIL_MODE',
+        'N8N_SMTP_HOST',
+        'N8N_SMTP_PORT',
+        'N8N_SMTP_USER',
+        'N8N_SMTP_PASS',
+        'N8N_SMTP_SENDER',
+        'N8N_SMTP_SSL',
+    ];
+
     protected $fillable = [
         'user_id',
         'package_id',
