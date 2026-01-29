@@ -211,7 +211,7 @@
         <!-- Sidebar -->
         <aside id="sidebar">
             <a href="{{ route('dashboard') }}" class="brand">
-                <img src="{{ asset('images/logo.png') }}" alt="n8n Panel" style="max-height: 60px; width: auto;">
+                <img src="{{ asset('images/logo.png') }}" alt="n8n Panel" style="max-height: 160px; width: auto;">
             </a>
 
             <div class="search-wrapper">
