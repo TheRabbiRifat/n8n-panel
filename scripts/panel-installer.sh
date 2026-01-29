@@ -260,11 +260,22 @@ rm -rf "$TMP_DIR"
 # Setup Auto-Backup Cron (ensure it exists)
 echo "Configuring automatic backups scheduler..."
 CRON_JOB="* * * * * cd ${APP_DIR} && /usr/bin/php artisan schedule:run >> /dev/null 2>&1"
-EXISTING_CRON=$(crontab -u www-data -l 2>/dev/null || true)
 
-if ! echo "$EXISTING_CRON" | grep -Fq "artisan schedule:run"; then
-   (echo "$EXISTING_CRON"; echo "$CRON_JOB") | crontab -u www-data -
+CRON_FILE=$(mktemp)
+# Get existing crontab, ignore error if empty
+crontab -u www-data -l > "$CRON_FILE" 2>/dev/null || true
+
+# Append job if not present
+if ! grep -Fq "artisan schedule:run" "$CRON_FILE"; then
+    echo "$CRON_JOB" >> "$CRON_FILE"
+    # Install new crontab from file
+    crontab -u www-data "$CRON_FILE"
+    echo "Cron job added."
+else
+    echo "Cron job already exists."
 fi
+
+rm -f "$CRON_FILE"
 
 echo "======================================"
 echo "✅ n8n Panel installed successfully"
