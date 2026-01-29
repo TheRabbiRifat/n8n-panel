@@ -96,6 +96,10 @@ ufw allow 21/tcp
 ufw allow 25/tcp
 ufw allow 465/tcp
 ufw allow 587/tcp
+# PostgreSQL (Restrict to Localhost and Docker Subnet)
+ufw allow from 127.0.0.1 to any port 5432
+DOCKER_SUBNET=$(docker network inspect bridge --format='{{(index .IPAM.Config 0).Subnet}}' 2>/dev/null || echo "172.17.0.0/16")
+ufw allow from "$DOCKER_SUBNET" to any port 5432
 ufw reload || true
 
 #################################
@@ -138,11 +142,20 @@ bash -c "curl -fsSL https://raw.githubusercontent.com/TheRabbiRifat/n8n-panel/ma
 # 6. POSTGRESQL CLEAN + SETUP
 #################################
 echo "Configuring PostgreSQL..."
-# Force md5 auth for local connections
-sed -i "s/^local\s\+all\s\+all\s\+peer/local all all md5/" /etc/postgresql/*/main/pg_hba.conf
-# Ensure host connections also use md5
-sed -i "s/^host\s\+all\s\+all\s\+127.0.0.1\/32\s\+.*/host    all             all             127.0.0.1\/32            md5/" /etc/postgresql/*/main/pg_hba.conf
-sed -i "s/^host\s\+all\s\+all\s\+::1\/128\s\+.*/host    all             all             ::1\/128                 md5/" /etc/postgresql/*/main/pg_hba.conf
+# Force scram-sha-256 auth for local connections
+sed -i "s/^local\s\+all\s\+all\s\+peer/local all all scram-sha-256/" /etc/postgresql/*/main/pg_hba.conf
+# Ensure host connections also use scram-sha-256
+sed -i "s/^host\s\+all\s\+all\s\+127.0.0.1\/32\s\+.*/host    all             all             127.0.0.1\/32            scram-sha-256/" /etc/postgresql/*/main/pg_hba.conf
+sed -i "s/^host\s\+all\s\+all\s\+::1\/128\s\+.*/host    all             all             ::1\/128                 scram-sha-256/" /etc/postgresql/*/main/pg_hba.conf
+
+# Listen on all addresses
+PG_CONF_FILE=$(find /etc/postgresql -name postgresql.conf 2>/dev/null | head -n 1)
+if [ ! -z "$PG_CONF_FILE" ]; then
+    if ! grep -q "^listen_addresses = '*'" "$PG_CONF_FILE"; then
+        sed -i "s/^#\?listen_addresses =.*/listen_addresses = '*'/" "$PG_CONF_FILE"
+    fi
+fi
+
 systemctl restart postgresql
 
 # Drop previous DB/user if exist
