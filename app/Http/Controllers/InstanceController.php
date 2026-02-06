@@ -181,7 +181,7 @@ class InstanceController extends Controller
         // Use lowercase, strip special chars but append random string to ensure uniqueness
         $safeName = preg_replace('/[^a-z0-9]/', '', strtolower($request->name)) . '_' . Str::random(4);
         $dbConfig = [
-            'host' => '172.17.0.1', // Default Docker Gateway
+            'host' => $this->dockerService->getDockerGatewayIp(),
             'port' => 5432,
             'database' => "n8n_{$safeName}",
             'username' => "n8n_{$safeName}",

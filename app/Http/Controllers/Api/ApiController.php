@@ -154,18 +154,7 @@ class ApiController extends Controller
         $safeName = preg_replace('/[^a-z0-9]/', '', strtolower($request->name)) . '_' . Str::random(4);
 
         // Dynamically detect Docker Bridge Gateway IP
-        $dockerGateway = '172.17.0.1'; // Fallback
-        try {
-            $process = Process::run(['docker', 'network', 'inspect', 'bridge', '--format={{(index .IPAM.Config 0).Gateway}}']);
-            if ($process->successful()) {
-                $output = trim($process->output());
-                if (!empty($output) && filter_var($output, FILTER_VALIDATE_IP)) {
-                    $dockerGateway = $output;
-                }
-            }
-        } catch (\Exception $e) {
-            // Ignore failure, use fallback
-        }
+        $dockerGateway = $this->dockerService->getDockerGatewayIp();
 
         $dbConfig = [
             'host' => $dockerGateway,
