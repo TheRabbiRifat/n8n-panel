@@ -27,7 +27,6 @@ class User extends Authenticatable
         'instance_limit',
         'package_id',
         'reseller_id',
-        'whitelisted_ips',
         'is_suspended',
     ];
 

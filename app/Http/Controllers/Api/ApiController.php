@@ -70,6 +70,7 @@ class ApiController extends Controller
             'package_id' => 'required|exists:packages,id',
             'name' => 'required|string|alpha_dash|max:64|unique:containers,name', // Instance Name
             'version' => 'nullable|string|max:32', // Default 'latest'
+            'generic_timezone' => 'nullable|string|max:100',
         ]);
 
         $targetUser = Auth::user();
@@ -107,7 +108,7 @@ class ApiController extends Controller
         }
 
         $version = $request->version ?: 'latest';
-        $genericTimezone = 'Asia/Dhaka'; // Default or from request
+        $genericTimezone = $request->generic_timezone ?: 'Asia/Dhaka';
 
         $package = Package::findOrFail($request->package_id);
 
@@ -154,18 +155,7 @@ class ApiController extends Controller
         $safeName = preg_replace('/[^a-z0-9]/', '', strtolower($request->name)) . '_' . Str::random(4);
 
         // Dynamically detect Docker Bridge Gateway IP
-        $dockerGateway = '172.17.0.1'; // Fallback
-        try {
-            $process = Process::run(['docker', 'network', 'inspect', 'bridge', '--format={{(index .IPAM.Config 0).Gateway}}']);
-            if ($process->successful()) {
-                $output = trim($process->output());
-                if (!empty($output) && filter_var($output, FILTER_VALIDATE_IP)) {
-                    $dockerGateway = $output;
-                }
-            }
-        } catch (\Exception $e) {
-            // Ignore failure, use fallback
-        }
+        $dockerGateway = $this->dockerService->getDockerGatewayIp();
 
         $dbConfig = [
             'host' => $dockerGateway,
@@ -499,22 +489,11 @@ class ApiController extends Controller
         $running = 0;
 
         // Fetch realtime status
-        // Optimization: Fetch all active containers once to match
         $activeContainers = $this->dockerService->listContainers();
 
         // Map active docker IDs for O(1) lookup
         $activeIds = [];
         foreach($activeContainers as $c) {
-            // DockerService listContainers returns array with 'id', 'names', 'status', etc.
-            // But we store short IDs usually or names?
-            // The docker_id in DB is short ID usually.
-            // Let's assume listContainers returns consistent IDs or we match by Name.
-            // Matching by Name is safer if we control naming.
-            // Container model has 'name' which maps to docker container name (prefixed or not? ApiController creates with prefix or just name?)
-            // create method: $request->name -> slug -> domain.
-            // DockerService->createContainer uses $name for container name.
-
-            // Let's check status string. "Up ..." means running.
             if (str_contains(strtolower($c['status']), 'up')) {
                 // Remove leading slash from name if present
                 $cName = ltrim($c['name'], '/');
