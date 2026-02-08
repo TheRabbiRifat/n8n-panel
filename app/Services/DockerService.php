@@ -108,18 +108,12 @@ class DockerService
 
     public function stopContainer(string $id)
     {
-        // Need name to use script, or just use docker stop if ID provided
-        // But let's look up name if needed.
-        // The script manages via docker command anyway.
-        // If we want to strictly use scripts, we should pass name.
-        // However, current signature uses ID.
-        // Let's resolve name from ID.
         $name = $this->getNameById($id);
         if ($name) {
              Process::run(['sudo', base_path('scripts/manage-container.sh'), "--name={$name}", "--action=stop"]);
         } else {
-             // Fallback
-             Process::run("docker stop $id");
+             // Fallback to docker command if name resolution fails (e.g. if ID is invalid or container gone)
+             Process::run(['docker', 'stop', $id]);
         }
     }
 
@@ -129,14 +123,14 @@ class DockerService
         if ($name) {
              Process::run(['sudo', base_path('scripts/manage-container.sh'), "--name={$name}", "--action=start"]);
         } else {
-             Process::run("docker start $id");
+             Process::run(['docker', 'start', $id]);
         }
     }
 
     public function removeContainer(string $id, string $domain = '', ?int $dbId = null, array $dbConfig = [])
     {
         $name = $this->getNameById($id);
-        // If name not found (already deleted?), fallback to docker rm
+
         if ($name) {
              $command = ['sudo', base_path('scripts/delete-instance.sh'), "--name={$name}"];
              if ($domain) {
@@ -150,7 +144,8 @@ class DockerService
 
              Process::run($command);
         } else {
-             Process::run("docker rm -f $id");
+             // Fallback
+             Process::run(['docker', 'rm', '-f', $id]);
         }
     }
 
@@ -160,12 +155,17 @@ class DockerService
         if ($name) {
              Process::run(['sudo', base_path('scripts/manage-container.sh'), "--name={$name}", "--action=restart"]);
         } else {
-             Process::run("docker restart $id");
+             Process::run(['docker', 'restart', $id]);
         }
     }
 
     private function getNameById($id) {
-         $p = Process::run("docker inspect --format '{{.Name}}' $id");
+         // Ensure ID is safe
+         if (!preg_match('/^[a-zA-Z0-9_-]+$/', $id)) {
+             return null;
+         }
+
+         $p = Process::run(['docker', 'inspect', '--format', '{{.Name}}', $id]);
          if ($p->successful()) {
              return trim($p->output(), "/ \n\r");
          }

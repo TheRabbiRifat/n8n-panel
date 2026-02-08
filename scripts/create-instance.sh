@@ -241,8 +241,6 @@ docker "${CMD_ARGS[@]}"
 
 # 2.5 Network Speed Limiting (8MB/s ~= 64Mbit)
 echo "Applying network speed limits (8MB/s)..."
-# Give container a moment to initialize network
-sleep 5
 
 # We turn off exit-on-error temporarily for network setup to avoid breaking the script if tc fails
 set +e
@@ -256,6 +254,9 @@ for i in {1..10}; do
     echo "Waiting for container to be running... ($i/10)"
     sleep 2
 done
+
+# Give network stack a moment to settle
+sleep 2
 
 # Get Container iflink index
 IFLINK=$(docker exec "$NAME" cat /sys/class/net/eth0/iflink 2>/dev/null | tr -d '\r')
@@ -272,11 +273,11 @@ if [ ! -z "$IFLINK" ]; then
         tc qdisc del dev "$VETH" ingress 2>/dev/null || true
 
         # Limit Egress (Host -> Container download speed)
-        tc qdisc add dev "$VETH" root tbf rate 64mbit burst 32kbit latency 400ms
+        tc qdisc add dev "$VETH" root tbf rate 64mbit burst 32kbit latency 400ms 2>/dev/null
 
         # Limit Ingress (Container -> Host upload speed)
-        tc qdisc add dev "$VETH" handle ffff: ingress
-        tc filter add dev "$VETH" parent ffff: protocol ip u32 match u32 0 0 police rate 64mbit burst 64k drop flowid :1
+        tc qdisc add dev "$VETH" handle ffff: ingress 2>/dev/null
+        tc filter add dev "$VETH" parent ffff: protocol ip u32 match u32 0 0 police rate 64mbit burst 64k drop flowid :1 2>/dev/null
 
         echo "Network limits applied."
     else

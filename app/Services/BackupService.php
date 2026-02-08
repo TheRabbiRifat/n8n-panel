@@ -136,21 +136,42 @@ class BackupService
             $dbUser = $container->db_username;
             $dbName = $container->db_database;
 
-            // We use PGPASSWORD env var for safety
-            $command = "pg_dump -h {$dbHost} -p {$dbPort} -U {$dbUser} --no-owner --no-acl \"{$dbName}\" > \"{$tempFile}\"";
+            // We use Symfony Process component directly for streaming output
+            // This avoids shell redirection issues and memory exhaustion with large databases
+            $process = new \Symfony\Component\Process\Process([
+                'pg_dump',
+                '-h', $dbHost,
+                '-p', (string)$dbPort,
+                '-U', $dbUser,
+                '--no-owner',
+                '--no-acl',
+                $dbName
+            ]);
 
-            $p = Process::env(['PGPASSWORD' => $container->db_password])->run($command);
+            $process->setEnv(['PGPASSWORD' => $container->db_password]);
+            $process->setTimeout(300); // 5 minutes
 
-            if (!$p->successful()) {
-                // If failed, try sudo fallback? No, user explicitly asked for instance credentials approach.
-                throw new \Exception("Database dump failed (Credentials): " . $p->errorOutput() . " " . $p->output());
+            $fileHandle = fopen($tempFile, 'w');
+
+            try {
+                $process->run(function ($type, $buffer) use ($fileHandle) {
+                    if (\Symfony\Component\Process\Process::OUT === $type) {
+                        fwrite($fileHandle, $buffer);
+                    }
+                });
+            } finally {
+                fclose($fileHandle);
+            }
+
+            if (!$process->isSuccessful()) {
+                throw new \Exception("Database dump failed (Credentials): " . $process->getErrorOutput());
             }
         } else {
             throw new \Exception("No database credentials configured for this instance.");
         }
 
         // 5. Upload to Disk
-        if (file_exists($tempFile)) {
+        if (file_exists($tempFile) && filesize($tempFile) > 0) {
             $stream = fopen($tempFile, 'r+');
             Log::info("Starting upload of {$backupName} to backup disk...");
 
