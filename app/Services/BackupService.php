@@ -137,13 +137,23 @@ class BackupService
             $dbName = $container->db_database;
 
             // We use PGPASSWORD env var for safety
-            $command = "pg_dump -h {$dbHost} -p {$dbPort} -U {$dbUser} --no-owner --no-acl \"{$dbName}\" > \"{$tempFile}\"";
+            // Use Process component directly to stream output to file to avoid memory limits and shell redirection issues
+            $process = new \Symfony\Component\Process\Process([
+                'pg_dump', '-h', $dbHost, '-p', $dbPort, '-U', $dbUser, '--no-owner', '--no-acl', $dbName
+            ]);
+            $process->setEnv(['PGPASSWORD' => $container->db_password]);
+            $process->setTimeout(300); // 5 minutes
 
-            $p = Process::env(['PGPASSWORD' => $container->db_password])->run($command);
+            $fileHandle = fopen($tempFile, 'w');
+            $process->run(function ($type, $buffer) use ($fileHandle) {
+                if (\Symfony\Component\Process\Process::OUT === $type) {
+                    fwrite($fileHandle, $buffer);
+                }
+            });
+            fclose($fileHandle);
 
-            if (!$p->successful()) {
-                // If failed, try sudo fallback? No, user explicitly asked for instance credentials approach.
-                throw new \Exception("Database dump failed (Credentials): " . $p->errorOutput() . " " . $p->output());
+            if (!$process->isSuccessful()) {
+                throw new \Exception("Database dump failed (Credentials): " . $process->getErrorOutput());
             }
         } else {
             throw new \Exception("No database credentials configured for this instance.");
