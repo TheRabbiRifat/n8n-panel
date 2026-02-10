@@ -61,7 +61,11 @@ class BackupController extends Controller
             'endpoint' => 'nullable|url|max:255',
             'port' => 'nullable|integer|min:1|max:65535',
             'path' => 'nullable|string|max:255',
-            'cron_expression' => 'nullable|string|max:255',
+            'cron_expression' => ['nullable', 'string', 'max:255', function ($attribute, $value, $fail) {
+                if (!\Cron\CronExpression::isValidExpression($value)) {
+                    $fail($attribute . ' is not a valid cron expression.');
+                }
+            }],
             'retention_days' => 'required|integer|min:1',
         ]);
 

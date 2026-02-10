@@ -41,11 +41,11 @@ class GlobalEnvironmentController extends Controller
     {
         $request->validate([
             'environment' => 'nullable|string',
-            'smtp_host' => 'nullable|string',
-            'smtp_port' => 'nullable|integer',
-            'smtp_user' => 'nullable|string',
-            'smtp_pass' => 'nullable|string',
-            'smtp_sender' => 'nullable|email',
+            'smtp_host' => 'nullable|string|max:255',
+            'smtp_port' => 'nullable|integer|min:1|max:65535',
+            'smtp_user' => 'nullable|string|max:255',
+            'smtp_pass' => 'nullable|string|max:255',
+            'smtp_sender' => 'nullable|email|max:255',
             'smtp_ssl' => 'nullable|boolean',
         ]);
 
@@ -57,7 +57,15 @@ class GlobalEnvironmentController extends Controller
             foreach ($lines as $line) {
                 if (str_contains($line, '=')) {
                     list($key, $value) = explode('=', trim($line), 2);
-                    $envArray[trim($key)] = trim($value);
+                    $key = trim($key);
+                    $value = trim($value);
+
+                    // Security: Validate Key format (A-Z, 0-9, _)
+                    if (!preg_match('/^[A-Z0-9_]+$/', $key)) {
+                         return back()->with('error', "Invalid environment variable key: $key. Only uppercase letters, numbers, and underscores allowed.");
+                    }
+
+                    $envArray[$key] = $value;
                 }
             }
         }

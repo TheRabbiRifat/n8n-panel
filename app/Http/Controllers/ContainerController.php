@@ -145,7 +145,7 @@ class ContainerController extends Controller
     public function import(Request $request)
     {
         $request->validate([
-            'docker_id' => 'required|string|unique:containers,docker_id',
+            'docker_id' => 'required|string|alpha_dash|unique:containers,docker_id',
             'name' => ['required', 'string', 'alpha_dash', 'max:64', 'unique:containers,name'],
             'user_id' => 'required|exists:users,id',
             'package_id' => 'required|exists:packages,id', // Package is mandatory
@@ -392,7 +392,7 @@ class ContainerController extends Controller
         $request->validate([
             'image_tag' => 'required|string',
             'package_id' => 'required|exists:packages,id',
-            'generic_timezone' => 'required|string',
+            'generic_timezone' => ['required', 'string', 'regex:/^[\w\/\-\+]+$/'],
         ]);
 
         $package = Package::findOrFail($request->package_id);
@@ -576,7 +576,7 @@ class ContainerController extends Controller
 
     public function deleteOrphan(Request $request)
     {
-        $request->validate(['docker_id' => 'required|string']);
+        $request->validate(['docker_id' => 'required|string|alpha_dash']);
         try {
             $this->dockerService->removeContainer($request->docker_id);
             return back()->with('success', 'Orphan container removed.');

@@ -21,7 +21,8 @@ class RoleController extends Controller
         $this->authorize('manage_roles');
         $request->validate([
             'name' => 'required|string|unique:roles,name',
-            'permissions' => 'array'
+            'permissions' => 'array',
+            'permissions.*' => 'exists:permissions,name',
         ]);
 
         $role = Role::create(['name' => $request->name]);
@@ -46,7 +47,8 @@ class RoleController extends Controller
 
         $request->validate([
             'name' => 'required|string|unique:roles,name,' . $id,
-            'permissions' => 'array'
+            'permissions' => 'array',
+            'permissions.*' => 'exists:permissions,name',
         ]);
 
         $role->update(['name' => $request->name]);

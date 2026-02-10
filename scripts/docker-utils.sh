@@ -41,16 +41,16 @@ case $ACTION in
         ;;
     inspect-batch)
         if [ ${#ARGS[@]} -eq 0 ]; then echo "Error: IDs required"; exit 1; fi
-        docker inspect "${ARGS[@]}"
+        docker inspect -- "${ARGS[@]}"
         ;;
     inspect)
         if [ -z "$ID" ]; then echo "Error: ID required"; exit 1; fi
-        docker inspect "$ID"
+        docker inspect -- "$ID"
         ;;
     inspect-format)
         if [ -z "$ID" ]; then echo "Error: ID required"; exit 1; fi
         # ARGS[0] should be format
-        docker inspect --format "${ARGS[0]}" "$ID"
+        docker inspect --format "${ARGS[0]}" -- "$ID"
         ;;
     stats)
         if [ -z "$ID" ]; then
@@ -58,14 +58,14 @@ case $ACTION in
         fi
         # Check if ARGS[0] is format, else default json
         if [ ! -z "${ARGS[0]}" ]; then
-             docker stats --no-stream --format "${ARGS[0]}" "$ID"
+             docker stats --no-stream --format "${ARGS[0]}" -- "$ID"
         else
-             docker stats --no-stream --format "{{json .}}" "$ID"
+             docker stats --no-stream --format "{{json .}}" -- "$ID"
         fi
         ;;
     logs)
         if [ -z "$ID" ]; then echo "Error: ID required"; exit 1; fi
-        docker logs --tail "$LINES" "$ID"
+        docker logs --tail "$LINES" -- "$ID"
         ;;
     info)
         docker info
@@ -74,7 +74,7 @@ case $ACTION in
         if [ -z "$ID" ]; then echo "Error: ID required"; exit 1; fi
         # Pass ARGS to update command
         # This allows arbitrary flags like --memory, --cpus
-        docker update "${ARGS[@]}" "$ID"
+        docker update "${ARGS[@]}" -- "$ID"
         ;;
     *)
         echo "Invalid action: $ACTION"
