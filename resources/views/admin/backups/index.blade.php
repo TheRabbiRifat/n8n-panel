@@ -116,33 +116,48 @@
         <div class="card shadow-sm">
             <div class="card-header bg-white d-flex justify-content-between align-items-center">
                 <span class="fw-bold">Available Backups (Remote)</span>
-                <span class="badge bg-secondary">{{ count($backups) }} Found</span>
+                <div>
+                    <button type="submit" form="restore-form" class="btn btn-sm btn-primary" onclick="return confirm('Restore selected instances? This will overwrite existing data or create new instances.')">
+                        <i class="bi bi-arrow-counterclockwise me-1"></i> Restore Selected
+                    </button>
+                    <span class="badge bg-secondary ms-2">{{ count($backups) }} Found</span>
+                </div>
             </div>
             <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0 align-middle">
-                        <thead class="bg-light">
-                            <tr>
-                                <th class="ps-4">Instance / Folder</th>
-                                <th class="text-center">Count</th>
-                                <th>Last Backup</th>
-                                <th class="text-end pe-4">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($backups as $folder)
-                            <tr data-bs-toggle="collapse" data-bs-target="#files-{{ Str::slug($folder['name']) }}" style="cursor: pointer;" class="accordion-toggle">
-                                <td class="ps-4 fw-semibold">
-                                    <i class="bi bi-folder-fill text-warning me-2"></i> {{ $folder['name'] }}
-                                </td>
-                                <td class="text-center"><span class="badge bg-secondary rounded-pill">{{ $folder['count'] }}</span></td>
-                                <td class="text-muted small">{{ $folder['last_backup'] }}</td>
-                                <td class="text-end pe-4">
-                                    <i class="bi bi-chevron-down text-muted"></i>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td colspan="4" class="p-0 border-0">
+                <form id="restore-form" action="{{ route('admin.backups.restore') }}" method="POST">
+                    @csrf
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0 align-middle">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="ps-4" style="width: 40px;">
+                                        <input type="checkbox" class="form-check-input" id="select-all" onclick="document.querySelectorAll('.backup-check').forEach(c => c.checked = this.checked)">
+                                    </th>
+                                    <th>Instance / Folder</th>
+                                    <th class="text-center">Count</th>
+                                    <th>Last Backup</th>
+                                    <th class="text-end pe-4">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($backups as $folder)
+                                <tr class="accordion-toggle">
+                                    <td class="ps-4">
+                                        <div class="d-flex align-items-center">
+                                            <input type="checkbox" name="folders[]" value="{{ $folder['name'] }}" class="form-check-input backup-check me-3">
+                                            <span style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#files-{{ Str::slug($folder['name']) }}" class="fw-semibold">
+                                                <i class="bi bi-folder-fill text-warning me-2"></i> {{ $folder['name'] }}
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td class="text-center"><span class="badge bg-secondary rounded-pill">{{ $folder['count'] }}</span></td>
+                                    <td class="text-muted small">{{ $folder['last_backup'] }}</td>
+                                    <td class="text-end pe-4">
+                                        <i class="bi bi-chevron-down text-muted" style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#files-{{ Str::slug($folder['name']) }}"></i>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="5" class="p-0 border-0">
                                     <div class="collapse bg-light" id="files-{{ Str::slug($folder['name']) }}">
                                         <div class="p-3">
                                             <table class="table table-sm mb-0 table-borderless">
@@ -164,7 +179,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="4" class="text-center py-5 text-muted">
+                                <td colspan="5" class="text-center py-5 text-muted">
                                     <i class="bi bi-archive fs-1 d-block opacity-25 mb-2"></i>
                                     No backups found on configured storage.
                                 </td>
@@ -173,6 +188,7 @@
                         </tbody>
                     </table>
                 </div>
+            </form>
             </div>
         </div>
     </div>

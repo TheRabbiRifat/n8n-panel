@@ -192,6 +192,31 @@ class BackupService
                 }
             }
 
+            // 5b. Upload Metadata
+            $metadata = [
+                'version' => '1.0',
+                'n8n_version' => $container->image_tag,
+                'encryption_key' => $env['N8N_ENCRYPTION_KEY'] ?? null,
+                'package' => [
+                    'name' => $container->package->name ?? 'Standard',
+                    'cpu_limit' => $container->package->cpu_limit ?? 1,
+                    'ram_limit' => $container->package->ram_limit ?? 1,
+                    'disk_limit' => $container->package->disk_limit ?? 10,
+                ],
+                'owner' => [
+                    'email' => $container->user->email ?? null,
+                    'username' => $container->user->username ?? null,
+                ],
+                'created_at' => now()->toIso8601String(),
+            ];
+
+            $metaFile = "{$container->name}/metadata.json";
+            try {
+                Storage::disk('backup')->put($metaFile, json_encode($metadata, JSON_PRETTY_PRINT));
+            } catch (\Exception $e) {
+                Log::warning("Failed to upload metadata for {$container->name}: " . $e->getMessage());
+            }
+
         } else {
             throw new \Exception("Backup file creation failed.");
         }
