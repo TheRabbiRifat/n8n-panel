@@ -41,7 +41,7 @@ class SsoEndpointTest extends TestCase
                  ->assertJsonStructure(['status', 'redirect_url']);
     }
 
-    public function test_reseller_can_sso_own_user_by_username()
+    public function test_reseller_cannot_sso_own_user_by_username()
     {
         $reseller = User::factory()->create();
         $reseller->assignRole('reseller');
@@ -56,8 +56,21 @@ class SsoEndpointTest extends TestCase
                              'username' => 'clientuser'
                          ]);
 
+        $response->assertStatus(403);
+    }
+
+    public function test_reseller_can_sso_self()
+    {
+        $reseller = User::factory()->create(['username' => 'reseller']);
+        $reseller->assignRole('reseller');
+
+        $response = $this->actingAs($reseller)
+                         ->postJson('/api/integration/users/sso', [
+                             'username' => 'reseller'
+                         ]);
+
         $response->assertStatus(200)
-                 ->assertJson(['status' => 'success']);
+                 ->assertJsonStructure(['status', 'redirect_url']);
     }
 
     public function test_reseller_cannot_sso_other_users_by_username()
