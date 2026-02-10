@@ -55,9 +55,9 @@ class DashboardController extends Controller
         }
 
         if ($user->hasRole('admin')) {
-             $dbContainers = Container::with(['user', 'package'])->get();
+             $dbContainers = Container::with(['user', 'package'])->paginate(5);
         } elseif ($user->hasRole('reseller')) {
-             $dbContainers = Container::with(['user', 'package'])->where('user_id', $user->id)->get();
+             $dbContainers = Container::with(['user', 'package'])->where('user_id', $user->id)->paginate(5);
         } else {
              return abort(403);
         }
