@@ -28,7 +28,7 @@
     <div class="card-body p-0">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0 table-striped">
-                <thead class="bg-light">
+                <thead>
                     <tr class="text-secondary text-uppercase small border-bottom">
                         <th class="ps-4 py-3">Name</th>
                         <th class="py-3">Domain</th>
@@ -46,14 +46,14 @@
                     @forelse($instances as $instance)
                     <tr>
                         <td class="ps-4">
-                            <div class="fw-semibold text-dark">{{ $instance->name }}</div>
+                            <div class="fw-semibold">{{ $instance->name }}</div>
                             <div class="small text-muted font-monospace">{{ substr($instance->docker_id, 0, 12) }}</div>
                         </td>
                         <td>
                             @if($instance->domain)
                                 <a href="https://{{ $instance->domain }}" target="_blank" class="text-decoration-none fw-medium">{{ $instance->domain }} <i class="bi bi-box-arrow-up-right small ms-1 text-muted"></i></a>
                             @else
-                                <span class="badge bg-light text-secondary border">No Domain</span>
+                                <span class="badge bg-secondary text-light border">No Domain</span>
                             @endif
                         </td>
                         <td>
@@ -75,14 +75,14 @@
                         </td>
                         <td>
                             <div class="d-flex flex-column small">
-                                <span class="text-muted">CPU: <span class="fw-bold text-dark">{{ $instance->package->cpu_limit ?? 'Unl' }}</span></span>
-                                <span class="text-muted">RAM: <span class="fw-bold text-dark">{{ $instance->package->ram_limit ? $instance->package->ram_limit . ' GB' : 'Unl' }}</span></span>
+                                <span class="text-muted">CPU: <span class="fw-bold">{{ $instance->package->cpu_limit ?? 'Unl' }}</span></span>
+                                <span class="text-muted">RAM: <span class="fw-bold">{{ $instance->package->ram_limit ? $instance->package->ram_limit . ' GB' : 'Unl' }}</span></span>
                             </div>
                         </td>
                         @role('admin')
                         <td>
                             <div class="d-flex align-items-center">
-                                <div class="avatar-sm bg-light rounded-circle me-2 d-flex justify-content-center align-items-center text-secondary small" style="width: 24px; height: 24px;">
+                                <div class="avatar-sm bg-secondary rounded-circle me-2 d-flex justify-content-center align-items-center text-white small" style="width: 24px; height: 24px;">
                                     {{ substr($instance->user->name, 0, 1) }}
                                 </div>
                                 <span class="small">{{ $instance->user->name }}</span>
@@ -124,7 +124,7 @@
             </table>
         </div>
     </div>
-    <div class="card-footer bg-white border-top p-3">
+    <div class="card-footer border-top p-3">
         {{ $instances->links() }}
     </div>
 </div>

@@ -55,20 +55,20 @@
                         <div class="accordion accordion-flush" id="accordion-{{ $log->id }}">
                             <div class="accordion-item">
                                 <h2 class="accordion-header">
-                                    <button class="accordion-button collapsed py-1 small text-muted bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{ $log->id }}">
+                                    <button class="accordion-button collapsed py-1 small text-muted bg-body-tertiary" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{ $log->id }}">
                                         View Payload Details
                                     </button>
                                 </h2>
                                 <div id="collapse-{{ $log->id }}" class="accordion-collapse collapse" data-bs-parent="#accordion-{{ $log->id }}">
-                                    <div class="accordion-body bg-light">
+                                    <div class="accordion-body bg-body-tertiary">
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <h6 class="small fw-bold">Request</h6>
-                                                <pre class="small bg-white p-2 border rounded text-break" style="max-height: 200px; overflow-y: auto; white-space: pre-wrap;">{{ json_encode($log->request_payload, JSON_PRETTY_PRINT) }}</pre>
+                                                <pre class="small bg-body-secondary p-2 border rounded text-break" style="max-height: 200px; overflow-y: auto; white-space: pre-wrap;">{{ json_encode($log->request_payload, JSON_PRETTY_PRINT) }}</pre>
                                             </div>
                                             <div class="col-md-6">
                                                 <h6 class="small fw-bold">Response</h6>
-                                                <pre class="small bg-white p-2 border rounded text-break" style="max-height: 200px; overflow-y: auto; white-space: pre-wrap;">{{ json_encode($log->response_payload, JSON_PRETTY_PRINT) }}</pre>
+                                                <pre class="small bg-body-secondary p-2 border rounded text-break" style="max-height: 200px; overflow-y: auto; white-space: pre-wrap;">{{ json_encode($log->response_payload, JSON_PRETTY_PRINT) }}</pre>
                                             </div>
                                         </div>
                                     </div>
