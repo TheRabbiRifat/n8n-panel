@@ -146,7 +146,7 @@ class ContainerController extends Controller
     {
         $request->validate([
             'docker_id' => 'required|string|unique:containers,docker_id',
-            'name' => 'required|string',
+            'name' => ['required', 'string', 'alpha_dash', 'max:64', 'unique:containers,name'],
             'user_id' => 'required|exists:users,id',
             'package_id' => 'required|exists:packages,id', // Package is mandatory
             'port' => 'required|integer',
