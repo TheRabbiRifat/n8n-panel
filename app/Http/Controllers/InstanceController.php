@@ -117,9 +117,13 @@ class InstanceController extends Controller
 
             // Reseller Resource Check
             if ($user->hasRole('reseller') && $user->package) {
-                $existingInstances = $user->instances()->with('package')->get();
-                $totalCpu = $existingInstances->sum(fn($i) => $i->package->cpu_limit ?? 0);
-                $totalRam = $existingInstances->sum(fn($i) => $i->package->ram_limit ?? 0);
+                $stats = $user->instances()
+                    ->join('packages', 'containers.package_id', '=', 'packages.id')
+                    ->selectRaw('SUM(packages.cpu_limit) as total_cpu, SUM(packages.ram_limit) as total_ram')
+                    ->first();
+
+                $totalCpu = $stats->total_cpu ?? 0;
+                $totalRam = $stats->total_ram ?? 0;
 
                 $newCpu = $package->cpu_limit ?? 0;
                 $newRam = $package->ram_limit ?? 0;
