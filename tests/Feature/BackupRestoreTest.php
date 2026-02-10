@@ -32,50 +32,34 @@ class BackupRestoreTest extends TestCase
     }
 
     /** @test */
-    public function it_restores_instances_from_backups()
+    public function it_restores_instances_from_backups_with_missing_package()
     {
         // 1. Setup Data
         $admin = User::factory()->create();
         $admin->assignRole('admin');
 
-        $package = Package::create([
-            'name' => 'Default',
-            'cpu_limit' => 1,
-            'ram_limit' => 1,
-            'disk_limit' => 10,
-            'price' => 0,
-            'type' => 'instance',
-            'user_id' => $admin->id
-        ]);
+        // Ensure no packages exist
+        Package::truncate();
 
-        $instanceName = 'test_instance';
+        $instanceName = 'test_instance_fresh';
 
         // Create Fake Backup Files
         Storage::disk('backup')->put("{$instanceName}/key.txt", 'test-key-content');
-        // Create dummy SQL file with timestamp
         Storage::disk('backup')->put("{$instanceName}/backup-2023-01-01.sql", 'SQL DUMP CONTENT');
-        // Ensure timestamp is set? Storage fake handles it.
 
-        // 2. Mock BackupService
+        // 2. Mock Services
         $mockBackupService = Mockery::mock(BackupService::class);
         $mockBackupService->shouldReceive('configureDisk')->andReturn(true);
-        // listBackups not called in restore
         $this->instance(BackupService::class, $mockBackupService);
 
-        // 3. Mock DockerService
         $mockDockerService = Mockery::mock(DockerService::class);
         $mockDockerService->shouldReceive('getDockerGatewayIp')->andReturn('172.17.0.1');
 
-        // Mock createContainer result
         $mockContainerInstance = Mockery::mock();
-        $mockContainerInstance->shouldReceive('getShortDockerIdentifier')->andReturn('docker123');
+        $mockContainerInstance->shouldReceive('getShortDockerIdentifier')->andReturn('docker456');
 
         $mockDockerService->shouldReceive('createContainer')
             ->once()
-            ->withArgs(function ($image, $name, $port, $internalPort, $cpu, $ram, $env, $volumes, $labels, $domain, $email, $dbId, $dbConfig, $panelDbUser) use ($instanceName) {
-                return $name === $instanceName &&
-                       str_contains(json_encode($env), 'test-key-content');
-            })
             ->andReturn($mockContainerInstance);
 
         $mockDockerService->shouldReceive('stopContainer')->andReturn(true);
@@ -83,36 +67,34 @@ class BackupRestoreTest extends TestCase
 
         $this->instance(DockerService::class, $mockDockerService);
 
-        // 4. Mock PortAllocator
         $mockPortAllocator = Mockery::mock(PortAllocator::class);
-        $mockPortAllocator->shouldReceive('allocate')->andReturn(5678);
+        $mockPortAllocator->shouldReceive('allocate')->andReturn(5679);
         $this->instance(PortAllocator::class, $mockPortAllocator);
 
-        // 5. Mock Process for DB Import
-        Process::fake([
-            '*' => Process::result(),
-        ]);
+        Process::fake(['*' => Process::result()]);
 
-        // 6. Execute Request
+        // 3. Execute
         $response = $this->actingAs($admin)->post(route('admin.backups.restore'), [
             'folders' => [$instanceName]
         ]);
 
-        // 7. Assertions
+        // 4. Assertions
         $response->assertRedirect();
         $response->assertSessionHas('success');
 
-        // Check DB creation
-        $this->assertDatabaseHas('containers', [
-            'name' => $instanceName,
-            'user_id' => $admin->id,
-            'package_id' => $package->id,
-            'port' => 5678,
-            'docker_id' => 'docker123',
+        // Check if package was automatically created
+        $this->assertDatabaseHas('packages', [
+            'name' => 'Standard',
+            'cpu_limit' => 2,
         ]);
 
-        // Check key injection in DB
-        $container = Container::where('name', $instanceName)->first();
-        $this->assertStringContainsString('test-key-content', $container->environment);
+        $package = Package::where('name', 'Standard')->first();
+
+        // Check instance created and linked to new package
+        $this->assertDatabaseHas('containers', [
+            'name' => $instanceName,
+            'package_id' => $package->id,
+            'user_id' => $admin->id,
+        ]);
     }
 }

@@ -140,7 +140,16 @@ class BackupController extends Controller
                 if (!$container) {
                     $package = Package::first();
                     if (!$package) {
-                        throw new \Exception("No packages available to create instance.");
+                        // Create a default package if none exists (common on fresh server)
+                        $package = Package::create([
+                            'name' => 'Standard',
+                            'cpu_limit' => 2, // Generous default
+                            'ram_limit' => 4,
+                            'disk_limit' => 20,
+                            'price' => 0,
+                            'type' => 'instance',
+                            'user_id' => $adminUser->id
+                        ]);
                     }
 
                     // Allocation
