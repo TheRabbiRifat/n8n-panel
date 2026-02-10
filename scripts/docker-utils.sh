@@ -39,6 +39,10 @@ case $ACTION in
     list)
         docker ps -a --format "{{.ID}}|{{.Names}}|{{.Image}}|{{.Status}}|{{.State}}|{{.Ports}}"
         ;;
+    inspect-batch)
+        if [ ${#ARGS[@]} -eq 0 ]; then echo "Error: IDs required"; exit 1; fi
+        docker inspect "${ARGS[@]}"
+        ;;
     inspect)
         if [ -z "$ID" ]; then echo "Error: ID required"; exit 1; fi
         docker inspect "$ID"
