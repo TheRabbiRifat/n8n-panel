@@ -1,45 +1,6 @@
 @extends('layouts.app')
 
 @section('content')
-<style>
-    .whm-panel-icon {
-        width: 60px; height: 60px;
-        display: flex; align-items: center; justify-content: center;
-        background: var(--bs-body-bg);
-        border: 1px solid var(--bs-border-color);
-        border-radius: 8px;
-        font-size: 1.75rem;
-        color: var(--whm-sidebar-bg);
-        margin-bottom: 1rem;
-        transition: all 0.2s;
-    }
-    [data-bs-theme="dark"] .whm-panel-icon {
-        color: var(--bs-body-color);
-        border-color: rgba(255,255,255,0.1);
-    }
-    .whm-card:hover .whm-panel-icon {
-        background: var(--bs-primary);
-        color: white;
-        border-color: var(--bs-primary);
-    }
-    .whm-card {
-        text-decoration: none;
-        color: inherit;
-        display: block;
-        height: 100%;
-        padding: 1.5rem;
-        background: var(--bs-body-bg);
-        border: 1px solid var(--bs-border-color);
-        border-radius: 4px;
-        transition: all 0.2s;
-    }
-    .whm-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        border-color: var(--bs-primary);
-    }
-</style>
-
 <div class="mb-4">
     <h3 class="fw-bold mb-1">Server Status</h3>
     <p class="text-secondary">Overview of the system and hosted accounts.</p>
@@ -49,7 +10,7 @@
 @if($systemStats)
 <div class="row g-4 mb-5">
     <div class="col-md-3">
-        <div class="card border-top border-4 border-primary h-100">
+        <div class="card border-top border-4 border-primary h-100 shadow-sm">
             <div class="card-body">
                 <div class="text-uppercase small fw-bold text-secondary mb-1">CPU Load</div>
                 <h3 class="fw-bold mb-0">{{ $systemStats['cpu'] }}</h3>
@@ -60,7 +21,7 @@
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card border-top border-4 border-info h-100">
+        <div class="card border-top border-4 border-info h-100 shadow-sm">
             <div class="card-body">
                 <div class="text-uppercase small fw-bold text-secondary mb-1">Memory Usage</div>
                 <h3 class="fw-bold mb-0">{{ $systemStats['ram']['percent'] }}%</h3>
@@ -72,7 +33,7 @@
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card border-top border-4 border-warning h-100">
+        <div class="card border-top border-4 border-warning h-100 shadow-sm">
             <div class="card-body">
                 <div class="text-uppercase small fw-bold text-secondary mb-1">Disk Usage</div>
                 <h3 class="fw-bold mb-0">{{ $systemStats['disk']['percent'] }}%</h3>
@@ -84,7 +45,7 @@
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card border-top border-4 border-success h-100">
+        <div class="card border-top border-4 border-success h-100 shadow-sm">
             <div class="card-body">
                 <div class="text-uppercase small fw-bold text-secondary mb-1">Service Status</div>
                 <div class="d-flex flex-column gap-1 mt-2">
@@ -114,33 +75,25 @@
 
 @can('view_system')
 <h4 class="fw-bold mb-4">System Information</h4>
-<div class="card mb-5 overflow-hidden">
+<div class="card mb-5 overflow-hidden shadow-sm">
     <div class="card-body p-0">
-        <style>
-            .sys-info-item { padding: 1.5rem; border-bottom: 1px solid var(--bs-border-color); }
-            @media (min-width: 768px) {
-                .sys-info-item { border-bottom: none; }
-                .sys-info-row-1 { border-bottom: 1px solid var(--bs-border-color); }
-                .sys-info-col-border { border-right: 1px solid var(--bs-border-color); }
-            }
-        </style>
         <div class="row g-0">
             <!-- Row 1 -->
-            <div class="col-md-4 sys-info-item sys-info-row-1 sys-info-col-border">
+            <div class="col-md-4 p-4 border-end border-bottom">
                 <div class="d-flex align-items-center mb-2">
                     <i class="bi bi-server fs-4 text-primary me-2"></i>
                     <span class="text-secondary small text-uppercase fw-bold">Hostname</span>
                 </div>
                 <div class="fw-bold fs-5 text-truncate" title="{{ $systemStats['hostname'] }}">{{ $systemStats['hostname'] }}</div>
             </div>
-            <div class="col-md-4 sys-info-item sys-info-row-1 sys-info-col-border">
+            <div class="col-md-4 p-4 border-end border-bottom">
                 <div class="d-flex align-items-center mb-2">
                     <i class="bi bi-hdd-stack fs-4 text-info me-2"></i>
                     <span class="text-secondary small text-uppercase fw-bold">OS Info</span>
                 </div>
                 <div class="fw-bold fs-5 text-truncate" title="{{ $systemStats['os'] }}">{{ $systemStats['os'] }}</div>
             </div>
-            <div class="col-md-4 sys-info-item sys-info-row-1">
+            <div class="col-md-4 p-4 border-bottom">
                 <div class="d-flex align-items-center mb-2">
                     <i class="bi bi-cpu fs-4 text-danger me-2"></i>
                     <span class="text-secondary small text-uppercase fw-bold">Kernel</span>
@@ -149,14 +102,14 @@
             </div>
 
             <!-- Row 2 -->
-            <div class="col-md-6 sys-info-item sys-info-col-border">
+            <div class="col-md-6 p-4 border-end">
                 <div class="d-flex align-items-center mb-2">
                     <i class="bi bi-ethernet fs-4 text-success me-2"></i>
                     <span class="text-secondary small text-uppercase fw-bold">IP Address</span>
                 </div>
                 <div class="fw-bold fs-6 font-monospace lh-sm" style="white-space: pre-wrap;">{{ str_replace(' ', "\n", $systemStats['ips']) }}</div>
             </div>
-            <div class="col-md-6 sys-info-item">
+            <div class="col-md-6 p-4">
                 <div class="d-flex align-items-center mb-2">
                     <i class="bi bi-activity fs-4 text-warning me-2"></i>
                     <span class="text-secondary small text-uppercase fw-bold">Uptime</span>
@@ -172,49 +125,65 @@
 <h4 class="fw-bold mb-4">Common Tasks</h4>
 <div class="row g-4 mb-5">
     <div class="col-md-6 col-lg-3">
-        <a href="{{ route('instances.create') }}" class="whm-card">
-            <div class="whm-panel-icon"><i class="bi bi-plus-circle"></i></div>
-            <h5 class="fw-bold">Create a New Instance</h5>
-            <p class="small text-secondary mb-0">Provision a new n8n instance on the server.</p>
+        <a href="{{ route('instances.create') }}" class="card h-100 text-decoration-none text-dark shadow-sm hover-shadow transition">
+            <div class="card-body p-4">
+                <div class="mb-3 text-primary">
+                    <i class="bi bi-plus-circle fs-1"></i>
+                </div>
+                <h5 class="fw-bold">Create a New Instance</h5>
+                <p class="small text-secondary mb-0">Provision a new n8n instance on the server.</p>
+            </div>
         </a>
     </div>
     <div class="col-md-6 col-lg-3">
-        <a href="{{ route('instances.index') }}" class="whm-card">
-            <div class="whm-panel-icon"><i class="bi bi-list-ul"></i></div>
-            <h5 class="fw-bold">List Instances</h5>
-            <p class="small text-secondary mb-0">View and manage all hosted instances.</p>
+        <a href="{{ route('instances.index') }}" class="card h-100 text-decoration-none text-dark shadow-sm hover-shadow transition">
+            <div class="card-body p-4">
+                <div class="mb-3 text-primary">
+                    <i class="bi bi-list-ul fs-1"></i>
+                </div>
+                <h5 class="fw-bold">List Instances</h5>
+                <p class="small text-secondary mb-0">View and manage all hosted instances.</p>
+            </div>
         </a>
     </div>
     <div class="col-md-6 col-lg-3">
-        <a href="{{ route('packages.index') }}" class="whm-card">
-            <div class="whm-panel-icon"><i class="bi bi-box-seam"></i></div>
-            <h5 class="fw-bold">Feature Manager</h5>
-            <p class="small text-secondary mb-0">Define resource packages and limits.</p>
+        <a href="{{ route('packages.index') }}" class="card h-100 text-decoration-none text-dark shadow-sm hover-shadow transition">
+            <div class="card-body p-4">
+                <div class="mb-3 text-primary">
+                    <i class="bi bi-box-seam fs-1"></i>
+                </div>
+                <h5 class="fw-bold">Feature Manager</h5>
+                <p class="small text-secondary mb-0">Define resource packages and limits.</p>
+            </div>
         </a>
     </div>
     @can('manage_settings')
     <div class="col-md-6 col-lg-3">
-        <a href="{{ route('admin.settings.index') }}" class="whm-card">
-            <div class="whm-panel-icon"><i class="bi bi-gear"></i></div>
-            <h5 class="fw-bold">Server Configuration</h5>
-            <p class="small text-secondary mb-0">Configure basic setup and environment.</p>
+        <a href="{{ route('admin.settings.index') }}" class="card h-100 text-decoration-none text-dark shadow-sm hover-shadow transition">
+            <div class="card-body p-4">
+                <div class="mb-3 text-primary">
+                    <i class="bi bi-gear fs-1"></i>
+                </div>
+                <h5 class="fw-bold">Server Configuration</h5>
+                <p class="small text-secondary mb-0">Configure basic setup and environment.</p>
+            </div>
         </a>
     </div>
     @endcan
 </div>
 
 <h4 class="fw-bold mb-3">Recent Instances</h4>
-<div class="card">
+<div class="card shadow-sm">
     <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
-            <thead>
+            <thead class="bg-light">
                 <tr class="text-secondary text-uppercase small">
-                    <th class="ps-4">Domain</th>
-                    <th>User</th>
-                    <th>Date Setup</th>
-                    <th>Package</th>
-                    <th>Status</th>
-                    <th class="text-end pe-4">Actions</th>
+                    <th class="ps-4 border-bottom-0">Domain</th>
+                    <th class="border-bottom-0">User</th>
+                    <th class="border-bottom-0">Date Setup</th>
+                    <th class="border-bottom-0">Package</th>
+                    <th class="border-bottom-0">Status</th>
+                    <th class="text-end pe-4 border-bottom-0">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -251,4 +220,14 @@
         <a href="{{ route('instances.index') }}" class="text-decoration-none fw-bold small">View All Instances &rarr;</a>
     </div>
 </div>
+
+<style>
+    .hover-shadow:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+    }
+    .transition {
+        transition: all .2s ease-in-out;
+    }
+</style>
 @endsection
