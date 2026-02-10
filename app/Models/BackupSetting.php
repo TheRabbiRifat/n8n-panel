@@ -19,11 +19,13 @@ class BackupSetting extends Model
         'path',
         'cron_expression',
         'enabled',
+        'retention_days',
     ];
 
     protected $casts = [
         'password' => 'encrypted',
         'enabled' => 'boolean',
         'port' => 'integer',
+        'retention_days' => 'integer',
     ];
 }
