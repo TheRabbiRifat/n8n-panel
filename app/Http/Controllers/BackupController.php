@@ -62,6 +62,7 @@ class BackupController extends Controller
             'port' => 'nullable|integer|min:1|max:65535',
             'path' => 'nullable|string|max:255',
             'cron_expression' => 'nullable|string|max:255',
+            'retention_days' => 'required|integer|min:1',
         ]);
 
         if ($request->filled('cron_expression')) {

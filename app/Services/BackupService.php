@@ -107,7 +107,56 @@ class BackupService
             }
         }
 
+        // Cleanup old backups after run
+        $this->cleanupOldBackups();
+
         return $results;
+    }
+
+    public function cleanupOldBackups()
+    {
+        $setting = BackupSetting::first();
+        if (!$setting || !$setting->retention_days) {
+            return;
+        }
+
+        $days = (int) $setting->retention_days;
+        $cutoff = now()->subDays($days)->timestamp;
+
+        try {
+            $allFiles = Storage::disk('backup')->allFiles();
+            $deletedCount = 0;
+
+            foreach ($allFiles as $file) {
+                // Only clean SQL files, ignore metadata/keys to keep folder structure valid?
+                // Or clean everything older than X days?
+                // Typically we want to remove the backup file (.sql).
+                // If we remove the .sql, the folder remains with key/metadata.
+                // Should we remove the whole folder if empty?
+                // Given the structure 'hostname/instance/backup-DATE.sql', we should target the SQL files.
+                // The keys/metadata are not timestamped in filename, but they are overwritten.
+                // We shouldn't delete keys/metadata based on age, as they are needed for the LATEST backup too.
+                // So only delete .sql files that are old.
+
+                if (!str_ends_with($file, '.sql')) {
+                    continue;
+                }
+
+                $lastModified = Storage::disk('backup')->lastModified($file);
+
+                if ($lastModified < $cutoff) {
+                    Storage::disk('backup')->delete($file);
+                    $deletedCount++;
+                }
+            }
+
+            if ($deletedCount > 0) {
+                Log::info("Backup cleanup: Deleted {$deletedCount} backups older than {$days} days.");
+            }
+
+        } catch (\Exception $e) {
+            Log::warning("Backup cleanup failed: " . $e->getMessage());
+        }
     }
 
     public function backupInstance(Container $container)

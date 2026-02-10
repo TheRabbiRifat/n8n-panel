@@ -23,6 +23,12 @@
                         </select>
                     </div>
 
+                    <div class="mb-3">
+                        <label class="form-label">Retention (Days)</label>
+                        <input type="number" name="retention_days" class="form-control" value="{{ optional($setting)->retention_days ?? 30 }}" min="1">
+                        <div class="form-text">Backups older than this will be automatically deleted.</div>
+                    </div>
+
                     {{-- Cron Schedule removed in favor of manual crontab management --}}
 
                     <!-- FTP Fields -->

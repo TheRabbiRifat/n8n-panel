@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\User;
 use App\Models\Package;
 use App\Models\Container;
+use App\Models\BackupSetting;
 use App\Services\BackupService;
 use App\Services\DockerService;
 use App\Services\PortAllocator;
@@ -14,6 +15,7 @@ use Illuminate\Support\Facades\Storage;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 use Mockery;
+use Illuminate\Support\Carbon;
 
 class BackupRestoreTest extends TestCase
 {
@@ -194,5 +196,73 @@ class BackupRestoreTest extends TestCase
         // Verify Key in DB
         $container = Container::where('name', $instanceName)->first();
         $this->assertStringContainsString('meta-key-content', $container->environment);
+    }
+
+    /** @test */
+    public function it_cleans_up_old_backups()
+    {
+        // 1. Setup
+        BackupSetting::create([
+            'driver' => 'local',
+            'retention_days' => 5,
+            'enabled' => true
+        ]);
+
+        $service = new BackupService();
+        // Since we are not mocking the service completely (we need the method to run),
+        // we might need to partially mock or just rely on Storage::fake
+        // BackupService methods listBackups etc rely on configureDisk.
+        // But cleanupOldBackups relies on Storage facade which is faked.
+
+        // 2. Create files
+        $hostname = gethostname();
+        $oldFile = "{$hostname}/instance1/backup-old.sql";
+        $newFile = "{$hostname}/instance1/backup-new.sql";
+        $keyFile = "{$hostname}/instance1/key.txt";
+
+        // Create with specific timestamps
+        // Storage::fake doesn't easily support setting mtime directly via put()
+        // But we can manipulate the underlying adapter or mock the 'lastModified' call?
+        // Mocking 'lastModified' is tricky with Facade.
+        // A better approach: Mock Storage::disk('backup') entirely?
+        // Or if we use `Illuminate\Support\Carbon::setTestNow()` it won't affect `filemtime`.
+
+        // Let's rely on Mockery for Storage since we need return values for lastModified
+
+        // We need to bypass the 'configureDisk' in cleanupOldBackups?
+        // No, cleanupOldBackups calls Storage::disk('backup')->allFiles().
+        // We can just rely on the fact that we can manipulate the timestamp if we were using real files,
+        // but with Fake, maybe not.
+
+        // Alternative: Refactor BackupService to be testable or Mock the disk behavior?
+        // Let's use a partial mock of BackupService to verify logic?
+        // No, we want to test the logic inside cleanupOldBackups.
+
+        // Let's mock the Storage facade behavior for `lastModified`.
+        // Storage::shouldReceive('disk')->with('backup')->andReturn($diskMock);
+
+        $diskMock = Mockery::mock(\Illuminate\Contracts\Filesystem\Filesystem::class);
+        $diskMock->shouldReceive('allFiles')->andReturn([$oldFile, $newFile, $keyFile]);
+
+        // Old file: 10 days ago
+        $diskMock->shouldReceive('lastModified')->with($oldFile)->andReturn(now()->subDays(10)->timestamp);
+        // New file: 1 day ago
+        $diskMock->shouldReceive('lastModified')->with($newFile)->andReturn(now()->subDays(1)->timestamp);
+        // Key file: 10 days ago (but should be ignored by extension check)
+        // Actually, the loop checks extension first. So lastModified won't be called for key.txt.
+
+        // Expect deletion of old file
+        $diskMock->shouldReceive('delete')->with($oldFile)->once();
+
+        // Expect NO deletion of new file
+        $diskMock->shouldReceive('delete')->with($newFile)->never();
+
+        Storage::shouldReceive('disk')->with('backup')->andReturn($diskMock);
+
+        // 3. Act
+        $service->cleanupOldBackups();
+
+        // 4. Assert (Mockery assertions happen on teardown)
+        $this->assertTrue(true);
     }
 }
