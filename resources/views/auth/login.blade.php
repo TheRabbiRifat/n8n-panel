@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-bs-theme="auto">
+<html lang="en" data-bs-theme="light">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -10,49 +10,24 @@
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
 
-    <script>
-        // Theme Toggler
-        (() => {
-            'use strict'
-            const getStoredTheme = () => localStorage.getItem('theme')
-            const getPreferredTheme = () => {
-                const storedTheme = getStoredTheme()
-                if (storedTheme) { return storedTheme }
-                return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-            }
-            const setTheme = theme => {
-                if (theme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-                    document.documentElement.setAttribute('data-bs-theme', 'dark')
-                } else {
-                    document.documentElement.setAttribute('data-bs-theme', theme)
-                }
-            }
-            setTheme(getPreferredTheme())
-        })()
-    </script>
-
     <style>
         body {
             font-family: 'Open Sans', sans-serif;
-            background: linear-gradient(135deg, #29388c 0%, #1e2a69 100%);
+            background-color: #f8f9fa; /* bg-light */
             display: flex;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
         }
 
-        [data-bs-theme="dark"] body {
-            background: #121416;
-        }
-
         .login-card {
             width: 100%;
             max-width: 420px;
-            background-color: var(--bs-body-bg);
-            border-radius: 4px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-            overflow: hidden;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06); /* shadow-sm */
             padding: 3rem 2.5rem;
+            border: 1px solid #dee2e6;
         }
 
         .login-logo {
@@ -61,22 +36,15 @@
         }
 
         .form-control {
-            border-radius: 3px;
+            border-radius: 4px;
             padding: 0.6rem 0.8rem;
-            border: 1px solid var(--bs-border-color);
         }
 
         .btn-login {
-            background-color: #007cf7; /* cPanel Blue */
-            border: none;
-            color: white;
             font-weight: 600;
             padding: 0.7rem;
-            border-radius: 3px;
+            border-radius: 4px;
             width: 100%;
-        }
-        .btn-login:hover {
-            background-color: #0062c4;
         }
 
         .bottom-links {
@@ -85,10 +53,11 @@
             font-size: 0.85rem;
         }
         .bottom-links a {
-            color: var(--bs-secondary-color);
+            color: #6c757d;
             text-decoration: none;
         }
         .bottom-links a:hover {
+            color: #0d6efd;
             text-decoration: underline;
         }
     </style>
@@ -120,10 +89,10 @@
 
             <div class="mb-4 form-check">
                 <input type="checkbox" class="form-check-input" id="remember" name="remember">
-                <label class="form-check-label small" for="remember">Remember me</label>
+                <label class="form-check-label small text-secondary" for="remember">Remember me</label>
             </div>
 
-            <button type="submit" class="btn btn-login shadow-sm">
+            <button type="submit" class="btn btn-primary btn-login shadow-sm">
                 Log in
             </button>
         </form>
@@ -131,7 +100,7 @@
         <div class="bottom-links">
             <a href="#">Reset Password</a>
             <span class="mx-2 text-muted">&bull;</span>
-            <span class="text-muted">v110.0.12 (Jupiter)</span>
+            <span class="text-muted">v1.0.0</span>
         </div>
     </div>
 
