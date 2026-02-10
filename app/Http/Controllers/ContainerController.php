@@ -648,12 +648,20 @@ class ContainerController extends Controller
 
         return response()->streamDownload(function () use ($dbName) {
             $script = base_path('scripts/db-manager.sh');
-            $cmd = "sudo {$script} --action=export --db-name='{$dbName}'";
-            $fp = popen($cmd, 'r');
-            while (!feof($fp)) {
-                echo fread($fp, 1024);
+
+            // Use Process component directly for secure argument handling
+            $process = new \Symfony\Component\Process\Process([
+                'sudo',
+                $script,
+                '--action=export',
+                "--db-name={$dbName}"
+            ]);
+
+            $process->start();
+
+            foreach ($process->getIterator($process::ITER_SKIP_ERR) as $buffer) {
+                echo $buffer;
             }
-            pclose($fp);
         }, $filename, [
             'Content-Type' => 'application/sql',
         ]);
