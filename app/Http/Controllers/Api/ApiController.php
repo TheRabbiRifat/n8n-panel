@@ -71,7 +71,7 @@ class ApiController extends Controller
             'package_id' => 'required|exists:packages,id',
             'name' => 'required|string|alpha_dash|max:64|unique:containers,name', // Instance Name
             'version' => 'nullable|string|max:32', // Default 'latest'
-            'generic_timezone' => 'nullable|string|max:100',
+            'generic_timezone' => ['nullable', 'string', 'max:100', 'regex:/^[\w\/\-\+]+$/'],
         ]);
 
         $targetUser = Auth::user();
