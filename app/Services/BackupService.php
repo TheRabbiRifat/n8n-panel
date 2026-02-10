@@ -197,7 +197,7 @@ class BackupService
         }
 
         // 6. Cleanup
-        Process::run("rm -f \"{$tempFile}\"");
+        Process::run(['rm', '-f', $tempFile]);
     }
 
     public function listBackups()
