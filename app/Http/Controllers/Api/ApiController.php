@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 
 class ApiController extends Controller
 {
@@ -489,7 +490,10 @@ class ApiController extends Controller
         $running = 0;
 
         // Fetch realtime status
-        $activeContainers = $this->dockerService->listContainers();
+        // Optimization: Fetch all active containers once to match
+        $activeContainers = Cache::remember('docker_active_containers', 30, function () {
+            return $this->dockerService->listContainers();
+        });
 
         // Map active docker IDs for O(1) lookup
         $activeIds = [];
