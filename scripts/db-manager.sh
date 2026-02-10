@@ -35,6 +35,20 @@ if [ -z "$ACTION" ] || [ -z "$DB_NAME" ]; then
     exit 1
 fi
 
+# Security: Validate DB Name to prevent SQL Injection
+if [[ ! "$DB_NAME" =~ ^[a-zA-Z0-9_]+$ ]]; then
+    echo "Error: Invalid characters in DB Name. Only alphanumeric and underscores are allowed."
+    exit 1
+fi
+
+# Security: Validate DB User if provided
+if [ ! -z "$DB_USER" ]; then
+    if [[ ! "$DB_USER" =~ ^[a-zA-Z0-9_]+$ ]]; then
+        echo "Error: Invalid characters in DB User. Only alphanumeric and underscores are allowed."
+        exit 1
+    fi
+fi
+
 case $ACTION in
     export)
         # Dump to stdout
