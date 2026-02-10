@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-bs-theme="light">
+<html lang="en" data-bs-theme="auto">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -16,111 +16,191 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
+    <script>
+        // Theme Toggler
+        (() => {
+            'use strict'
+            const getStoredTheme = () => localStorage.getItem('theme')
+            const setStoredTheme = theme => localStorage.setItem('theme', theme)
+            const getPreferredTheme = () => {
+                const storedTheme = getStoredTheme()
+                if (storedTheme) { return storedTheme }
+                return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+            }
+            const setTheme = theme => {
+                if (theme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    document.documentElement.setAttribute('data-bs-theme', 'dark')
+                } else {
+                    document.documentElement.setAttribute('data-bs-theme', theme)
+                }
+            }
+            setTheme(getPreferredTheme())
+            window.toggleTheme = () => {
+                const current = getStoredTheme() || 'auto';
+                const next = current === 'dark' ? 'light' : 'dark';
+                setStoredTheme(next);
+                setTheme(next);
+            }
+        })()
+    </script>
+
     <style>
+        :root {
+            --whm-sidebar-bg: #0f172a; /* Slate 900 */
+            --whm-sidebar-text: #94a3b8; /* Slate 400 */
+            --whm-sidebar-hover: #1e293b; /* Slate 800 */
+            --whm-accent: #3b82f6; /* Blue 500 */
+            --whm-header-bg: #ffffff;
+            --whm-header-text: #1e293b;
+            --bs-body-bg: #f1f5f9; /* Slate 100 */
+        }
+
+        [data-bs-theme="dark"] {
+            --whm-sidebar-bg: #020617; /* Slate 950 */
+            --whm-sidebar-text: #cbd5e1; /* Slate 300 */
+            --whm-sidebar-hover: #1e293b;
+            --whm-header-bg: #0f172a;
+            --whm-header-text: #f8fafc;
+            --bs-body-bg: #0f172a;
+            --bs-border-color: #334155;
+        }
+
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f8f9fa; /* bg-light */
+            background-color: var(--bs-body-bg);
+            font-size: 0.925rem;
+            letter-spacing: -0.01em;
         }
 
-        #wrapper {
-            display: flex;
-            width: 100%;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
+        #wrapper { display: flex; min-height: 100vh; overflow-x: hidden; }
 
+        /* Sidebar */
         #sidebar {
-            min-width: 260px;
-            max-width: 260px;
-            min-height: 100vh;
-            background-color: #fff;
-            border-right: 1px solid #dee2e6;
-            transition: margin-left 0.3s ease-in-out;
+            width: 260px;
+            background-color: var(--whm-sidebar-bg);
+            color: var(--whm-sidebar-text);
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
             z-index: 1040;
+            transition: margin-left 0.3s ease-in-out;
+            border-right: 1px solid rgba(255,255,255,0.05);
         }
 
         #sidebar .brand {
-            height: 64px;
+            height: 80px;
             display: flex;
             align-items: center;
-            justify-content: center;
-            border-bottom: 1px solid #dee2e6;
-            background-color: #fff;
+            padding: 0 1.5rem;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #fff;
+            background-color: rgba(0,0,0,0.2);
+            text-decoration: none;
+            letter-spacing: -0.02em;
         }
 
+        #sidebar .search-wrapper {
+            padding: 1.25rem;
+        }
+
+        #sidebar .search-input {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: #fff;
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            width: 100%;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+        }
+        #sidebar .search-input:focus {
+            background: rgba(255,255,255,0.1);
+            border-color: rgba(255,255,255,0.2);
+            outline: none;
+        }
+        #sidebar .search-input::placeholder { color: rgba(255,255,255,0.3); }
+
         #sidebar .nav-group-title {
-            padding: 1rem 1.25rem 0.5rem;
-            font-size: 0.75rem;
-            font-weight: 700;
             text-transform: uppercase;
-            color: #adb5bd;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 1.5rem 1.5rem 0.75rem;
+            color: var(--whm-sidebar-text);
+            opacity: 0.7;
             letter-spacing: 0.05em;
         }
 
         #sidebar .nav-link {
-            padding: 0.75rem 1.25rem;
-            color: #495057;
-            font-weight: 500;
+            color: var(--whm-sidebar-text);
+            padding: 0.75rem 1.5rem;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
+            text-decoration: none;
             border-left: 3px solid transparent;
             transition: all 0.2s;
+            font-weight: 500;
         }
-
         #sidebar .nav-link:hover {
-            color: #0d6efd;
-            background-color: #f8f9fa;
+            background-color: var(--whm-sidebar-hover);
+            color: #fff;
         }
-
         #sidebar .nav-link.active {
-            color: #0d6efd;
-            background-color: #e9ecef;
-            border-left-color: #0d6efd;
-            font-weight: 600;
+            background-color: var(--whm-sidebar-hover);
+            color: #fff;
+            border-left-color: var(--whm-accent);
         }
+        #sidebar .nav-link i { font-size: 1.1em; opacity: 0.8; }
 
-        #content-wrapper {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            min-width: 0;
-        }
-
+        /* Header */
         #topbar {
             height: 64px;
-            background-color: #fff;
-            border-bottom: 1px solid #dee2e6;
-            padding: 0 1.5rem;
+            background-color: var(--whm-header-bg);
+            border-bottom: 1px solid var(--bs-border-color);
             display: flex;
             align-items: center;
             justify-content: space-between;
+            padding: 0 2rem;
+            color: var(--whm-header-text);
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
         }
 
-        /* Mobile Sidebar */
+        /* Content */
+        #content-wrapper { flex-grow: 1; display: flex; flex-direction: column; min-width: 0; min-height: 100vh; }
+        .main-content { padding: 2.5rem; flex-grow: 1; overflow-x: hidden; width: 100%; }
+
+        /* Modern Card */
+        .card {
+            border: 1px solid var(--bs-border-color);
+            border-radius: 12px;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+            background-color: var(--bs-body-bg);
+        }
+        [data-bs-theme="light"] .card { background-color: #fff; }
+
+        .card-header {
+            background-color: transparent;
+            border-bottom: 1px solid var(--bs-border-color);
+            font-weight: 600;
+            padding: 1rem 1.5rem;
+        }
+        .card-body { padding: 1.5rem; }
+        .card-header {
+            background-color: transparent;
+            border-bottom: 1px solid var(--bs-border-color);
+            font-weight: 600;
+        }
+
+        /* Mobile */
         @media (max-width: 768px) {
-            #sidebar {
-                margin-left: -260px;
-                position: fixed;
-                height: 100%;
-            }
-            #sidebar.show {
-                margin-left: 0;
-                box-shadow: 0 0 15px rgba(0,0,0,0.1);
-            }
-            #sidebar-overlay {
-                display: none;
-                position: fixed;
-                top: 0; left: 0; right: 0; bottom: 0;
-                background: rgba(0,0,0,0.5);
-                z-index: 1030;
-            }
+            #sidebar { position: fixed; height: 100%; transform: translateX(-100%); transition: transform 0.3s ease-in-out; box-shadow: none; }
+            #sidebar.show { transform: translateX(0); box-shadow: 0 0 15px rgba(0,0,0,0.5); }
+            #sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1030; transition: opacity 0.3s; }
             #sidebar-overlay.show { display: block; }
-        }
 
-        .main-content {
-            padding: 2rem;
-            flex: 1;
+            .main-content { padding: 1rem; }
+            #topbar { padding: 0 1rem; }
         }
     </style>
 </head>
@@ -129,15 +209,13 @@
     <div id="sidebar-overlay"></div>
     <div id="wrapper">
         <!-- Sidebar -->
-        <aside id="sidebar" class="d-flex flex-column">
-            <div class="brand">
-                <a href="{{ route('dashboard') }}" class="text-decoration-none">
-                    <img src="{{ asset('images/logo.png') }}" alt="n8n Panel" style="max-height: 40px; width: auto;">
-                </a>
-            </div>
+        <aside id="sidebar">
+            <a href="{{ route('dashboard') }}" class="brand">
+                <img src="{{ asset('images/logo.png') }}" alt="n8n Panel" style="max-height: 160px; width: auto;">
+            </a>
 
-            <div class="p-3">
-                <input type="text" class="form-control search-input bg-light border-0" placeholder="Search menu...">
+            <div class="search-wrapper">
+                <input type="text" class="search-input" placeholder="Search features...">
             </div>
 
             <nav class="flex-grow-1 overflow-y-auto pb-4" id="sidebar-nav">
@@ -210,20 +288,26 @@
         <div id="content-wrapper">
             <!-- Top Bar -->
             <header id="topbar">
-                <div class="d-flex align-items-center gap-3">
-                    <button id="sidebarToggle" class="btn btn-light d-md-none text-secondary">
+                <div class="d-flex align-items-center gap-3 overflow-hidden">
+                    <button id="sidebarToggle" class="btn btn-link p-0 text-decoration-none d-md-none text-reset me-2">
                         <i class="bi bi-list fs-4"></i>
                     </button>
 
-                    <div class="d-none d-lg-block">
-                        <div class="fw-bold text-dark">{{ $serverInfo['hostname'] ?? 'localhost' }}</div>
-                        <div class="text-muted small">{{ $serverInfo['ips'] ?? '127.0.0.1' }}</div>
+                    <div class="d-none d-lg-flex flex-column small lh-1">
+                        <div class="fw-bold">{{ $serverInfo['hostname'] ?? 'localhost' }}</div>
+                        <div class="text-muted text-truncate" style="font-size: 0.75rem; max-width: 200px;" title="{{ $serverInfo['ips'] ?? '127.0.0.1' }}">{{ $serverInfo['ips'] ?? '127.0.0.1' }}</div>
+                    </div>
+
+                    <div class="vr mx-2 d-none d-lg-block"></div>
+
+                    <div class="d-none d-md-block small text-muted">
+                        <span class="fw-bold">Uptime:</span> {{ $serverInfo['uptime'] ?? 'Unknown' }}
                     </div>
                 </div>
 
                 <div class="d-flex align-items-center gap-3">
-                    <div class="d-none d-xl-flex align-items-center gap-2 small text-secondary">
-                        <span class="fw-bold text-uppercase" style="font-size: 0.7rem;">Load:</span>
+                    <div class="d-none d-xl-flex align-items-center gap-2 small">
+                        <span class="text-muted text-uppercase fw-bold" style="font-size: 0.7rem;">Load Averages</span>
                         <span class="badge bg-light text-dark border">{{ $serverInfo['loads']['1'] ?? '0.00' }}</span>
                         <span class="badge bg-light text-dark border">{{ $serverInfo['loads']['5'] ?? '0.00' }}</span>
                         <span class="badge bg-light text-dark border">{{ $serverInfo['loads']['15'] ?? '0.00' }}</span>
@@ -231,20 +315,24 @@
 
                     <div class="vr mx-1 d-none d-xl-block"></div>
 
+                    <button onclick="window.toggleTheme()" class="btn btn-link text-reset p-1" title="Toggle Theme">
+                         <i class="bi bi-moon-stars"></i>
+                    </button>
+
                     <div class="dropdown">
-                        <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle text-dark" data-bs-toggle="dropdown">
-                            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-2" style="width: 36px; height: 36px; font-weight: bold;">
+                        <a href="#" class="d-flex align-items-center text-reset text-decoration-none dropdown-toggle" data-bs-toggle="dropdown">
+                            <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px; font-weight: bold;">
                                 {{ substr(Auth::user()->name, 0, 1) }}
                             </div>
-                            <span class="d-none d-md-inline fw-medium">{{ Auth::user()->name }}</span>
+                            <span class="d-none d-md-inline small fw-bold">{{ Auth::user()->name }}</span>
                         </a>
-                        <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
-                            <li><a class="dropdown-item" href="{{ route('profile.edit') }}"><i class="bi bi-person me-2"></i> Password & Security</a></li>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 mt-2">
+                            <li><a class="dropdown-item" href="{{ route('profile.edit') }}">Password & Security</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li>
                                 <form action="{{ route('logout') }}" method="POST">
                                     @csrf
-                                    <button class="dropdown-item text-danger"><i class="bi bi-box-arrow-right me-2"></i> Log Out</button>
+                                    <button class="dropdown-item text-danger">Log Out</button>
                                 </form>
                             </li>
                         </ul>
@@ -255,19 +343,19 @@
             <!-- Main Content -->
             <main class="main-content">
                 @if(session('success'))
-                    <div class="alert alert-success alert-dismissible fade show mb-4 shadow-sm" role="alert">
+                    <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
                         <i class="bi bi-check-circle-fill me-2"></i> {{ session('success') }}
                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
                 @endif
                 @if(session('error'))
-                    <div class="alert alert-danger alert-dismissible fade show mb-4 shadow-sm" role="alert">
+                    <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
                         <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ session('error') }}
                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
                 @endif
                 @if ($errors->any())
-                    <div class="alert alert-danger alert-dismissible fade show mb-4 shadow-sm">
+                    <div class="alert alert-danger alert-dismissible fade show mb-4">
                         <ul class="mb-0">
                             @foreach ($errors->all() as $error) <li>{{ $error }}</li> @endforeach
                         </ul>
@@ -278,13 +366,13 @@
                 @yield('content')
             </main>
 
-            <footer class="text-center py-4 text-muted small border-top bg-white">
-                &copy; {{ date('Y') }} n8n Host Manager. All rights reserved. <span class="ms-2 badge bg-secondary bg-opacity-10 text-secondary border">v1.0.0</span>
+            <footer class="text-center py-3 text-muted small border-top">
+                &copy; {{ date('Y') }} n8n Host Manager. All rights reserved. <span class="ms-2 badge bg-light text-secondary border">v1.0.0</span>
             </footer>
         </div>
     </div>
     @else
-    <div class="d-flex min-vh-100 align-items-center justify-content-center bg-light">
+    <div class="d-flex min-vh-100 align-items-center justify-content-center bg-body-tertiary">
          @yield('content')
     </div>
     @endauth
@@ -295,7 +383,6 @@
             const toggle = document.getElementById('sidebarToggle');
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebar-overlay');
-
             if(toggle && sidebar){
                 const close = () => { sidebar.classList.remove('show'); overlay.classList.remove('show'); };
                 toggle.addEventListener('click', () => { sidebar.classList.add('show'); overlay.classList.add('show'); });
