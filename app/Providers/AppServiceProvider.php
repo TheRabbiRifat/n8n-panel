@@ -9,6 +9,7 @@ use Laravel\Sanctum\Sanctum;
 use App\Models\PersonalAccessToken;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\Cache;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -37,8 +38,11 @@ class AppServiceProvider extends ServiceProvider
         View::composer('layouts.app', function ($view) use ($systemStatusService) {
             // Only fetch if authenticated to avoid overhead on login page if it used app layout (it doesn't, but good practice)
             // But app.blade.php checks @auth.
-            // Let's caching this? For now, real-time is requested.
-            $stats = $systemStatusService->getSystemStats();
+
+            // Cache system stats for 60 seconds to avoid blocking shell commands on every request
+            $stats = Cache::remember('system_stats', 60, function () use ($systemStatusService) {
+                return $systemStatusService->getSystemStats();
+            });
             $view->with('serverInfo', $stats);
         });
     }
