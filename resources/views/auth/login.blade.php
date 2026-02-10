@@ -1,38 +1,58 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-bs-theme="auto">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Login - n8n Panel</title>
+    <title>n8n Panel Login</title>
     <link rel="icon" href="{{ asset('favicon.png') }}" type="image/png">
-
     <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
 
+    <script>
+        // Theme Toggler
+        (() => {
+            'use strict'
+            const getStoredTheme = () => localStorage.getItem('theme')
+            const getPreferredTheme = () => {
+                const storedTheme = getStoredTheme()
+                if (storedTheme) { return storedTheme }
+                return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+            }
+            const setTheme = theme => {
+                if (theme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    document.documentElement.setAttribute('data-bs-theme', 'dark')
+                } else {
+                    document.documentElement.setAttribute('data-bs-theme', theme)
+                }
+            }
+            setTheme(getPreferredTheme())
+        })()
+    </script>
+
     <style>
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f8f9fa;
+            font-family: 'Open Sans', sans-serif;
+            background: linear-gradient(135deg, #29388c 0%, #1e2a69 100%);
             display: flex;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            color: #1f2937;
+        }
+
+        [data-bs-theme="dark"] body {
+            background: #121416;
         }
 
         .login-card {
             width: 100%;
-            max-width: 400px;
-            background-color: #ffffff;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            padding: 2.5rem;
-            border: 1px solid #e5e7eb;
+            max-width: 420px;
+            background-color: var(--bs-body-bg);
+            border-radius: 4px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            overflow: hidden;
+            padding: 3rem 2.5rem;
         }
 
         .login-logo {
@@ -40,72 +60,34 @@
             text-align: center;
         }
 
-        .login-logo img {
-            max-height: 60px;
-            width: auto;
-        }
-
-        .form-label {
-            font-weight: 500;
-            font-size: 0.875rem;
-            color: #374151;
-            margin-bottom: 0.5rem;
-        }
-
         .form-control {
-            border-radius: 8px;
-            padding: 0.75rem 1rem;
-            border: 1px solid #d1d5db;
-            font-size: 0.95rem;
+            border-radius: 3px;
+            padding: 0.6rem 0.8rem;
+            border: 1px solid var(--bs-border-color);
         }
 
-        .form-control:focus {
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
-        }
-
-        .btn-primary {
-            background-color: #3b82f6;
-            border-color: #3b82f6;
-            padding: 0.75rem;
+        .btn-login {
+            background-color: #007cf7; /* cPanel Blue */
+            border: none;
+            color: white;
             font-weight: 600;
-            border-radius: 8px;
+            padding: 0.7rem;
+            border-radius: 3px;
             width: 100%;
-            font-size: 0.95rem;
-            transition: all 0.2s;
         }
-
-        .btn-primary:hover {
-            background-color: #2563eb;
-            border-color: #2563eb;
-        }
-
-        .form-check-input {
-            width: 1.1em;
-            height: 1.1em;
-            margin-top: 0.1em;
-            cursor: pointer;
-        }
-
-        .form-check-label {
-            cursor: pointer;
-            font-size: 0.9rem;
-            color: #4b5563;
+        .btn-login:hover {
+            background-color: #0062c4;
         }
 
         .bottom-links {
             text-align: center;
             margin-top: 1.5rem;
             font-size: 0.85rem;
-            color: #6b7280;
         }
-
         .bottom-links a {
-            color: #3b82f6;
+            color: var(--bs-secondary-color);
             text-decoration: none;
-            font-weight: 500;
         }
-
         .bottom-links a:hover {
             text-decoration: underline;
         }
@@ -115,11 +97,11 @@
 
     <div class="login-card">
         <div class="login-logo">
-            <img src="{{ asset('images/logo.png') }}" alt="n8n Panel">
+            <img src="{{ asset('images/logo.png') }}" alt="n8n Panel" style="max-width: 180px; height: auto;">
         </div>
 
         @if ($errors->any())
-            <div class="alert alert-danger py-2 small mb-4 rounded-2 border-0 bg-danger-subtle text-danger">
+            <div class="alert alert-danger py-2 small mb-4 rounded-1">
                  {{ $errors->first() }}
             </div>
         @endif
@@ -127,30 +109,29 @@
         <form action="{{ route('login') }}" method="POST">
             @csrf
             <div class="mb-3">
-                <label for="email" class="form-label">Email Address</label>
-                <input type="email" class="form-control" id="email" name="email" required autofocus placeholder="name@company.com">
+                <label for="email" class="form-label small fw-bold text-secondary">Username</label>
+                <input type="email" class="form-control" id="email" name="email" required autofocus placeholder="Enter your username">
             </div>
 
             <div class="mb-4">
-                <label for="password" class="form-label">Password</label>
-                <input type="password" class="form-control" id="password" name="password" required placeholder="••••••••">
+                <label for="password" class="form-label small fw-bold text-secondary">Password</label>
+                <input type="password" class="form-control" id="password" name="password" required placeholder="Enter your password">
             </div>
 
-            <div class="mb-4 d-flex justify-content-between align-items-center">
-                <div class="form-check">
-                    <input type="checkbox" class="form-check-input" id="remember" name="remember">
-                    <label class="form-check-label" for="remember">Remember me</label>
-                </div>
-                <a href="#" class="small text-decoration-none" style="color: #3b82f6; font-weight: 500;">Forgot password?</a>
+            <div class="mb-4 form-check">
+                <input type="checkbox" class="form-check-input" id="remember" name="remember">
+                <label class="form-check-label small" for="remember">Remember me</label>
             </div>
 
-            <button type="submit" class="btn btn-primary shadow-sm">
-                Sign In
+            <button type="submit" class="btn btn-login shadow-sm">
+                Log in
             </button>
         </form>
 
         <div class="bottom-links">
-            &copy; {{ date('Y') }} n8n Panel. All rights reserved.
+            <a href="#">Reset Password</a>
+            <span class="mx-2 text-muted">&bull;</span>
+            <span class="text-muted">v110.0.12 (Jupiter)</span>
         </div>
     </div>
 
