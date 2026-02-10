@@ -39,7 +39,8 @@ case $ACTION in
     export)
         # Dump to stdout
         # Use --no-owner --no-acl to ensure portability between instances
-        sudo -u postgres pg_dump --no-owner --no-acl "$DB_NAME"
+        # Quote DB name to handle special characters if any
+        sudo -u postgres pg_dump --no-owner --no-acl "\"$DB_NAME\""
         ;;
     import)
         if [ -z "$FILE" ]; then
