@@ -129,27 +129,102 @@ class BackupController extends Controller
                 // Check if instance exists
                 $container = Container::where('name', $instanceName)->first();
                 $encryptionKey = null;
+                $metadata = [];
+                $package = null;
+                $targetUser = $adminUser;
+                $imageTag = 'latest';
 
-                // 1. Retrieve Key from Backup if available
-                $keyPath = "{$instanceName}/key.txt";
-                if (Storage::disk('backup')->exists($keyPath)) {
-                    $encryptionKey = trim(Storage::disk('backup')->get($keyPath));
+                // 0. Load Metadata if available
+                $metaPath = "{$instanceName}/metadata.json";
+                if (Storage::disk('backup')->exists($metaPath)) {
+                    try {
+                        $metadata = json_decode(Storage::disk('backup')->get($metaPath), true);
+                    } catch (\Exception $e) {}
+                }
+
+                // 1. Retrieve Key (Priority: Metadata > key.txt)
+                if (!empty($metadata['encryption_key'])) {
+                    $encryptionKey = $metadata['encryption_key'];
+                } else {
+                    $keyPath = "{$instanceName}/key.txt";
+                    if (Storage::disk('backup')->exists($keyPath)) {
+                        $encryptionKey = trim(Storage::disk('backup')->get($keyPath));
+                    }
+                }
+
+                if (!empty($metadata['n8n_version'])) {
+                    $imageTag = $metadata['n8n_version'];
                 }
 
                 // 2. Create Instance if missing
                 if (!$container) {
-                    $package = Package::first();
-                    if (!$package) {
-                        // Create a default package if none exists (common on fresh server)
-                        $package = Package::create([
-                            'name' => 'Standard',
-                            'cpu_limit' => 2, // Generous default
-                            'ram_limit' => 4,
-                            'disk_limit' => 20,
-                            'price' => 0,
-                            'type' => 'instance',
-                            'user_id' => $adminUser->id
-                        ]);
+                    // 2a. Determine Package
+                    if (!empty($metadata['package'])) {
+                        // Try to find package by name or create with specs
+                        $pkgName = $metadata['package']['name'] ?? 'Restored';
+                        $pkgCpu = $metadata['package']['cpu_limit'] ?? 1;
+                        $pkgRam = $metadata['package']['ram_limit'] ?? 1;
+                        $pkgDisk = $metadata['package']['disk_limit'] ?? 10;
+
+                        // Try find exact match
+                        $package = Package::where('name', $pkgName)
+                                          ->where('cpu_limit', $pkgCpu)
+                                          ->where('ram_limit', $pkgRam)
+                                          ->first();
+
+                        if (!$package) {
+                            // Create or Reuse logic?
+                            // Let's see if name exists but specs differ
+                            $existingPkg = Package::where('name', $pkgName)->first();
+                            if ($existingPkg) {
+                                // If specs differ significantly, maybe create "Restored - {Name}"?
+                                // For now, let's reuse if name matches to avoid clutter,
+                                // UNLESS user wants exact specs. The prompt says "store... package details".
+                                // To be safe, if we have specs, we should honor them.
+                                // Let's create a custom package if needed.
+                                $package = Package::create([
+                                    'name' => "{$pkgName} (Restored)",
+                                    'cpu_limit' => $pkgCpu,
+                                    'ram_limit' => $pkgRam,
+                                    'disk_limit' => $pkgDisk,
+                                    'price' => 0,
+                                    'type' => 'instance',
+                                    'user_id' => $adminUser->id
+                                ]);
+                            } else {
+                                $package = Package::create([
+                                    'name' => $pkgName,
+                                    'cpu_limit' => $pkgCpu,
+                                    'ram_limit' => $pkgRam,
+                                    'disk_limit' => $pkgDisk,
+                                    'price' => 0,
+                                    'type' => 'instance',
+                                    'user_id' => $adminUser->id
+                                ]);
+                            }
+                        }
+                    } else {
+                        // Fallback
+                        $package = Package::first();
+                        if (!$package) {
+                            $package = Package::create([
+                                'name' => 'Standard',
+                                'cpu_limit' => 2,
+                                'ram_limit' => 4,
+                                'disk_limit' => 20,
+                                'price' => 0,
+                                'type' => 'instance',
+                                'user_id' => $adminUser->id
+                            ]);
+                        }
+                    }
+
+                    // 2b. Determine Owner
+                    if (!empty($metadata['owner']['email'])) {
+                        $existingUser = User::where('email', $metadata['owner']['email'])->first();
+                        if ($existingUser) {
+                            $targetUser = $existingUser;
+                        }
                     }
 
                     // Allocation
@@ -192,20 +267,20 @@ class BackupController extends Controller
 
                     $volumeHostPath = "/var/lib/n8n/instances/{$instanceName}";
                     $volumes = [$volumeHostPath => '/home/node/.n8n'];
-                    $image = 'n8nio/n8n:latest'; // Default
+                    $image = 'n8nio/n8n:' . $imageTag;
                     $email = env('MAIL_FROM_ADDRESS', 'admin@example.com');
                     $panelDbUser = config('database.connections.pgsql.username');
 
                     DB::beginTransaction();
                     try {
                          $container = Container::create([
-                            'user_id' => $adminUser->id,
+                            'user_id' => $targetUser->id,
                             'package_id' => $package->id,
                             'docker_id' => 'pending_' . Str::random(8),
                             'name' => $instanceName,
                             'port' => $port,
                             'domain' => $subdomain,
-                            'image_tag' => 'latest',
+                            'image_tag' => $imageTag,
                             'environment' => json_encode($instanceEnv),
                             'db_host' => $dbConfig['host'],
                             'db_port' => $dbConfig['port'],
