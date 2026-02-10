@@ -114,20 +114,23 @@
 
     <div class="col-md-8">
         <div class="card shadow-sm">
-            <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                <span class="fw-bold">Available Backups (Remote)</span>
-                <div>
-                    <button type="submit" form="restore-form" class="btn btn-sm btn-primary" onclick="return confirm('Restore selected instances? This will overwrite existing data or create new instances.')">
-                        <i class="bi bi-arrow-counterclockwise me-1"></i> Restore Selected
-                    </button>
-                    <span class="badge bg-secondary ms-2">{{ count($backups) }} Found</span>
+            <div class="card-header bg-white">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="fw-bold">Available Backups (Remote)</span>
+                    <div>
+                        <button type="submit" form="restore-form" class="btn btn-sm btn-primary" onclick="return confirm('Restore selected instances? This will overwrite existing data or create new instances.')">
+                            <i class="bi bi-arrow-counterclockwise me-1"></i> Restore Selected
+                        </button>
+                        <span class="badge bg-secondary ms-2" id="backup-count">{{ count($backups) }} Found</span>
+                    </div>
                 </div>
+                <input type="text" id="backup-search" class="form-control form-control-sm" placeholder="Search backups..." onkeyup="filterBackups()">
             </div>
             <div class="card-body p-0">
                 <form id="restore-form" action="{{ route('admin.backups.restore') }}" method="POST">
                     @csrf
                     <div class="table-responsive">
-                        <table class="table table-hover mb-0 align-middle">
+                        <table class="table table-hover mb-0 align-middle" id="backups-table">
                             <thead class="bg-light">
                                 <tr>
                                     <th class="ps-4" style="width: 40px;">
@@ -141,14 +144,14 @@
                             </thead>
                             <tbody>
                                 @forelse($backups as $folder)
-                                <tr class="accordion-toggle">
+                                <tr class="backup-row">
                                     <td class="ps-4">
-                                        <div class="d-flex align-items-center">
-                                            <input type="checkbox" name="folders[]" value="{{ $folder['name'] }}" class="form-check-input backup-check me-3">
-                                            <span style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#files-{{ Str::slug($folder['name']) }}" class="fw-semibold">
-                                                <i class="bi bi-folder-fill text-warning me-2"></i> {{ $folder['name'] }}
-                                            </span>
-                                        </div>
+                                        <input type="checkbox" name="folders[]" value="{{ $folder['name'] }}" class="form-check-input backup-check">
+                                    </td>
+                                    <td style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#files-{{ Str::slug($folder['name']) }}">
+                                        <span class="fw-semibold instance-name">
+                                            <i class="bi bi-folder-fill text-warning me-2"></i> {{ $folder['name'] }}
+                                        </span>
                                     </td>
                                     <td class="text-center"><span class="badge bg-secondary rounded-pill">{{ $folder['count'] }}</span></td>
                                     <td class="text-muted small">{{ $folder['last_backup'] }}</td>
@@ -156,7 +159,7 @@
                                         <i class="bi bi-chevron-down text-muted" style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#files-{{ Str::slug($folder['name']) }}"></i>
                                     </td>
                                 </tr>
-                                <tr>
+                                <tr class="backup-details-row">
                                     <td colspan="5" class="p-0 border-0">
                                     <div class="collapse bg-light" id="files-{{ Str::slug($folder['name']) }}">
                                         <div class="p-3">
@@ -219,5 +222,44 @@
     document.addEventListener('DOMContentLoaded', () => {
         toggleFields();
     });
+
+    function filterBackups() {
+        const input = document.getElementById('backup-search');
+        const filter = input.value.toLowerCase();
+        const table = document.getElementById('backups-table');
+        const rows = table.getElementsByClassName('backup-row');
+        const detailsRows = table.getElementsByClassName('backup-details-row');
+        let visibleCount = 0;
+
+        for (let i = 0; i < rows.length; i++) {
+            const nameSpan = rows[i].querySelector('.instance-name');
+            if (nameSpan) {
+                const txtValue = nameSpan.textContent || nameSpan.innerText;
+                if (txtValue.toLowerCase().indexOf(filter) > -1) {
+                    rows[i].style.display = "";
+                    // Keep details row hidden unless expanded, but don't force hide if parent visible
+                    // Actually, we should hide/show both as a unit?
+                    // No, details row visibility is managed by bootstrap collapse.
+                    // However, if we hide the parent row, the details row might remain 'visible' in DOM but detached visually.
+                    // Better to hide details row too if parent matches.
+                    // But if parent matches, we show parent. Details row is initially hidden anyway.
+                    // If parent DOES NOT match, we hide parent. What about details row?
+                    // We should probably hide the next sibling (details row) if parent is hidden.
+                    if (detailsRows[i]) detailsRows[i].style.display = "";
+                    visibleCount++;
+                } else {
+                    rows[i].style.display = "none";
+                    if (detailsRows[i]) detailsRows[i].style.display = "none";
+                }
+            }
+        }
+
+        document.getElementById('backup-count').textContent = visibleCount + ' Found';
+    }
+
+    // Fix for JS loop variable mismatch if rows/detailsRows lengths differ (unlikely but safe)
+    // The filter loop assumes index parity.
+    // Ensure rows match.
+    // The logic above is fine as long as row structure is consistent.
 </script>
 @endsection
