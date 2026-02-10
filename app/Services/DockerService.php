@@ -119,7 +119,7 @@ class DockerService
              Process::run(['sudo', base_path('scripts/manage-container.sh'), "--name={$name}", "--action=stop"]);
         } else {
              // Fallback
-             Process::run("docker stop $id");
+             Process::run(['docker', 'stop', $id]);
         }
     }
 
@@ -129,7 +129,7 @@ class DockerService
         if ($name) {
              Process::run(['sudo', base_path('scripts/manage-container.sh'), "--name={$name}", "--action=start"]);
         } else {
-             Process::run("docker start $id");
+             Process::run(['docker', 'start', $id]);
         }
     }
 
@@ -150,7 +150,7 @@ class DockerService
 
              Process::run($command);
         } else {
-             Process::run("docker rm -f $id");
+             Process::run(['docker', 'rm', '-f', $id]);
         }
     }
 
@@ -160,12 +160,12 @@ class DockerService
         if ($name) {
              Process::run(['sudo', base_path('scripts/manage-container.sh'), "--name={$name}", "--action=restart"]);
         } else {
-             Process::run("docker restart $id");
+             Process::run(['docker', 'restart', $id]);
         }
     }
 
     private function getNameById($id) {
-         $p = Process::run("docker inspect --format '{{.Name}}' $id");
+         $p = Process::run(['docker', 'inspect', '--format', '{{.Name}}', $id]);
          if ($p->successful()) {
              return trim($p->output(), "/ \n\r");
          }
