@@ -241,7 +241,7 @@ class ContainerController extends Controller
             // But if we just inject envs, n8n might respect them and switch DB.
             $safeName = preg_replace('/[^a-z0-9]/', '', strtolower($request->name)) . '_' . Str::random(4);
             $dbConfig = [
-                'host' => '172.17.0.1',
+                'host' => $this->dockerService->getDockerGatewayIp(),
                 'port' => 5432,
                 'database' => "n8n_{$safeName}",
                 'username' => "n8n_{$safeName}",
@@ -525,7 +525,7 @@ class ContainerController extends Controller
              // Generate if missing (Legacy support)
             $safeName = preg_replace('/[^a-z0-9]/', '', strtolower($container->name)) . '_' . Str::random(4);
             $dbConfig = [
-                'host' => '172.17.0.1',
+                'host' => $this->dockerService->getDockerGatewayIp(),
                 'port' => 5432,
                 'database' => "n8n_{$safeName}",
                 'username' => "n8n_{$safeName}",
