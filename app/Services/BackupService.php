@@ -113,9 +113,10 @@ class BackupService
     public function backupInstance(Container $container)
     {
         $timestamp = date('Y-m-d-H-i-s');
+        $hostname = gethostname();
         // Only backing up SQL as per user request (no zip)
-        // Store in instance-specific folder
-        $backupName = "{$container->name}/backup-{$timestamp}.sql";
+        // Store in instance-specific folder: hostname/instance/backup
+        $backupName = "{$hostname}/{$container->name}/backup-{$timestamp}.sql";
 
         // Temp file needs strict filename, not path with slashes for local storage logic here
         $tempFilename = "backup-{$container->name}-{$timestamp}.sql";
@@ -184,7 +185,7 @@ class BackupService
             // 5a. Upload Encryption Key
             $env = json_decode($container->environment, true);
             if (isset($env['N8N_ENCRYPTION_KEY'])) {
-                $keyFile = "{$container->name}/key.txt";
+                $keyFile = "{$hostname}/{$container->name}/key.txt";
                 try {
                     Storage::disk('backup')->put($keyFile, $env['N8N_ENCRYPTION_KEY']);
                 } catch (\Exception $e) {
@@ -210,7 +211,7 @@ class BackupService
                 'created_at' => now()->toIso8601String(),
             ];
 
-            $metaFile = "{$container->name}/metadata.json";
+            $metaFile = "{$hostname}/{$container->name}/metadata.json";
             try {
                 Storage::disk('backup')->put($metaFile, json_encode($metadata, JSON_PRETTY_PRINT));
             } catch (\Exception $e) {
@@ -235,20 +236,19 @@ class BackupService
         $folders = [];
 
         foreach ($allFiles as $file) {
-            $parts = explode('/', $file);
-            // Expected format: instance_name/backup-date.sql
-            // If in root, put in 'Unsorted'
+            // Group by full directory path (excluding filename)
+            // e.g., 'hostname/instance/backup.sql' -> 'hostname/instance'
+            // e.g., 'instance/backup.sql' -> 'instance' (Legacy)
 
-            if (count($parts) > 1) {
-                $folderName = $parts[0];
-                $fileName = $parts[count($parts) - 1];
-            } else {
-                $folderName = 'Root';
-                $fileName = $file;
+            $dir = dirname($file);
+            if ($dir === '.' || $dir === '') {
+                $dir = 'Root';
             }
+            $folderName = $dir;
+            $fileName = basename($file);
 
-            // Skip key.txt
-            if ($fileName === 'key.txt') {
+            // Skip key.txt and metadata.json
+            if ($fileName === 'key.txt' || $fileName === 'metadata.json') {
                 continue;
             }
 
@@ -311,15 +311,25 @@ class BackupService
             return [];
         }
 
-        // List files in the instance directory (use allFiles for S3 "folders")
-        $files = Storage::disk('backup')->allFiles($instanceName);
+        // Handle both new format (hostname/instance) and old format (instance)
+        // For new backups, we assume they are under current hostname
+        $hostname = gethostname();
+        $path = "{$hostname}/{$instanceName}";
+
+        // If nothing in hostname folder, maybe old format?
+        if (empty(Storage::disk('backup')->allFiles($path))) {
+            $path = $instanceName;
+        }
+
+        // List files in the directory
+        $files = Storage::disk('backup')->allFiles($path);
         $backups = [];
 
         foreach ($files as $file) {
             $fileName = basename($file);
 
-            // Skip key.txt
-            if ($fileName === 'key.txt') {
+            // Skip key.txt and metadata.json
+            if ($fileName === 'key.txt' || $fileName === 'metadata.json') {
                 continue;
             }
 
@@ -375,10 +385,21 @@ class BackupService
         }
 
         try {
+            // Delete new format (hostname/instance)
+            $hostname = gethostname();
+            $path = "{$hostname}/{$instanceName}";
+
+            if (Storage::disk('backup')->exists($path)) {
+                Storage::disk('backup')->deleteDirectory($path);
+                Log::info("Deleted backups for terminated instance (new format): {$path}");
+            }
+
+            // Also check old format
             if (Storage::disk('backup')->exists($instanceName)) {
                 Storage::disk('backup')->deleteDirectory($instanceName);
-                Log::info("Deleted backups for terminated instance: {$instanceName}");
+                Log::info("Deleted backups for terminated instance (legacy format): {$instanceName}");
             }
+
         } catch (\Exception $e) {
             Log::warning("Failed to delete backups for {$instanceName}: " . $e->getMessage());
         }
