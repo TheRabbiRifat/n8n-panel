@@ -60,10 +60,16 @@ class InstanceController extends Controller
         $instances = $query->paginate(20)->withQueryString();
 
         // Populate status using DockerService (Optimization: fetch mostly relevant?)
-        // Fetching ALL containers is potentially expensive if thousands exist,
-        // but for now consistent with previous logic.
+        // Fetching ALL containers is potentially expensive if thousands exist.
+        // We now filter by the IDs on the current page.
         $statsMap = [];
-        $allContainers = $this->dockerService->listContainers();
+
+        // Get docker IDs from the current page of instances
+        $containerIds = $instances->pluck('docker_id')->filter()->values()->toArray();
+
+        // If no instances on page, no need to fetch containers.
+        // If we passed empty array to listContainers, it would fetch ALL (default behavior).
+        $allContainers = !empty($containerIds) ? $this->dockerService->listContainers($containerIds) : [];
 
         foreach ($allContainers as $c) {
             // Normalize ID to 12 characters to match database storage

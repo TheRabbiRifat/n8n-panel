@@ -3,12 +3,30 @@
 namespace App\Services;
 
 use Illuminate\Support\Facades\Process;
+use Illuminate\Support\Carbon;
 use Exception;
 
 class DockerService
 {
-    public function listContainers()
+    public function listContainers(array $ids = [])
     {
+        // If IDs are provided, use inspect-batch for O(M) performance
+        if (!empty($ids)) {
+            $command = [base_path('scripts/docker-utils.sh'), '--action=inspect-batch'];
+            foreach ($ids as $id) {
+                $command[] = "--arg={$id}";
+            }
+
+            $process = Process::run($command);
+
+            if ($process->failed()) {
+                return [];
+            }
+
+            return $this->parseInspectOutput($process->output());
+        }
+
+        // Fallback to listing all (original logic)
         $process = Process::run([base_path('scripts/docker-utils.sh'), '--action=list']);
 
         if ($process->failed()) {
@@ -35,6 +53,89 @@ class DockerService
         }
 
         return $containers;
+    }
+
+    private function parseInspectOutput($json)
+    {
+        $data = json_decode($json, true);
+        if (!is_array($data)) return [];
+
+        $containers = [];
+        foreach ($data as $c) {
+            // id (Use short ID to match list format)
+            $id = substr($c['Id'] ?? '', 0, 12);
+
+            // name
+            $name = ltrim($c['Name'] ?? '', '/');
+
+            // image
+            $image = $c['Config']['Image'] ?? '';
+
+            // state
+            $state = $c['State']['Status'] ?? 'unknown';
+
+            // status (e.g., "Up 2 hours")
+            $status = $this->calculateStatusString($c['State'] ?? []);
+
+            // ports
+            $ports = $this->formatPorts($c['NetworkSettings']['Ports'] ?? []);
+
+            $containers[] = [
+                'id' => $id,
+                'name' => $name,
+                'image' => $image,
+                'status' => $status,
+                'state' => $state,
+                'ports' => $ports,
+            ];
+        }
+        return $containers;
+    }
+
+    private function calculateStatusString($state)
+    {
+        if (empty($state)) return 'Unknown';
+
+        $status = ucfirst($state['Status'] ?? 'unknown');
+        if (strtolower($status) === 'running' && !empty($state['StartedAt'])) {
+            try {
+                $diff = Carbon::parse($state['StartedAt'])->diffForHumans(null, true);
+                $status = "Up $diff";
+            } catch (\Exception $e) {}
+        } elseif (strtolower($status) === 'exited' && !empty($state['FinishedAt'])) {
+            try {
+                $diff = Carbon::parse($state['FinishedAt'])->diffForHumans(null, true);
+                $code = $state['ExitCode'] ?? 0;
+                $status = "Exited ($code) $diff ago";
+            } catch (\Exception $e) {}
+        }
+
+        // Add health status if available
+        if (isset($state['Health']['Status'])) {
+            $health = $state['Health']['Status'];
+            $status .= " ($health)";
+        }
+
+        return $status;
+    }
+
+    private function formatPorts($portsMap)
+    {
+        $portsList = [];
+        if (is_array($portsMap)) {
+            foreach ($portsMap as $containerPort => $bindings) {
+                if (!empty($bindings) && is_array($bindings)) {
+                    foreach ($bindings as $binding) {
+                        $hostIp = $binding['HostIp'] ?? '0.0.0.0';
+                        $hostPort = $binding['HostPort'] ?? '';
+                        $portsList[] = "$hostIp:$hostPort->$containerPort";
+                    }
+                } else {
+                    $portsList[] = $containerPort;
+                }
+            }
+        }
+        return implode(', ', $portsList);
     }
 
     public function createContainer(string $image, string $name, int $port, int $internalPort = 5678, $cpu = null, $memory = null, array $environment = [], array $volumes = [], array $labels = [], string $domain = '', string $email = '', ?int $dbId = null, array $dbConfig = [], string $panelDbUser = '')
