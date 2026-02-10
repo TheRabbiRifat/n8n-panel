@@ -137,7 +137,7 @@
                     @csrf
                     <div class="table-responsive">
                         <table class="table table-hover mb-0 align-middle" id="backups-table">
-                            <thead class="bg-light">
+                            <thead>
                                 <tr>
                                     <th class="ps-4" style="width: 40px;">
                                         <input type="checkbox" class="form-check-input" id="select-all" onclick="document.querySelectorAll('.backup-check').forEach(c => c.checked = this.checked)">
@@ -167,7 +167,7 @@
                                 </tr>
                                 <tr class="backup-details-row">
                                     <td colspan="5" class="p-0 border-0">
-                                    <div class="collapse bg-light" id="files-{{ Str::slug($folder['name']) }}">
+                                    <div class="collapse" id="files-{{ Str::slug($folder['name']) }}">
                                         <div class="p-3">
                                             <table class="table table-sm mb-0 table-borderless">
                                                 @foreach($folder['files'] as $file)

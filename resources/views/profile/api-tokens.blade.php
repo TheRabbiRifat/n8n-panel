@@ -70,7 +70,7 @@
                                 <td>
                                     @if(!empty($token->allowed_ips))
                                         @foreach($token->allowed_ips as $ip)
-                                            <span class="badge bg-light text-dark border">{{ $ip }}</span>
+                                            <span class="badge bg-secondary-subtle text-body-emphasis border">{{ $ip }}</span>
                                         @endforeach
                                     @else
                                         <span class="text-muted small">Any</span>
@@ -152,7 +152,7 @@
                             @php
                                 $apiBase = request()->schemeAndHttpHost() . '/api/integration';
                             @endphp
-                            <span class="input-group-text bg-light text-truncate" style="max-width: 100%;">{{ $apiBase }}</span>
+                            <span class="input-group-text text-truncate" style="max-width: 100%;">{{ $apiBase }}</span>
                             <button class="btn btn-outline-secondary" type="button" onclick="navigator.clipboard.writeText('{{ $apiBase }}')"><i class="bi bi-clipboard"></i></button>
                         </div>
                     </div>
@@ -165,13 +165,13 @@
                             </button>
                         </h2>
                         <div id="api-connection" class="accordion-collapse collapse" data-bs-parent="#apiDocs">
-                            <div class="accordion-body bg-light">
+                            <div class="accordion-body bg-body-tertiary">
                                 <p class="small">Verify your API credentials and connection.</p>
                                 <pre class="small bg-dark text-white p-3 rounded mb-0 text-break" style="white-space: pre-wrap;">curl -X GET "{{ $apiBase }}/connection/test" \
   -H "Authorization: Bearer YOUR_API_TOKEN"</pre>
                                 <div class="mt-3">
                                     <h6 class="small fw-bold text-muted">Response</h6>
-                                    <pre class="small bg-light border p-3 rounded mb-0 text-muted text-break" style="white-space: pre-wrap;">{
+                                    <pre class="small bg-body-secondary border p-3 rounded mb-0 text-muted text-break" style="white-space: pre-wrap;">{
   "status": "success",
   "message": "Connection successful",
   "user": {
@@ -193,13 +193,13 @@
                             </button>
                         </h2>
                         <div id="api-system-stats" class="accordion-collapse collapse" data-bs-parent="#apiDocs">
-                            <div class="accordion-body bg-light">
+                            <div class="accordion-body bg-body-tertiary">
                                 <p class="small">Get system health and usage statistics.</p>
                                 <pre class="small bg-dark text-white p-3 rounded mb-0 text-break" style="white-space: pre-wrap;">curl -X GET "{{ $apiBase }}/system/stats" \
   -H "Authorization: Bearer YOUR_API_TOKEN"</pre>
                                 <div class="mt-3">
                                     <h6 class="small fw-bold text-muted">Response</h6>
-                                    <pre class="small bg-light border p-3 rounded mb-0 text-muted text-break" style="white-space: pre-wrap;">{
+                                    <pre class="small bg-body-secondary border p-3 rounded mb-0 text-muted text-break" style="white-space: pre-wrap;">{
   "status": "success",
   "server_status": "online",
   "load_averages": { "1": 0.5, "5": 0.3, "15": 0.1 },
@@ -223,13 +223,13 @@
                             </button>
                         </h2>
                         <div id="api-list-instances" class="accordion-collapse collapse" data-bs-parent="#apiDocs">
-                            <div class="accordion-body bg-light">
+                            <div class="accordion-body bg-body-tertiary">
                                 <p class="small">List all instances you have access to.</p>
                                 <pre class="small bg-dark text-white p-3 rounded mb-0 text-break" style="white-space: pre-wrap;">curl -X GET "{{ $apiBase }}/instances" \
   -H "Authorization: Bearer YOUR_API_TOKEN"</pre>
                                 <div class="mt-3">
                                     <h6 class="small fw-bold text-muted">Response</h6>
-                                    <pre class="small bg-light border p-3 rounded mb-0 text-muted text-break" style="white-space: pre-wrap;">[
+                                    <pre class="small bg-body-secondary border p-3 rounded mb-0 text-muted text-break" style="white-space: pre-wrap;">[
   {
     "id": 1,
     "name": "my-instance",
@@ -250,7 +250,7 @@
                             </button>
                         </h2>
                         <div id="api-create" class="accordion-collapse collapse" data-bs-parent="#apiDocs">
-                            <div class="accordion-body bg-light">
+                            <div class="accordion-body bg-body-tertiary">
                                 <p class="small">Create a new n8n instance.</p>
                                 <pre class="small bg-dark text-white p-3 rounded mb-0 text-break" style="white-space: pre-wrap;">curl -X POST "{{ $apiBase }}/instances/create" \
   -H "Authorization: Bearer YOUR_API_TOKEN" \
@@ -261,7 +261,7 @@
   }'</pre>
                                 <div class="mt-3">
                                     <h6 class="small fw-bold text-muted">Response</h6>
-                                    <pre class="small bg-light border p-3 rounded mb-0 text-muted text-break" style="white-space: pre-wrap;">{
+                                    <pre class="small bg-body-secondary border p-3 rounded mb-0 text-muted text-break" style="white-space: pre-wrap;">{
   "status": "success",
   "instance_id": 1,
   "domain": "my-instance.n8n.local",
@@ -280,13 +280,13 @@
                             </button>
                         </h2>
                         <div id="api-start" class="accordion-collapse collapse" data-bs-parent="#apiDocs">
-                            <div class="accordion-body bg-light">
+                            <div class="accordion-body bg-body-tertiary">
                                 <p class="small">Start an instance.</p>
                                 <pre class="small bg-dark text-white p-3 rounded mb-0 text-break" style="white-space: pre-wrap;">curl -X POST "{{ $apiBase }}/instances/my-instance/start" \
   -H "Authorization: Bearer YOUR_API_TOKEN"</pre>
                                 <div class="mt-3">
                                     <h6 class="small fw-bold text-muted">Response</h6>
-                                    <pre class="small bg-light border p-3 rounded mb-0 text-muted text-break" style="white-space: pre-wrap;">{
+                                    <pre class="small bg-body-secondary border p-3 rounded mb-0 text-muted text-break" style="white-space: pre-wrap;">{
   "status": "success"
 }</pre>
                                 </div>
@@ -302,13 +302,13 @@
                             </button>
                         </h2>
                         <div id="api-stop" class="accordion-collapse collapse" data-bs-parent="#apiDocs">
-                            <div class="accordion-body bg-light">
+                            <div class="accordion-body bg-body-tertiary">
                                 <p class="small">Stop an instance.</p>
                                 <pre class="small bg-dark text-white p-3 rounded mb-0 text-break" style="white-space: pre-wrap;">curl -X POST "{{ $apiBase }}/instances/my-instance/stop" \
   -H "Authorization: Bearer YOUR_API_TOKEN"</pre>
                                 <div class="mt-3">
                                     <h6 class="small fw-bold text-muted">Response</h6>
-                                    <pre class="small bg-light border p-3 rounded mb-0 text-muted text-break" style="white-space: pre-wrap;">{
+                                    <pre class="small bg-body-secondary border p-3 rounded mb-0 text-muted text-break" style="white-space: pre-wrap;">{
   "status": "success"
 }</pre>
                                 </div>
@@ -324,13 +324,13 @@
                             </button>
                         </h2>
                         <div id="api-suspend" class="accordion-collapse collapse" data-bs-parent="#apiDocs">
-                            <div class="accordion-body bg-light">
+                            <div class="accordion-body bg-body-tertiary">
                                 <p class="small">Suspend an instance (Stops and marks as suspended).</p>
                                 <pre class="small bg-dark text-white p-3 rounded mb-0 text-break" style="white-space: pre-wrap;">curl -X POST "{{ $apiBase }}/instances/my-instance/suspend" \
   -H "Authorization: Bearer YOUR_API_TOKEN"</pre>
                                 <div class="mt-3">
                                     <h6 class="small fw-bold text-muted">Response</h6>
-                                    <pre class="small bg-light border p-3 rounded mb-0 text-muted text-break" style="white-space: pre-wrap;">{
+                                    <pre class="small bg-body-secondary border p-3 rounded mb-0 text-muted text-break" style="white-space: pre-wrap;">{
   "status": "success"
 }</pre>
                                 </div>
@@ -346,13 +346,13 @@
                             </button>
                         </h2>
                         <div id="api-unsuspend" class="accordion-collapse collapse" data-bs-parent="#apiDocs">
-                            <div class="accordion-body bg-light">
+                            <div class="accordion-body bg-body-tertiary">
                                 <p class="small">Unsuspend an instance (Unmarks and starts).</p>
                                 <pre class="small bg-dark text-white p-3 rounded mb-0 text-break" style="white-space: pre-wrap;">curl -X POST "{{ $apiBase }}/instances/my-instance/unsuspend" \
   -H "Authorization: Bearer YOUR_API_TOKEN"</pre>
                                 <div class="mt-3">
                                     <h6 class="small fw-bold text-muted">Response</h6>
-                                    <pre class="small bg-light border p-3 rounded mb-0 text-muted text-break" style="white-space: pre-wrap;">{
+                                    <pre class="small bg-body-secondary border p-3 rounded mb-0 text-muted text-break" style="white-space: pre-wrap;">{
   "status": "success"
 }</pre>
                                 </div>
@@ -368,7 +368,7 @@
                             </button>
                         </h2>
                         <div id="api-upgrade" class="accordion-collapse collapse" data-bs-parent="#apiDocs">
-                            <div class="accordion-body bg-light">
+                            <div class="accordion-body bg-body-tertiary">
                                 <p class="small">Change the package (Upgrade/Downgrade) and apply resources immediately.</p>
                                 <pre class="small bg-dark text-white p-3 rounded mb-0 text-break" style="white-space: pre-wrap;">curl -X POST "{{ $apiBase }}/instances/my-instance/upgrade" \
   -H "Authorization: Bearer YOUR_API_TOKEN" \
@@ -378,7 +378,7 @@
   }'</pre>
                                 <div class="mt-3">
                                     <h6 class="small fw-bold text-muted">Response</h6>
-                                    <pre class="small bg-light border p-3 rounded mb-0 text-muted text-break" style="white-space: pre-wrap;">{
+                                    <pre class="small bg-body-secondary border p-3 rounded mb-0 text-muted text-break" style="white-space: pre-wrap;">{
   "status": "success",
   "message": "Package updated and resources applied.",
   "new_package": "Gold Plan"
@@ -396,13 +396,13 @@
                             </button>
                         </h2>
                         <div id="api-terminate" class="accordion-collapse collapse" data-bs-parent="#apiDocs">
-                            <div class="accordion-body bg-light">
+                            <div class="accordion-body bg-body-tertiary">
                                 <p class="small text-danger fw-bold">Permanently delete an instance and its data.</p>
                                 <pre class="small bg-dark text-white p-3 rounded mb-0 text-break" style="white-space: pre-wrap;">curl -X POST "{{ $apiBase }}/instances/my-instance/terminate" \
   -H "Authorization: Bearer YOUR_API_TOKEN"</pre>
                                 <div class="mt-3">
                                     <h6 class="small fw-bold text-muted">Response</h6>
-                                    <pre class="small bg-light border p-3 rounded mb-0 text-muted text-break" style="white-space: pre-wrap;">{
+                                    <pre class="small bg-body-secondary border p-3 rounded mb-0 text-muted text-break" style="white-space: pre-wrap;">{
   "status": "success"
 }</pre>
                                 </div>
@@ -418,13 +418,13 @@
                             </button>
                         </h2>
                         <div id="api-stats" class="accordion-collapse collapse" data-bs-parent="#apiDocs">
-                            <div class="accordion-body bg-light">
+                            <div class="accordion-body bg-body-tertiary">
                                 <p class="small">Get real-time resource usage.</p>
                                 <pre class="small bg-dark text-white p-3 rounded mb-0 text-break" style="white-space: pre-wrap;">curl -X GET "{{ $apiBase }}/instances/my-instance/stats" \
   -H "Authorization: Bearer YOUR_API_TOKEN"</pre>
                                 <div class="mt-3">
                                     <h6 class="small fw-bold text-muted">Response</h6>
-                                    <pre class="small bg-light border p-3 rounded mb-0 text-muted text-break" style="white-space: pre-wrap;">{
+                                    <pre class="small bg-body-secondary border p-3 rounded mb-0 text-muted text-break" style="white-space: pre-wrap;">{
   "status": "success",
   "domain": "my-instance.n8n.local",
   "instance_status": "running",
@@ -446,13 +446,13 @@
                             </button>
                         </h2>
                         <div id="api-packages" class="accordion-collapse collapse" data-bs-parent="#apiDocs">
-                            <div class="accordion-body bg-light">
+                            <div class="accordion-body bg-body-tertiary">
                                 <p class="small">List all available packages.</p>
                                 <pre class="small bg-dark text-white p-3 rounded mb-0 text-break" style="white-space: pre-wrap;">curl -X GET "{{ $apiBase }}/packages" \
   -H "Authorization: Bearer YOUR_API_TOKEN"</pre>
                                 <div class="mt-3">
                                     <h6 class="small fw-bold text-muted">Response</h6>
-                                    <pre class="small bg-light border p-3 rounded mb-0 text-muted text-break" style="white-space: pre-wrap;">{
+                                    <pre class="small bg-body-secondary border p-3 rounded mb-0 text-muted text-break" style="white-space: pre-wrap;">{
   "status": "success",
   "packages": [
     {
@@ -477,13 +477,13 @@
                             </button>
                         </h2>
                         <div id="api-package-detail" class="accordion-collapse collapse" data-bs-parent="#apiDocs">
-                            <div class="accordion-body bg-light">
+                            <div class="accordion-body bg-body-tertiary">
                                 <p class="small">Get details of a specific package.</p>
                                 <pre class="small bg-dark text-white p-3 rounded mb-0 text-break" style="white-space: pre-wrap;">curl -X GET "{{ $apiBase }}/packages/1" \
   -H "Authorization: Bearer YOUR_API_TOKEN"</pre>
                                 <div class="mt-3">
                                     <h6 class="small fw-bold text-muted">Response</h6>
-                                    <pre class="small bg-light border p-3 rounded mb-0 text-muted text-break" style="white-space: pre-wrap;">{
+                                    <pre class="small bg-body-secondary border p-3 rounded mb-0 text-muted text-break" style="white-space: pre-wrap;">{
   "status": "success",
   "package": {
     "id": 1,
@@ -507,7 +507,7 @@
                             </button>
                         </h2>
                         <div id="api-resellers" class="accordion-collapse collapse" data-bs-parent="#apiDocs">
-                            <div class="accordion-body bg-light">
+                            <div class="accordion-body bg-body-tertiary">
                                 <p class="small mb-2">Manage reseller accounts via API. Endpoints allow you to Create, Read, Update, and Delete resellers using their username.</p>
                                 <ul class="list-unstyled small mb-0">
                                     <li class="mb-2">

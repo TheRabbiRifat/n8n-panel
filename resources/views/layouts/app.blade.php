@@ -308,9 +308,9 @@
                 <div class="d-flex align-items-center gap-3">
                     <div class="d-none d-xl-flex align-items-center gap-2 small">
                         <span class="text-muted text-uppercase fw-bold" style="font-size: 0.7rem;">Load Averages</span>
-                        <span class="badge bg-light text-dark border">{{ $serverInfo['loads']['1'] ?? '0.00' }}</span>
-                        <span class="badge bg-light text-dark border">{{ $serverInfo['loads']['5'] ?? '0.00' }}</span>
-                        <span class="badge bg-light text-dark border">{{ $serverInfo['loads']['15'] ?? '0.00' }}</span>
+                        <span class="badge bg-secondary-subtle text-body-emphasis border">{{ $serverInfo['loads']['1'] ?? '0.00' }}</span>
+                        <span class="badge bg-secondary-subtle text-body-emphasis border">{{ $serverInfo['loads']['5'] ?? '0.00' }}</span>
+                        <span class="badge bg-secondary-subtle text-body-emphasis border">{{ $serverInfo['loads']['15'] ?? '0.00' }}</span>
                     </div>
 
                     <div class="vr mx-1 d-none d-xl-block"></div>
@@ -367,7 +367,7 @@
             </main>
 
             <footer class="text-center py-3 text-muted small border-top">
-                &copy; {{ date('Y') }} n8n Host Manager. All rights reserved. <span class="ms-2 badge bg-light text-secondary border">v1.0.0</span>
+                &copy; {{ date('Y') }} n8n Host Manager. All rights reserved. <span class="ms-2 badge bg-secondary-subtle text-body-emphasis border">v1.0.0</span>
             </footer>
         </div>
     </div>

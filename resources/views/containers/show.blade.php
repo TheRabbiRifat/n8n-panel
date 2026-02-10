@@ -47,7 +47,7 @@
                         <h5 class="card-title mb-4">Status & Actions</h5>
 
                         <!-- Live Stats -->
-                        <div class="card bg-light border-0 mb-4">
+                        <div class="card border-0 mb-4">
                             <div class="card-body py-2">
                                 <div class="row text-center">
                                     <div class="col-6 border-end">
@@ -63,7 +63,7 @@
                         </div>
                         <div class="col-md-6">
                             <div class="card mb-3">
-                                <div class="card-header bg-light fw-bold">Restore from Auto-Backup</div>
+                                <div class="card-header fw-bold">Restore from Auto-Backup</div>
                                 <div class="card-body">
                                     <p class="small text-muted">Select a backup file to restore. This will overwrite the current database.</p>
                                     <form action="{{ route('containers.db.restore', $container->id) }}" method="POST" onsubmit="return confirm('WARNING: This will overwrite the database with the selected backup. Continue?');">
@@ -304,7 +304,7 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="card mb-3">
-                                <div class="card-header bg-light fw-bold">Export Database</div>
+                                <div class="card-header fw-bold">Export Database</div>
                                 <div class="card-body">
                                     <p class="small text-muted">Download a SQL dump of the current database.</p>
                                     <a href="{{ route('containers.db.export', $container->id) }}" class="btn btn-primary">
@@ -315,7 +315,7 @@
                         </div>
                         <div class="col-md-6">
                             <div class="card mb-3">
-                                <div class="card-header bg-light fw-bold">Import Database</div>
+                                <div class="card-header fw-bold">Import Database</div>
                                 <div class="card-body">
                                     <p class="small text-muted">Restore a SQL dump. <strong>Warning:</strong> This will overwrite existing data and restart the instance.</p>
                                     <form action="{{ route('containers.db.import', $container->id) }}" method="POST" enctype="multipart/form-data">
