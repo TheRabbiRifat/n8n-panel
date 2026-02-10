@@ -42,10 +42,12 @@ class BackupRestoreTest extends TestCase
         Package::truncate();
 
         $instanceName = 'test_instance_fresh';
+        $hostname = gethostname();
+        $folderPath = "{$hostname}/{$instanceName}";
 
         // Create Fake Backup Files
-        Storage::disk('backup')->put("{$instanceName}/key.txt", 'test-key-content');
-        Storage::disk('backup')->put("{$instanceName}/backup-2023-01-01.sql", 'SQL DUMP CONTENT');
+        Storage::disk('backup')->put("{$folderPath}/key.txt", 'test-key-content');
+        Storage::disk('backup')->put("{$folderPath}/backup-2023-01-01.sql", 'SQL DUMP CONTENT');
 
         // 2. Mock Services
         $mockBackupService = Mockery::mock(BackupService::class);
@@ -74,8 +76,9 @@ class BackupRestoreTest extends TestCase
         Process::fake(['*' => Process::result()]);
 
         // 3. Execute
+        // Simulate folders as full paths
         $response = $this->actingAs($admin)->post(route('admin.backups.restore'), [
-            'folders' => [$instanceName]
+            'folders' => [$folderPath]
         ]);
 
         // 4. Assertions
@@ -109,6 +112,8 @@ class BackupRestoreTest extends TestCase
         $user->assignRole('user');
 
         $instanceName = 'meta_instance';
+        $hostname = gethostname();
+        $folderPath = "{$hostname}/{$instanceName}";
 
         // Create Metadata
         $metadata = [
@@ -126,8 +131,8 @@ class BackupRestoreTest extends TestCase
             ]
         ];
 
-        Storage::disk('backup')->put("{$instanceName}/metadata.json", json_encode($metadata));
-        Storage::disk('backup')->put("{$instanceName}/backup-2023-01-01.sql", 'SQL DUMP CONTENT');
+        Storage::disk('backup')->put("{$folderPath}/metadata.json", json_encode($metadata));
+        Storage::disk('backup')->put("{$folderPath}/backup-2023-01-01.sql", 'SQL DUMP CONTENT');
 
         // 2. Mock Services
         $mockBackupService = Mockery::mock(BackupService::class);
@@ -163,7 +168,7 @@ class BackupRestoreTest extends TestCase
 
         // 3. Execute
         $response = $this->actingAs($admin)->post(route('admin.backups.restore'), [
-            'folders' => [$instanceName]
+            'folders' => [$folderPath]
         ]);
 
         // 4. Assertions

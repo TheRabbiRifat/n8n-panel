@@ -124,8 +124,12 @@ class BackupController extends Controller
              $adminUser = User::role('admin')->first();
         }
 
-        foreach ($folders as $instanceName) {
+        foreach ($folders as $folderPath) {
             try {
+                // $folderPath can be 'hostname/instanceName' or just 'instanceName'
+                // Use basename to get the actual instance name for the container
+                $instanceName = basename($folderPath);
+
                 // Check if instance exists
                 $container = Container::where('name', $instanceName)->first();
                 $encryptionKey = null;
@@ -134,8 +138,8 @@ class BackupController extends Controller
                 $targetUser = $adminUser;
                 $imageTag = 'latest';
 
-                // 0. Load Metadata if available
-                $metaPath = "{$instanceName}/metadata.json";
+                // 0. Load Metadata if available (using full folder path)
+                $metaPath = "{$folderPath}/metadata.json";
                 if (Storage::disk('backup')->exists($metaPath)) {
                     try {
                         $metadata = json_decode(Storage::disk('backup')->get($metaPath), true);
@@ -146,7 +150,7 @@ class BackupController extends Controller
                 if (!empty($metadata['encryption_key'])) {
                     $encryptionKey = $metadata['encryption_key'];
                 } else {
-                    $keyPath = "{$instanceName}/key.txt";
+                    $keyPath = "{$folderPath}/key.txt";
                     if (Storage::disk('backup')->exists($keyPath)) {
                         $encryptionKey = trim(Storage::disk('backup')->get($keyPath));
                     }
@@ -317,8 +321,8 @@ class BackupController extends Controller
                 }
 
                 // 3. Restore Database
-                // Find latest SQL
-                $files = Storage::disk('backup')->files($instanceName);
+                // Find latest SQL using full folder path
+                $files = Storage::disk('backup')->files($folderPath);
                 $latestSql = null;
                 $latestTime = 0;
 
