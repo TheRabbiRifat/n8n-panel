@@ -684,18 +684,11 @@ class ApiController extends Controller
         $user = User::where('username', $request->username)->firstOrFail();
 
         // Security checks
-        if (auth()->user()->hasRole('reseller')) {
-            // Reseller can only SSO into their own users
-            if ($user->reseller_id !== auth()->id()) {
-                 abort(403, 'Unauthorized: You can only access your own users.');
-            }
-            // Double check target is not admin (redundant if reseller_id check passes, but safe)
-            if ($user->hasRole('admin')) {
-                abort(403, 'Unauthorized: Cannot access admin account.');
-            }
-        } elseif (!auth()->user()->hasRole('admin')) {
-             // Standard users cannot use SSO
-             abort(403, 'Unauthorized');
+        $isSelf = $user->id === auth()->id();
+        $isAdmin = auth()->user()->hasRole('admin');
+
+        if (!$isAdmin && !$isSelf) {
+            abort(403, 'Unauthorized');
         }
 
         // Generate a temporary signed URL for auto-login
