@@ -648,7 +648,7 @@ class ContainerController extends Controller
 
         return response()->streamDownload(function () use ($dbName) {
             $script = base_path('scripts/db-manager.sh');
-            $cmd = "sudo {$script} --action=export --db-name={$dbName}";
+            $cmd = "sudo {$script} --action=export --db-name='{$dbName}'";
             $fp = popen($cmd, 'r');
             while (!feof($fp)) {
                 echo fread($fp, 1024);
