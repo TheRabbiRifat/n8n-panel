@@ -80,7 +80,7 @@ class BackupController extends Controller
             try {
                 $this->backupService->testConnection($request->all());
             } catch (\Exception $e) {
-                session()->flash('warning', 'Connection test failed: ' . $e->getMessage() . '. Settings were saved but backups may not work.');
+                return back()->with('error', 'Connection test failed: ' . $e->getMessage())->withInput();
             }
         }
 
