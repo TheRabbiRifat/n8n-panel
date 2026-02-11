@@ -78,4 +78,34 @@ class BackupSettingsTest extends TestCase
             'enabled' => true,
         ]);
     }
+
+    /** @test */
+    public function it_saves_settings_with_warning_when_connection_fails()
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+
+        $mockBackupService = Mockery::mock(BackupService::class);
+        $mockBackupService->shouldReceive('testConnection')
+            ->once()
+            ->andThrow(new \Exception('Simulated Error'));
+
+        $this->instance(BackupService::class, $mockBackupService);
+
+        $response = $this->actingAs($admin)->post(route('admin.backups.update'), [
+            'driver' => 'ftp',
+            'host' => 'ftp.example.com',
+            'username' => 'user',
+            'password' => 'pass',
+            'enabled' => 'on',
+            'retention_days' => 7,
+        ]);
+
+        $response->assertSessionHas('success');
+        $response->assertSessionHas('warning');
+        $this->assertDatabaseHas('backup_settings', [
+            'driver' => 'ftp',
+            'enabled' => true,
+        ]);
+    }
 }
