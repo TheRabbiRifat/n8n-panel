@@ -11,7 +11,7 @@
 
         <!-- Create Token -->
         <div class="card shadow-sm mb-4">
-            <div class="card-header">
+            <div class="card-header bg-white">
                 <h5 class="mb-0">Create API Token</h5>
             </div>
             <div class="card-body">
@@ -40,7 +40,7 @@
                 <h5 class="alert-heading">Token Created!</h5>
                 <p>Please copy your new API token. For your security, it won't be shown again.</p>
                 <div class="input-group">
-                    <input type="text" class="form-control font-monospace" value="{{ session('flash_token') }}" readonly onclick="this.select()">
+                    <input type="text" class="form-control font-monospace bg-white" value="{{ session('flash_token') }}" readonly onclick="this.select()">
                     <button class="btn btn-outline-secondary" type="button" onclick="navigator.clipboard.writeText('{{ session('flash_token') }}')"><i class="bi bi-clipboard"></i> Copy</button>
                 </div>
             </div>
@@ -49,7 +49,7 @@
 
         <!-- List Tokens -->
         <div class="card shadow-sm">
-            <div class="card-header">
+            <div class="card-header bg-white">
                 <h5 class="mb-0">Active Tokens</h5>
             </div>
             <div class="card-body p-0">
@@ -134,7 +134,7 @@
 
         <!-- API Documentation -->
         <div class="card shadow-sm mt-4">
-            <div class="card-header">
+            <div class="card-header bg-white">
                 <h5 class="mb-0">API Documentation</h5>
             </div>
             <div class="card-body">
