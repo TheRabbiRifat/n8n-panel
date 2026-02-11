@@ -8,7 +8,7 @@
                 <h4 class="mb-0">Create New n8n Instance</h4>
             </div>
             <div class="card-body">
-                <form action="{{ route('instances.store') }}" method="POST">
+                <form action="{{ route('instances.store') }}" method="POST" class="show-loading" data-loading-text="Provisioning Instance...">
                     @csrf
 
                     <div class="mb-3">

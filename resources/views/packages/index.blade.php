@@ -57,7 +57,7 @@
                             <form action="{{ route('packages.destroy', $package->id) }}" method="POST" style="display:inline;">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Are you sure? This will not delete instances using this package.')">
+                                <button type="submit" class="btn btn-outline-danger btn-sm" data-confirm-message="Delete this package? Instances using it will not be affected." data-confirm-btn="Delete Package">
                                     <i class="bi bi-trash"></i>
                                 </button>
                             </form>

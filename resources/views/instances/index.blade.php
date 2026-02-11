@@ -97,10 +97,10 @@
                                 <button type="button" class="btn btn-sm btn-outline-danger dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown"></button>
                                 <ul class="dropdown-menu dropdown-menu-end">
                                     <li>
-                                        <form action="{{ route('instances.destroy', $instance->id) }}" method="POST" onsubmit="return confirm('Delete this instance permanently?');">
+                                        <form action="{{ route('instances.destroy', $instance->id) }}" method="POST">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="dropdown-item text-danger">
+                                            <button type="submit" class="dropdown-item text-danger" data-confirm-message="Delete this instance permanently? This action cannot be undone." data-confirm-btn="Delete Instance" data-loading-text="Terminating Instance...">
                                                 <i class="bi bi-trash me-2"></i> Delete
                                             </button>
                                         </form>
