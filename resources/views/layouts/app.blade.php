@@ -220,6 +220,9 @@
                 <a href="{{ route('dashboard') }}" class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
                     <i class="bi bi-speedometer2"></i> Server Status
                 </a>
+                <a href="{{ route('requirements.index') }}" class="nav-link {{ request()->routeIs('requirements.*') ? 'active' : '' }}">
+                    <i class="bi bi-check-circle"></i> Checking Requirements
+                </a>
                 @endcan
 
                 @can('manage_instances')
