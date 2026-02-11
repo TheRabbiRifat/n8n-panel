@@ -8,7 +8,7 @@
         background: var(--bs-body-bg);
         border: 1px solid var(--bs-border-color);
         border-radius: 8px;
-        font-size: 1.75rem;
+        font-size: calc(1.3rem + .6vw);
         color: var(--whm-sidebar-bg);
         margin-bottom: 1rem;
         transition: all 0.2s;

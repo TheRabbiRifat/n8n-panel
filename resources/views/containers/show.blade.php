@@ -51,11 +51,11 @@
                             <div class="card-body py-2">
                                 <div class="row text-center">
                                     <div class="col-6 border-end">
-                                        <small class="text-muted text-uppercase fw-bold" style="font-size: 0.7rem;">CPU Usage</small>
+                                        <small class="text-muted text-uppercase fw-bold" style="font-size: 0.75rem;">CPU Usage</small>
                                         <div class="h5 mb-0" id="stat-cpu">--%</div>
                                     </div>
                                     <div class="col-6">
-                                        <small class="text-muted text-uppercase fw-bold" style="font-size: 0.7rem;">RAM Usage</small>
+                                        <small class="text-muted text-uppercase fw-bold" style="font-size: 0.75rem;">RAM Usage</small>
                                         <div class="h5 mb-0" id="stat-mem">--</div>
                                     </div>
                                 </div>
