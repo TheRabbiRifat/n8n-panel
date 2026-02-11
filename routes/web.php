@@ -25,6 +25,7 @@ Route::get('sso/login/{user}', [LoginController::class, 'ssoLogin'])->name('sso.
 
 use App\Http\Controllers\PackageController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RequirementController;
 
 // Database Management (Import/Export) - Auth check in Controller
 // Moved outside auth group to ensure registration; Controller enforces auth.
@@ -40,6 +41,9 @@ Route::middleware(['auth'])->group(function () {
     // Profile
     Route::get('profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('profile', [ProfileController::class, 'update'])->name('profile.update');
+
+    // Requirements
+    Route::get('requirements', [RequirementController::class, 'index'])->name('requirements.index');
 
     // API Tokens
     Route::get('profile/api-tokens', [App\Http\Controllers\ApiTokenController::class, 'index'])->name('api-tokens.index');
