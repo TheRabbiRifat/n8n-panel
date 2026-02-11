@@ -108,11 +108,8 @@
             <!-- Nameservers -->
              <div class="col-12 mb-4">
                 <div class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <span>Nameservers</span>
-                        @if($checks['dns_provider'] !== 'Unknown Provider')
-                            <span class="badge bg-primary">Hosted by {{ $checks['dns_provider'] }}</span>
-                        @endif
+                    <div class="card-header">
+                        Nameservers
                     </div>
                     <div class="card-body">
                          @if(count($checks['nameservers']) > 0)
