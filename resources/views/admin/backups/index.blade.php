@@ -19,6 +19,7 @@
                         <select name="driver" class="form-select" id="driver-select" onchange="toggleFields()">
                             <option value="local" {{ optional($setting)->driver == 'local' ? 'selected' : '' }}>Local Storage</option>
                             <option value="ftp" {{ optional($setting)->driver == 'ftp' ? 'selected' : '' }}>FTP</option>
+                            <option value="sftp" {{ optional($setting)->driver == 'sftp' ? 'selected' : '' }}>SFTP (SSH)</option>
                             <option value="s3" {{ optional($setting)->driver == 's3' ? 'selected' : '' }}>S3 (AWS/MinIO)</option>
                         </select>
                     </div>
@@ -55,6 +56,41 @@
                                 <option value="">None</option>
                                 <option value="ssl" {{ optional($setting)->encryption == 'ssl' ? 'selected' : '' }}>SSL/TLS</option>
                             </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="is_passive" value="1" id="is_passive" {{ (optional($setting)->is_passive ?? true) ? 'checked' : '' }}>
+                                <label class="form-check-label" for="is_passive">
+                                    Passive Mode (Recommended)
+                                </label>
+                                <div class="form-text">Disable if you are having connection issues and your server requires Active mode. Auto-detected if unchecked during test.</div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Root Path</label>
+                            <input type="text" name="path" class="form-control" value="{{ optional($setting)->path ?? '/' }}">
+                        </div>
+                    </div>
+
+                    <!-- SFTP Fields -->
+                    <div id="sftp-fields" class="d-none">
+                        <div class="mb-3">
+                            <label class="form-label">Host</label>
+                            <input type="text" name="host" class="form-control" value="{{ optional($setting)->host }}">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Port</label>
+                            <input type="text" name="port" class="form-control" value="{{ optional($setting)->port ?? 22 }}">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Username</label>
+                            <input type="text" name="username" class="form-control" value="{{ optional($setting)->username }}">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Password</label>
+                            <input type="password" name="password" class="form-control" value="{{ optional($setting)->password }}">
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Root Path</label>
@@ -208,17 +244,23 @@
     function toggleFields() {
         const driver = document.getElementById('driver-select').value;
         const ftpFields = document.getElementById('ftp-fields');
+        const sftpFields = document.getElementById('sftp-fields');
         const s3Fields = document.getElementById('s3-fields');
 
         document.querySelectorAll('#ftp-fields input, #ftp-fields select').forEach(el => el.disabled = true);
+        document.querySelectorAll('#sftp-fields input, #sftp-fields select').forEach(el => el.disabled = true);
         document.querySelectorAll('#s3-fields input, #s3-fields select').forEach(el => el.disabled = true);
 
         ftpFields.classList.add('d-none');
+        sftpFields.classList.add('d-none');
         s3Fields.classList.add('d-none');
 
         if (driver === 'ftp') {
             ftpFields.classList.remove('d-none');
             document.querySelectorAll('#ftp-fields input, #ftp-fields select').forEach(el => el.disabled = false);
+        } else if (driver === 'sftp') {
+            sftpFields.classList.remove('d-none');
+            document.querySelectorAll('#sftp-fields input, #sftp-fields select').forEach(el => el.disabled = false);
         } else if (driver === 's3') {
             s3Fields.classList.remove('d-none');
             document.querySelectorAll('#s3-fields input, #s3-fields select').forEach(el => el.disabled = false);
