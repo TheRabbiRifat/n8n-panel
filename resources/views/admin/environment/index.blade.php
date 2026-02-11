@@ -14,7 +14,7 @@
         <!-- General Env -->
         <div class="col-md-6 mb-4">
             <div class="card shadow-sm h-100">
-                <div class="card-header bg-white">
+                <div class="card-header">
                     <h5 class="mb-0">General Variables</h5>
                 </div>
                 <div class="card-body">
@@ -29,7 +29,7 @@
         <!-- SMTP Config -->
         <div class="col-md-6 mb-4">
             <div class="card shadow-sm h-100">
-                <div class="card-header bg-white">
+                <div class="card-header">
                     <h5 class="mb-0">SMTP Configuration</h5>
                 </div>
                 <div class="card-body">
