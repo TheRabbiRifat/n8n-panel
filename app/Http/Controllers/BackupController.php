@@ -76,10 +76,12 @@ class BackupController extends Controller
             }
         }
 
-        try {
-            $this->backupService->testConnection($request->all());
-        } catch (\Exception $e) {
-            return back()->with('error', 'Connection test failed: ' . $e->getMessage())->withInput();
+        if ($request->has('enabled')) {
+            try {
+                $this->backupService->testConnection($request->all());
+            } catch (\Exception $e) {
+                return back()->with('error', 'Connection test failed: ' . $e->getMessage())->withInput();
+            }
         }
 
         $setting = BackupSetting::firstOrNew();
