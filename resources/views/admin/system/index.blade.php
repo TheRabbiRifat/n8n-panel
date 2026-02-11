@@ -37,9 +37,9 @@
             </div>
             <div class="card-body">
                 <p>Reboot the entire server. This will stop all services and containers temporarily.</p>
-                <form action="{{ route('admin.system.reboot') }}" method="POST" onsubmit="return confirm('Are you sure you want to REBOOT the server?');">
+                <form action="{{ route('admin.system.reboot') }}" method="POST">
                     @csrf
-                    <button class="btn btn-danger w-100 py-2"><i class="bi bi-power"></i> Reboot Server</button>
+                    <button class="btn btn-danger w-100 py-2" data-confirm-message="Are you sure you want to REBOOT the server? This will cause downtime." data-confirm-btn="Reboot Now" data-loading-text="Rebooting Server..."><i class="bi bi-power"></i> Reboot Server</button>
                 </form>
             </div>
         </div>

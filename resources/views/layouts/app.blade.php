@@ -15,6 +15,7 @@
     <!-- Bootstrap & Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
         // Theme Toggler
@@ -380,6 +381,61 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // SweetAlert2 Confirmation & Loading
+            const handleConfirmation = (e) => {
+                const trigger = e.target.closest('[data-confirm-message]');
+                if (!trigger) return;
+
+                e.preventDefault();
+                const form = trigger.closest('form');
+                const message = trigger.dataset.confirmMessage || 'Are you sure?';
+                const confirmBtnText = trigger.dataset.confirmBtn || 'Yes, proceed';
+                const loadingText = trigger.dataset.loadingText || 'Processing...';
+
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: message,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#0f172a',
+                    cancelButtonColor: '#94a3b8',
+                    confirmButtonText: confirmBtnText
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        if (loadingText) {
+                            Swal.fire({
+                                title: loadingText,
+                                allowOutsideClick: false,
+                                didOpen: () => { Swal.showLoading(); }
+                            });
+                        }
+                        if (form) {
+                            form.submit();
+                        } else if (trigger.tagName === 'A') {
+                            window.location.href = trigger.href;
+                        } else if (trigger.onclick) {
+                            // If inline onclick was used (legacy fallback, though we are removing it)
+                            // Ideally, we replace logic. For now, rely on form submit.
+                        }
+                    }
+                });
+            };
+
+            document.body.addEventListener('click', handleConfirmation);
+
+            // Handle standard form submissions with loading state if flagged
+            document.body.addEventListener('submit', (e) => {
+                const form = e.target;
+                if (form.classList.contains('show-loading')) {
+                    const loadingText = form.dataset.loadingText || 'Processing...';
+                    Swal.fire({
+                        title: loadingText,
+                        allowOutsideClick: false,
+                        didOpen: () => { Swal.showLoading(); }
+                    });
+                }
+            });
+
             const toggle = document.getElementById('sidebarToggle');
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebar-overlay');

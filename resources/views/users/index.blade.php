@@ -44,10 +44,10 @@
                             <a href="{{ route('users.edit', $user) }}" class="btn btn-sm btn-outline-primary me-1">
                                 <i class="bi bi-pencil"></i>
                             </a>
-                            <form action="{{ route('users.destroy', $user) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this user?');">
+                            <form action="{{ route('users.destroy', $user) }}" method="POST" class="d-inline">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" data-confirm-message="Delete this user? They will lose access immediately." data-confirm-btn="Delete User">
                                     <i class="bi bi-trash"></i>
                                 </button>
                             </form>

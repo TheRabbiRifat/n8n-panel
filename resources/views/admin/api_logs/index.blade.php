@@ -13,10 +13,10 @@
                 <button class="btn btn-outline-secondary" type="submit"><i class="bi bi-search"></i></button>
             </div>
         </form>
-        <form action="{{ route('admin.api_logs.destroy') }}" method="POST" onsubmit="return confirm('Are you sure you want to purge all logs?');">
+        <form action="{{ route('admin.api_logs.destroy') }}" method="POST">
             @csrf
             @method('DELETE')
-            <button type="submit" class="btn btn-danger" title="Purge All Logs"><i class="bi bi-trash"></i></button>
+            <button type="submit" class="btn btn-danger" title="Purge All Logs" data-confirm-message="Permanently purge all API logs?" data-confirm-btn="Purge Logs"><i class="bi bi-trash"></i></button>
         </form>
     </div>
 </div>

@@ -66,7 +66,7 @@
                                 <div class="card-header fw-bold">Restore from Auto-Backup</div>
                                 <div class="card-body">
                                     <p class="small text-muted">Select a backup file to restore. This will overwrite the current database.</p>
-                                    <form action="{{ route('containers.db.restore', $container->id) }}" method="POST" onsubmit="return confirm('WARNING: This will overwrite the database with the selected backup. Continue?');">
+                                    <form action="{{ route('containers.db.restore', $container->id) }}" method="POST">
                                         @csrf
                                         <div class="input-group mb-3">
                                             <select class="form-select" name="backup_path" required>
@@ -77,7 +77,7 @@
                                                     <option value="" disabled>No backups found</option>
                                                 @endforelse
                                             </select>
-                                            <button class="btn btn-warning" type="submit">Restore</button>
+                                            <button class="btn btn-warning" type="submit" data-confirm-message="WARNING: This will overwrite the current database with the selected backup. This cannot be undone." data-confirm-btn="Yes, Restore" data-loading-text="Restoring Database...">Restore</button>
                                         </div>
                                     </form>
                                 </div>
@@ -111,7 +111,7 @@
                                         <form action="{{ route('containers.recovery', $container->id) }}" method="POST">
                                             @csrf
                                             <input type="hidden" name="recovery_mode" value="0">
-                                            <button class="btn btn-sm btn-outline-dark" onclick="return confirm('Disable recovery mode? Instance will restart.')">Disable</button>
+                                            <button class="btn btn-sm btn-outline-dark" data-confirm-message="Disable recovery mode? Instance will restart." data-confirm-btn="Disable & Restart" data-loading-text="Restarting...">Disable</button>
                                         </form>
                                     </div>
                                 </div>
@@ -119,7 +119,7 @@
                                 <form action="{{ route('containers.recovery', $container->id) }}" method="POST" class="d-inline-block mb-3">
                                     @csrf
                                     <input type="hidden" name="recovery_mode" value="1">
-                                    <button class="btn btn-outline-secondary btn-sm" onclick="return confirm('Enable recovery mode? This will restart the instance with SMTP credentials injected.')">
+                                    <button class="btn btn-outline-secondary btn-sm" data-confirm-message="Enable recovery mode? This will restart the instance with SMTP credentials injected." data-confirm-btn="Enable & Restart" data-loading-text="Enabling Recovery Mode...">
                                         <i class="bi bi-life-preserver"></i> Enable Recovery Mode
                                     </button>
                                 </form>
@@ -134,10 +134,10 @@
                                 <button class="btn btn-success" onclick="performAction('start')"><i class="bi bi-play-circle"></i> Start</button>
                             @endif
 
-                            <form action="{{ route('instances.destroy', $container->id) }}" method="POST" onsubmit="return confirm('Delete this instance?');" class="d-inline">
+                            <form action="{{ route('instances.destroy', $container->id) }}" method="POST" class="d-inline">
                                 @csrf
                                 @method('DELETE')
-                                <button class="btn btn-danger"><i class="bi bi-trash"></i> Delete</button>
+                                <button class="btn btn-danger" data-confirm-message="Delete this instance? This cannot be undone." data-confirm-btn="Delete Instance" data-loading-text="Deleting..."><i class="bi bi-trash"></i> Delete</button>
                             </form>
                         </div>
                     </div>
@@ -201,7 +201,7 @@
 
             <!-- Settings Tab -->
             <div class="tab-pane fade" id="settings" role="tabpanel">
-                <form action="{{ route('containers.update', $container->id) }}" method="POST">
+                <form action="{{ route('containers.update', $container->id) }}" method="POST" class="show-loading" data-loading-text="Applying Changes...">
                     @csrf
                     @method('PUT')
 
@@ -322,7 +322,7 @@
                                         @csrf
                                         <div class="input-group mb-3">
                                             <input type="file" class="form-control" name="sql_file" required accept=".sql,.txt,application/sql,text/plain">
-                                            <button class="btn btn-danger" type="submit" onclick="return confirm('Overwrite database? This cannot be undone.')">Import</button>
+                                            <button class="btn btn-danger" type="submit" data-confirm-message="Overwrite database with this import? This action destroys current data." data-confirm-btn="Import & Overwrite" data-loading-text="Importing Database...">Import</button>
                                         </div>
                                     </form>
                                 </div>
@@ -483,10 +483,10 @@
                 wrapper.innerHTML = `
                     <button class="btn btn-warning" onclick="performAction('stop')"><i class="bi bi-stop-circle"></i> Stop</button>
                     <button class="btn btn-info text-white" onclick="performAction('restart')"><i class="bi bi-arrow-clockwise"></i> Restart</button>
-                    <form action="{{ route('instances.destroy', $container->id) }}" method="POST" onsubmit="return confirm('Delete this instance?');" class="d-inline">
+                    <form action="{{ route('instances.destroy', $container->id) }}" method="POST" class="d-inline">
                         @csrf
                         @method('DELETE')
-                        <button class="btn btn-danger"><i class="bi bi-trash"></i> Delete</button>
+                        <button class="btn btn-danger" data-confirm-message="Delete this instance? This cannot be undone." data-confirm-btn="Delete Instance" data-loading-text="Deleting..."><i class="bi bi-trash"></i> Delete</button>
                     </form>
                 `;
             } else {
@@ -495,10 +495,10 @@
 
                 wrapper.innerHTML = `
                     <button class="btn btn-success" onclick="performAction('start')"><i class="bi bi-play-circle"></i> Start</button>
-                    <form action="{{ route('instances.destroy', $container->id) }}" method="POST" onsubmit="return confirm('Delete this instance?');" class="d-inline">
+                    <form action="{{ route('instances.destroy', $container->id) }}" method="POST" class="d-inline">
                         @csrf
                         @method('DELETE')
-                        <button class="btn btn-danger"><i class="bi bi-trash"></i> Delete</button>
+                        <button class="btn btn-danger" data-confirm-message="Delete this instance? This cannot be undone." data-confirm-btn="Delete Instance" data-loading-text="Deleting..."><i class="bi bi-trash"></i> Delete</button>
                     </form>
                 `;
             }
@@ -514,7 +514,7 @@
                 <h5 class="modal-title">Transfer Instance Ownership</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form action="{{ route('instances.transfer', $container->id) }}" method="POST">
+            <form action="{{ route('instances.transfer', $container->id) }}" method="POST" class="show-loading" data-loading-text="Transferring Ownership...">
                 @csrf
                 <div class="modal-body">
                     <p>Select the new owner for this instance. The current owner will lose access.</p>

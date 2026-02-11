@@ -110,7 +110,7 @@
             <div class="card-body">
                 <form action="{{ route('admin.backups.run') }}" method="POST">
                     @csrf
-                    <button class="btn btn-outline-success w-100" onclick="return confirm('Start backup process now? This might take a while.')">
+                    <button class="btn btn-outline-success w-100" data-confirm-message="Start backup process immediately? This may take several minutes." data-confirm-btn="Start Backup" data-loading-text="Running Backup...">
                         <i class="bi bi-play-circle me-1"></i> Trigger Backup Now
                     </button>
                 </form>
@@ -124,7 +124,7 @@
                 <div class="d-flex justify-content-between align-items-center mb-2">
                     <span class="fw-bold">Available Backups (Remote)</span>
                     <div>
-                        <button type="submit" form="restore-form" class="btn btn-sm btn-primary" onclick="return confirm('Restore selected instances? This will overwrite existing data or create new instances.')">
+                        <button type="submit" form="restore-form" class="btn btn-sm btn-primary" data-confirm-message="Restore selected instances? Existing data will be overwritten." data-confirm-btn="Restore" data-loading-text="Restoring...">
                             <i class="bi bi-arrow-counterclockwise me-1"></i> Restore Selected
                         </button>
                         <span class="badge bg-secondary ms-2" id="backup-count">{{ count($backups) }} Found</span>
