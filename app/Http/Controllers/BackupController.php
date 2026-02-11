@@ -87,7 +87,8 @@ class BackupController extends Controller
                     $detectedPassiveMode = $result;
                 }
             } catch (\Exception $e) {
-                session()->flash('warning', 'Connection test failed: ' . $e->getMessage() . '. Settings were saved but backups may not work.');
+                // If enabled was requested but connection failed, return error and DO NOT save.
+                return back()->with('error', 'Connection test failed: ' . $e->getMessage() . '. Settings were NOT saved.')->withInput();
             }
         }
 
