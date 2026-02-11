@@ -52,10 +52,10 @@ class BackupController extends Controller
     public function update(Request $request)
     {
         $request->validate([
-            'driver' => 'required|in:local,ftp,s3',
-            'host' => 'nullable|required_if:driver,ftp|string|max:255',
-            'username' => 'nullable|required_if:driver,ftp,s3|string|max:255',
-            'password' => 'nullable|required_if:driver,ftp,s3|string|max:255',
+            'driver' => 'required|in:local,ftp,sftp,s3',
+            'host' => 'nullable|required_if:driver,ftp,sftp|string|max:255',
+            'username' => 'nullable|required_if:driver,ftp,sftp,s3|string|max:255',
+            'password' => 'nullable|required_if:driver,ftp,sftp,s3|string|max:255',
             'bucket' => 'nullable|required_if:driver,s3|string|max:255',
             'region' => 'nullable|required_if:driver,s3|string|max:100',
             'endpoint' => 'nullable|url|max:255',
@@ -67,6 +67,7 @@ class BackupController extends Controller
                 }
             }],
             'retention_days' => 'required|integer|min:1',
+            'is_passive' => 'nullable|boolean',
         ]);
 
         if ($request->filled('cron_expression')) {
@@ -76,9 +77,15 @@ class BackupController extends Controller
             }
         }
 
+        $detectedPassiveMode = null;
+
         if ($request->has('enabled')) {
             try {
-                $this->backupService->testConnection($request->all());
+                $result = $this->backupService->testConnection($request->all());
+                // If result is boolean, it means auto-detection happened or confirmation of mode
+                if (is_bool($result)) {
+                    $detectedPassiveMode = $result;
+                }
             } catch (\Exception $e) {
                 session()->flash('warning', 'Connection test failed: ' . $e->getMessage() . '. Settings were saved but backups may not work.');
             }
@@ -87,6 +94,14 @@ class BackupController extends Controller
         $setting = BackupSetting::firstOrNew();
         $setting->fill($request->all());
         $setting->enabled = $request->has('enabled');
+
+        // Use detected mode if available, otherwise respect user input (checkbox)
+        if ($detectedPassiveMode !== null) {
+            $setting->is_passive = $detectedPassiveMode;
+        } else {
+            $setting->is_passive = $request->has('is_passive');
+        }
+
         $setting->save();
 
         return back()->with('success', 'Backup settings saved.');
