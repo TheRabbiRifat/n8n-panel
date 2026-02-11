@@ -67,6 +67,7 @@ class BackupController extends Controller
                 }
             }],
             'retention_days' => 'required|integer|min:1',
+            'is_passive' => 'nullable|boolean',
         ]);
 
         if ($request->filled('cron_expression')) {
@@ -87,6 +88,7 @@ class BackupController extends Controller
         $setting = BackupSetting::firstOrNew();
         $setting->fill($request->all());
         $setting->enabled = $request->has('enabled');
+        $setting->is_passive = $request->has('is_passive');
         $setting->save();
 
         return back()->with('success', 'Backup settings saved.');

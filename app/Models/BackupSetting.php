@@ -20,6 +20,7 @@ class BackupSetting extends Model
         'cron_expression',
         'enabled',
         'retention_days',
+        'is_passive',
     ];
 
     protected $casts = [
@@ -27,5 +28,6 @@ class BackupSetting extends Model
         'enabled' => 'boolean',
         'port' => 'integer',
         'retention_days' => 'integer',
+        'is_passive' => 'boolean',
     ];
 }

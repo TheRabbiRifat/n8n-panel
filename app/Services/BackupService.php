@@ -55,8 +55,8 @@ class BackupService
                 'port' => $port,
                 'root' => $setting->path ?: '/',
                 'ssl' => $setting->encryption === 'ssl',
-                'passive' => true,
-                'ignorePassiveAddress' => true,
+                'passive' => $setting->is_passive ?? true,
+                'ignorePassiveAddress' => $setting->is_passive ?? true,
                 'timeout' => 30,
                 'throw' => true,
             ];
