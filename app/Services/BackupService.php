@@ -60,6 +60,22 @@ class BackupService
                 'timeout' => 30,
                 'throw' => true,
             ];
+        } elseif ($setting->driver === 'sftp') {
+            $port = 22;
+            if (isset($setting->port) && is_numeric($setting->port)) {
+                $port = (int) $setting->port;
+            }
+
+            return [
+                'driver' => 'sftp',
+                'host' => $setting->host,
+                'username' => $setting->username,
+                'password' => $setting->password,
+                'port' => $port,
+                'root' => $setting->path ?: '/',
+                'timeout' => 30,
+                'throw' => true,
+            ];
         } else {
             // Local
             return [

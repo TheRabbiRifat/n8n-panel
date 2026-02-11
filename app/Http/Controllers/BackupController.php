@@ -52,10 +52,10 @@ class BackupController extends Controller
     public function update(Request $request)
     {
         $request->validate([
-            'driver' => 'required|in:local,ftp,s3',
-            'host' => 'nullable|required_if:driver,ftp|string|max:255',
-            'username' => 'nullable|required_if:driver,ftp,s3|string|max:255',
-            'password' => 'nullable|required_if:driver,ftp,s3|string|max:255',
+            'driver' => 'required|in:local,ftp,sftp,s3',
+            'host' => 'nullable|required_if:driver,ftp,sftp|string|max:255',
+            'username' => 'nullable|required_if:driver,ftp,sftp,s3|string|max:255',
+            'password' => 'nullable|required_if:driver,ftp,sftp,s3|string|max:255',
             'bucket' => 'nullable|required_if:driver,s3|string|max:255',
             'region' => 'nullable|required_if:driver,s3|string|max:100',
             'endpoint' => 'nullable|url|max:255',
