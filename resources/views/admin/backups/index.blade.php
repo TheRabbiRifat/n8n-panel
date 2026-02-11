@@ -4,7 +4,7 @@
 <div class="row">
     <div class="col-md-4">
         <div class="card shadow-sm mb-4">
-            <div class="card-header fw-bold">Backup Settings</div>
+            <div class="card-header bg-white fw-bold">Backup Settings</div>
             <div class="card-body">
                 <form action="{{ route('admin.backups.update') }}" method="POST">
                     @csrf
@@ -92,7 +92,7 @@
         </div>
 
         <div class="card shadow-sm mb-4">
-            <div class="card-header fw-bold">System Cron</div>
+            <div class="card-header bg-white fw-bold">System Cron</div>
             <div class="card-body">
                 <p class="small text-muted mb-2">Add this command to your system crontab (`crontab -e`) to schedule backups:</p>
                 <div class="input-group">
@@ -106,7 +106,7 @@
         </div>
 
         <div class="card shadow-sm">
-            <div class="card-header fw-bold">Manual Actions</div>
+            <div class="card-header bg-white fw-bold">Manual Actions</div>
             <div class="card-body">
                 <form action="{{ route('admin.backups.run') }}" method="POST">
                     @csrf
@@ -120,7 +120,7 @@
 
     <div class="col-md-8">
         <div class="card shadow-sm">
-            <div class="card-header">
+            <div class="card-header bg-white">
                 <div class="d-flex justify-content-between align-items-center mb-2">
                     <span class="fw-bold">Available Backups (Remote)</span>
                     <div>
