@@ -32,6 +32,7 @@ class RequirementController extends Controller
             'a_records' => [],
             'wildcard_records' => [],
             'nameservers' => [],
+            'dns_provider' => 'Unknown',
             'a_record_match' => false,
             'wildcard_match' => false,
         ];
@@ -53,6 +54,8 @@ class RequirementController extends Controller
                 }
             }
 
+            $checks['dns_provider'] = $this->identifyDnsProvider($checks['nameservers']);
+
             // Wildcard Check
             $wildcardTest = 'check-wildcard-' . time() . '.' . $hostname;
             $dnsWildcard = @dns_get_record($wildcardTest, DNS_A);
@@ -72,5 +75,38 @@ class RequirementController extends Controller
         }
 
         return view('requirements.index', compact('checks'));
+    }
+
+    private function identifyDnsProvider(array $nameservers)
+    {
+        $providers = [
+            'cloudflare.com' => 'Cloudflare',
+            'awsdns' => 'AWS Route53',
+            'digitalocean.com' => 'DigitalOcean',
+            'googledomains.com' => 'Google Domains',
+            'godaddy.com' => 'GoDaddy',
+            'namecheap.com' => 'Namecheap',
+            'azure-dns' => 'Azure DNS',
+            'hetzner' => 'Hetzner',
+            'linode' => 'Linode',
+            'ovh.net' => 'OVH',
+            'registrar-servers.com' => 'Namecheap (Basic DNS)',
+            'domaincontrol.com' => 'GoDaddy (Basic DNS)',
+            'world4you.com' => 'World4You',
+            'siteground' => 'SiteGround',
+            'bluehost' => 'Bluehost',
+            'hostgator' => 'HostGator',
+            'dreamhost' => 'DreamHost',
+        ];
+
+        foreach ($nameservers as $ns) {
+            foreach ($providers as $domain => $name) {
+                if (stripos($ns, $domain) !== false) {
+                    return $name;
+                }
+            }
+        }
+
+        return 'Unknown Provider';
     }
 }

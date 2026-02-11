@@ -31,6 +31,7 @@ class RequirementCheckTest extends TestCase
 
         $checks = $response->viewData('checks');
         $this->assertEquals('123.123.123.123', $checks['server_ip']);
+        $this->assertArrayHasKey('dns_provider', $checks);
     }
 
     /**
