@@ -4,7 +4,7 @@
 <div class="row">
     <div class="col-md-4">
         <div class="card shadow-sm mb-4">
-            <div class="card-header fw-bold">Backup Settings</div>
+            <div class="card-header bg-white fw-bold">Backup Settings</div>
             <div class="card-body">
                 <form action="{{ route('admin.backups.update') }}" method="POST">
                     @csrf
@@ -92,7 +92,7 @@
         </div>
 
         <div class="card shadow-sm mb-4">
-            <div class="card-header fw-bold">System Cron</div>
+            <div class="card-header bg-white fw-bold">System Cron</div>
             <div class="card-body">
                 <p class="small text-muted mb-2">Add this command to your system crontab (`crontab -e`) to schedule backups:</p>
                 <div class="input-group">
@@ -106,11 +106,11 @@
         </div>
 
         <div class="card shadow-sm">
-            <div class="card-header fw-bold">Manual Actions</div>
+            <div class="card-header bg-white fw-bold">Manual Actions</div>
             <div class="card-body">
                 <form action="{{ route('admin.backups.run') }}" method="POST">
                     @csrf
-                    <button class="btn btn-outline-success w-100" data-confirm-message="Start backup process immediately? This may take several minutes." data-confirm-btn="Start Backup" data-loading-text="Running Backup...">
+                    <button class="btn btn-outline-success w-100" onclick="return confirm('Start backup process now? This might take a while.')">
                         <i class="bi bi-play-circle me-1"></i> Trigger Backup Now
                     </button>
                 </form>
@@ -120,11 +120,11 @@
 
     <div class="col-md-8">
         <div class="card shadow-sm">
-            <div class="card-header">
+            <div class="card-header bg-white">
                 <div class="d-flex justify-content-between align-items-center mb-2">
                     <span class="fw-bold">Available Backups (Remote)</span>
                     <div>
-                        <button type="submit" form="restore-form" class="btn btn-sm btn-primary" data-confirm-message="Restore selected instances? Existing data will be overwritten." data-confirm-btn="Restore" data-loading-text="Restoring...">
+                        <button type="submit" form="restore-form" class="btn btn-sm btn-primary" onclick="return confirm('Restore selected instances? This will overwrite existing data or create new instances.')">
                             <i class="bi bi-arrow-counterclockwise me-1"></i> Restore Selected
                         </button>
                         <span class="badge bg-secondary ms-2" id="backup-count">{{ count($backups) }} Found</span>
@@ -137,7 +137,7 @@
                     @csrf
                     <div class="table-responsive">
                         <table class="table table-hover mb-0 align-middle" id="backups-table">
-                            <thead>
+                            <thead class="bg-light">
                                 <tr>
                                     <th class="ps-4" style="width: 40px;">
                                         <input type="checkbox" class="form-check-input" id="select-all" onclick="document.querySelectorAll('.backup-check').forEach(c => c.checked = this.checked)">
@@ -167,7 +167,7 @@
                                 </tr>
                                 <tr class="backup-details-row">
                                     <td colspan="5" class="p-0 border-0">
-                                    <div class="collapse" id="files-{{ Str::slug($folder['name']) }}">
+                                    <div class="collapse bg-light" id="files-{{ Str::slug($folder['name']) }}">
                                         <div class="p-3">
                                             <table class="table table-sm mb-0 table-borderless">
                                                 @foreach($folder['files'] as $file)

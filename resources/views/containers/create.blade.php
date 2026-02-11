@@ -4,11 +4,11 @@
 <div class="row justify-content-center">
     <div class="col-md-8 col-lg-6">
         <div class="card shadow-sm">
-            <div class="card-header">
+            <div class="card-header bg-white">
                 <h4 class="mb-0">Create New n8n Instance</h4>
             </div>
             <div class="card-body">
-                <form action="{{ route('containers.store') }}" method="POST" class="show-loading" data-loading-text="Provisioning Instance...">
+                <form action="{{ route('containers.store') }}" method="POST">
                     @csrf
 
                     <div class="mb-3">
