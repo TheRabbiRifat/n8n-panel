@@ -68,8 +68,6 @@
         body {
             font-family: 'Inter', sans-serif;
             background-color: var(--bs-body-bg);
-            font-size: 0.925rem;
-            letter-spacing: -0.01em;
         }
 
         #wrapper { display: flex; min-height: 100vh; overflow-x: hidden; }
@@ -97,7 +95,6 @@
             color: #fff;
             background-color: rgba(0,0,0,0.2);
             text-decoration: none;
-            letter-spacing: -0.02em;
         }
 
         #sidebar .search-wrapper {
@@ -128,7 +125,6 @@
             padding: 1.5rem 1.5rem 0.75rem;
             color: var(--whm-sidebar-text);
             opacity: 0.7;
-            letter-spacing: 0.05em;
         }
 
         #sidebar .nav-link {
@@ -295,7 +291,7 @@
 
                     <div class="d-none d-lg-flex flex-column small lh-1">
                         <div class="fw-bold">{{ $serverInfo['hostname'] ?? 'localhost' }}</div>
-                        <div class="text-muted text-truncate" style="font-size: 0.75rem; max-width: 200px;" title="{{ $serverInfo['ips'] ?? '127.0.0.1' }}">{{ $serverInfo['ips'] ?? '127.0.0.1' }}</div>
+                        <div class="text-muted text-truncate" style="max-width: 200px;" title="{{ $serverInfo['ips'] ?? '127.0.0.1' }}">{{ $serverInfo['ips'] ?? '127.0.0.1' }}</div>
                     </div>
 
                     <div class="vr mx-2 d-none d-lg-block"></div>
@@ -307,7 +303,7 @@
 
                 <div class="d-flex align-items-center gap-3">
                     <div class="d-none d-xl-flex align-items-center gap-2 small">
-                        <span class="text-muted text-uppercase fw-bold" style="font-size: 0.7rem;">Load Averages</span>
+                        <span class="text-muted text-uppercase fw-bold" style="font-size: 0.75rem;">Load Averages</span>
                         <span class="badge bg-light text-dark border">{{ $serverInfo['loads']['1'] ?? '0.00' }}</span>
                         <span class="badge bg-light text-dark border">{{ $serverInfo['loads']['5'] ?? '0.00' }}</span>
                         <span class="badge bg-light text-dark border">{{ $serverInfo['loads']['15'] ?? '0.00' }}</span>
