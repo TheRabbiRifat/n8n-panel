@@ -145,15 +145,24 @@
 
                 <h6 class="fw-bold mt-4">Endpoint Reference</h6>
                 <div class="accordion" id="apiDocs">
-                    <!-- Base URL -->
-                    <div class="mb-3">
-                        <label class="small text-muted text-uppercase fw-bold">Base URL</label>
-                        <div class="input-group input-group-sm flex-nowrap">
-                            @php
-                                $apiBase = request()->schemeAndHttpHost() . '/api/integration';
-                            @endphp
-                            <span class="input-group-text bg-light text-truncate" style="max-width: 100%;">{{ $apiBase }}</span>
-                            <button class="btn btn-outline-secondary" type="button" onclick="navigator.clipboard.writeText('{{ $apiBase }}')"><i class="bi bi-clipboard"></i></button>
+                    <!-- Username & Base URL -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="small text-muted text-uppercase fw-bold">Username</label>
+                            <div class="input-group input-group-sm flex-nowrap">
+                                <span class="input-group-text bg-light text-truncate" style="max-width: 100%;">{{ auth()->user()->username }}</span>
+                                <button class="btn btn-outline-secondary" type="button" onclick="navigator.clipboard.writeText('{{ auth()->user()->username }}')"><i class="bi bi-clipboard"></i></button>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="small text-muted text-uppercase fw-bold">Base URL</label>
+                            <div class="input-group input-group-sm flex-nowrap">
+                                @php
+                                    $apiBase = request()->schemeAndHttpHost() . '/api/integration';
+                                @endphp
+                                <span class="input-group-text bg-light text-truncate" style="max-width: 100%;">{{ $apiBase }}</span>
+                                <button class="btn btn-outline-secondary" type="button" onclick="navigator.clipboard.writeText('{{ $apiBase }}')"><i class="bi bi-clipboard"></i></button>
+                            </div>
                         </div>
                     </div>
 
