@@ -185,24 +185,32 @@ class BackupService
             $dbUser = $container->db_username;
             $dbName = $container->db_database;
 
+            $pgDumpPath = $this->getPgDumpPath();
+
             // We use PGPASSWORD env var for safety
             // Use Process component directly to stream output to file to avoid memory limits and shell redirection issues
-            $process = new \Symfony\Component\Process\Process([
-                'pg_dump', '-h', $dbHost, '-p', $dbPort, '-U', $dbUser, '--no-owner', '--no-acl', $dbName
-            ]);
-            $process->setEnv(['PGPASSWORD' => $container->db_password]);
-            $process->setTimeout(300); // 5 minutes
-
             $fileHandle = fopen($tempFile, 'w');
-            $process->run(function ($type, $buffer) use ($fileHandle) {
-                if (\Symfony\Component\Process\Process::OUT === $type) {
-                    fwrite($fileHandle, $buffer);
-                }
-            });
+
+            $process = Process::timeout(300)
+                ->env(['PGPASSWORD' => $container->db_password])
+                ->run([
+                    $pgDumpPath, '-h', $dbHost, '-p', $dbPort, '-U', $dbUser, '--no-owner', '--no-acl', $dbName
+                ], function (string $type, string $output) use ($fileHandle) {
+                    if ($type === 'out') {
+                        fwrite($fileHandle, $output);
+                    }
+                });
+
             fclose($fileHandle);
 
-            if (!$process->isSuccessful()) {
-                throw new \Exception("Database dump failed (Credentials): " . $process->getErrorOutput());
+            // Fallback for tests or if callback didn't fire (e.g. Process::fake)
+            clearstatcache(true, $tempFile);
+            if (filesize($tempFile) === 0 && !empty($process->output())) {
+                file_put_contents($tempFile, $process->output());
+            }
+
+            if ($process->failed()) {
+                throw new \Exception("Database dump failed (Credentials): " . $process->errorOutput());
             }
         } else {
             throw new \Exception("No database credentials configured for this instance.");
@@ -210,7 +218,7 @@ class BackupService
 
         // 5. Upload to Disk
         if (file_exists($tempFile)) {
-            $stream = fopen($tempFile, 'r+');
+            $stream = fopen($tempFile, 'r');
             Log::info("Starting upload of {$backupName} to backup disk...");
 
             try {
@@ -424,6 +432,30 @@ class BackupService
             abort(404);
         }
         return Storage::disk('backup')->download($filename);
+    }
+
+    public function getPgDumpPath()
+    {
+        // Check if 'pg_dump' is in PATH by running it with --version
+        $result = Process::run(['pg_dump', '--version']);
+        if ($result->successful()) {
+            return 'pg_dump';
+        }
+
+        // Check explicit paths
+        $paths = [
+            '/usr/bin/pg_dump',
+            '/usr/local/bin/pg_dump',
+            '/usr/local/pgsql/bin/pg_dump',
+        ];
+
+        foreach ($paths as $path) {
+            if (file_exists($path)) {
+                return $path;
+            }
+        }
+
+        throw new \Exception("pg_dump not found. Please ensure postgresql-client is installed and pg_dump is in the PATH.");
     }
 
     public function deleteBackup(string $instanceName)

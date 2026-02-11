@@ -94,10 +94,17 @@ class BackupController extends Controller
 
     public function run()
     {
+        set_time_limit(0);
+
         try {
-            Artisan::call('backup:run');
+            $exitCode = Artisan::call('backup:run');
             $output = Artisan::output();
-            return back()->with('success', 'Backup process started. Output: ' . $output);
+
+            if ($exitCode !== 0) {
+                return back()->with('error', 'Backup process failed. Output: ' . $output);
+            }
+
+            return back()->with('success', 'Backup process completed. Output: ' . $output);
         } catch (\Exception $e) {
             return back()->with('error', 'Backup failed: ' . $e->getMessage());
         }
