@@ -103,7 +103,7 @@ class BackupService
                 Storage::disk('backup_test')->delete($testFile);
                 return true;
             } catch (\Exception $e) {
-                return false;
+                throw $e; // Rethrow to capture message
             } finally {
                 Storage::forgetDisk('backup_test');
             }
@@ -127,16 +127,30 @@ class BackupService
 
         // Auto-detect for FTP if not set
         // Try Passive (Default)
-        if ($tryConfig(true)) {
-            return true;
+        $passiveError = null;
+        try {
+            if ($tryConfig(true)) {
+                return true;
+            }
+        } catch (\Exception $e) {
+            $passiveError = $e->getMessage();
         }
 
         // Try Active
-        if ($tryConfig(false)) {
-            return false;
+        $activeError = null;
+        try {
+            if ($tryConfig(false)) {
+                return false;
+            }
+        } catch (\Exception $e) {
+            $activeError = $e->getMessage();
         }
 
-        throw new \Exception("Connection failed in both Passive and Active modes.");
+        // Return connection failure with details if available
+        // Note: tryConfig returns boolean true/false, but BackupSetting::testConnection logic inside tryConfig wraps Storage calls.
+        // Wait, tryConfig swallows exceptions and returns false. I should capture them.
+
+        throw new \Exception("Connection failed. Passive Mode: " . ($passiveError ?? 'Failed') . ". Active Mode: " . ($activeError ?? 'Failed'));
     }
 
     public function backupAll()
