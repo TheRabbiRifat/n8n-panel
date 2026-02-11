@@ -31,13 +31,10 @@ class BackupSettingsTest extends TestCase
 
         // Mock BackupService
         $mockBackupService = Mockery::mock(BackupService::class);
-
-        // We expect testConnection to NEVER be called
         $mockBackupService->shouldReceive('testConnection')->never();
 
         $this->instance(BackupService::class, $mockBackupService);
 
-        // Send request without 'enabled'
         $response = $this->actingAs($admin)->post(route('admin.backups.update'), [
             'driver' => 's3',
             'username' => 'key',
@@ -45,7 +42,7 @@ class BackupSettingsTest extends TestCase
             'bucket' => 'bucket',
             'region' => 'us-east-1',
             'retention_days' => 7,
-            // 'enabled' is missing -> false
+            // enabled missing
         ]);
 
         $response->assertSessionHas('success');
@@ -61,17 +58,10 @@ class BackupSettingsTest extends TestCase
         $admin = User::factory()->create();
         $admin->assignRole('admin');
 
-        // Mock BackupService
         $mockBackupService = Mockery::mock(BackupService::class);
-
-        // We expect testConnection to be called ONCE
-        $mockBackupService->shouldReceive('testConnection')
-            ->once()
-            ->andReturn(true);
-
+        $mockBackupService->shouldReceive('testConnection')->once()->andReturn(true);
         $this->instance(BackupService::class, $mockBackupService);
 
-        // Send request with 'enabled'
         $response = $this->actingAs($admin)->post(route('admin.backups.update'), [
             'driver' => 's3',
             'username' => 'key',
