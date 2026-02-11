@@ -77,9 +77,15 @@ class BackupController extends Controller
             }
         }
 
+        $detectedPassiveMode = null;
+
         if ($request->has('enabled')) {
             try {
-                $this->backupService->testConnection($request->all());
+                $result = $this->backupService->testConnection($request->all());
+                // If result is boolean, it means auto-detection happened or confirmation of mode
+                if (is_bool($result)) {
+                    $detectedPassiveMode = $result;
+                }
             } catch (\Exception $e) {
                 session()->flash('warning', 'Connection test failed: ' . $e->getMessage() . '. Settings were saved but backups may not work.');
             }
@@ -88,7 +94,14 @@ class BackupController extends Controller
         $setting = BackupSetting::firstOrNew();
         $setting->fill($request->all());
         $setting->enabled = $request->has('enabled');
-        $setting->is_passive = $request->has('is_passive');
+
+        // Use detected mode if available, otherwise respect user input (checkbox)
+        if ($detectedPassiveMode !== null) {
+            $setting->is_passive = $detectedPassiveMode;
+        } else {
+            $setting->is_passive = $request->has('is_passive');
+        }
+
         $setting->save();
 
         return back()->with('success', 'Backup settings saved.');

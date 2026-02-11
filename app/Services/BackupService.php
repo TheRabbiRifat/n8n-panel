@@ -72,20 +72,55 @@ class BackupService
 
     public function testConnection(array $data)
     {
-        $setting = new BackupSetting($data);
-        $config = $this->getDiskConfig($setting);
+        // Try provided config first
+        $tryConfig = function($isPassive) use ($data) {
+            $data['is_passive'] = $isPassive;
+            $setting = new BackupSetting($data);
+            $config = $this->getDiskConfig($setting);
 
-        Config::set('filesystems.disks.backup_test', $config);
-        Storage::forgetDisk('backup_test');
-
-        try {
-            $testFile = 'connection_test_' . time() . '.txt';
-            Storage::disk('backup_test')->put($testFile, 'test');
-            Storage::disk('backup_test')->delete($testFile);
-            return true;
-        } finally {
+            Config::set('filesystems.disks.backup_test', $config);
             Storage::forgetDisk('backup_test');
+
+            try {
+                $testFile = 'connection_test_' . time() . '.txt';
+                Storage::disk('backup_test')->put($testFile, 'test');
+                Storage::disk('backup_test')->delete($testFile);
+                return true;
+            } catch (\Exception $e) {
+                return false;
+            } finally {
+                Storage::forgetDisk('backup_test');
+            }
+        };
+
+        // If user explicitly set is_passive, respect it (or if not FTP)
+        if ($data['driver'] !== 'ftp' || isset($data['is_passive'])) {
+            $setting = new BackupSetting($data);
+            $config = $this->getDiskConfig($setting);
+            Config::set('filesystems.disks.backup_test', $config);
+            Storage::forgetDisk('backup_test');
+            try {
+                $testFile = 'connection_test_' . time() . '.txt';
+                Storage::disk('backup_test')->put($testFile, 'test');
+                Storage::disk('backup_test')->delete($testFile);
+                return $setting->is_passive;
+            } finally {
+                Storage::forgetDisk('backup_test');
+            }
         }
+
+        // Auto-detect for FTP if not set
+        // Try Passive (Default)
+        if ($tryConfig(true)) {
+            return true;
+        }
+
+        // Try Active
+        if ($tryConfig(false)) {
+            return false;
+        }
+
+        throw new \Exception("Connection failed in both Passive and Active modes.");
     }
 
     public function backupAll()
