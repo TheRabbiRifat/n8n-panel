@@ -78,48 +78,4 @@ class BackupSettingsTest extends TestCase
             'enabled' => true,
         ]);
     }
-
-    /** @test */
-    public function it_saves_ftp_ignore_passive_ip_setting()
-    {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
-
-        $mockBackupService = Mockery::mock(BackupService::class);
-        $mockBackupService->shouldReceive('testConnection')->twice()->andReturn(true);
-        $this->instance(BackupService::class, $mockBackupService);
-
-        // Test Unchecked (False)
-        $response = $this->actingAs($admin)->post(route('admin.backups.update'), [
-            'driver' => 'ftp',
-            'host' => 'ftp.example.com',
-            'username' => 'user',
-            'password' => 'pass',
-            'retention_days' => 7,
-            'enabled' => 'on',
-            // ftp_ignore_passive_ip missing -> false
-        ]);
-
-        $response->assertSessionHas('success');
-        $this->assertDatabaseHas('backup_settings', [
-            'driver' => 'ftp',
-            'ftp_ignore_passive_ip' => false,
-        ]);
-
-        // Test Checked (True)
-        $response = $this->actingAs($admin)->post(route('admin.backups.update'), [
-            'driver' => 'ftp',
-            'host' => 'ftp.example.com',
-            'username' => 'user',
-            'password' => 'pass',
-            'retention_days' => 7,
-            'enabled' => 'on',
-            'ftp_ignore_passive_ip' => 'on',
-        ]);
-
-        $this->assertDatabaseHas('backup_settings', [
-            'driver' => 'ftp',
-            'ftp_ignore_passive_ip' => true,
-        ]);
-    }
 }

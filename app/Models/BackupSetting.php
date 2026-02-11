@@ -20,7 +20,6 @@ class BackupSetting extends Model
         'cron_expression',
         'enabled',
         'retention_days',
-        'ftp_ignore_passive_ip',
     ];
 
     protected $casts = [
@@ -28,6 +27,5 @@ class BackupSetting extends Model
         'enabled' => 'boolean',
         'port' => 'integer',
         'retention_days' => 'integer',
-        'ftp_ignore_passive_ip' => 'boolean',
     ];
 }
