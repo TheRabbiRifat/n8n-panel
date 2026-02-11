@@ -78,7 +78,10 @@ class BackupController extends Controller
 
         if ($request->has('enabled')) {
             try {
-                $this->backupService->testConnection($request->all());
+                $data = $request->all();
+                // Ensure checkbox value is present for service test
+                $data['ftp_ignore_passive_ip'] = $request->has('ftp_ignore_passive_ip');
+                $this->backupService->testConnection($data);
             } catch (\Exception $e) {
                 return back()->with('error', 'Connection test failed: ' . $e->getMessage())->withInput();
             }
@@ -87,6 +90,7 @@ class BackupController extends Controller
         $setting = BackupSetting::firstOrNew();
         $setting->fill($request->all());
         $setting->enabled = $request->has('enabled');
+        $setting->ftp_ignore_passive_ip = $request->has('ftp_ignore_passive_ip');
         $setting->save();
 
         return back()->with('success', 'Backup settings saved.');

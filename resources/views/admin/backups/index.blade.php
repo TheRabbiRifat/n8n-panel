@@ -60,6 +60,11 @@
                             <label class="form-label">Root Path</label>
                             <input type="text" name="path" class="form-control" value="{{ optional($setting)->path ?? '/' }}">
                         </div>
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" id="ftp_ignore_passive_ip" name="ftp_ignore_passive_ip" {{ (optional($setting)->ftp_ignore_passive_ip ?? true) ? 'checked' : '' }}>
+                            <label class="form-check-label" for="ftp_ignore_passive_ip">Ignore Passive IP (NAT Fix)</label>
+                            <div class="form-text small">Enable if behind NAT. Disable if server provides correct passive IP.</div>
+                        </div>
                     </div>
 
                     <!-- S3 Fields -->

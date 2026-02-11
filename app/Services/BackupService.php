@@ -55,7 +55,7 @@ class BackupService
                 'port' => $port,
                 'root' => $setting->path ?: '/',
                 'ssl' => $setting->encryption === 'ssl',
-                'ignorePassiveAddress' => true,
+                'ignorePassiveAddress' => $setting->ftp_ignore_passive_ip ?? true,
                 'timeout' => 30,
                 'throw' => true,
             ];
