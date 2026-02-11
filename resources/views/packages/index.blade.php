@@ -3,7 +3,7 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-5">
     <div>
-        <h2 class="fw-bold mb-1">Package Management</h2>
+        <h2 class="fw-bold text-dark mb-1">Package Management</h2>
         <p class="text-muted mb-0">Define resource limits for your instances.</p>
     </div>
     <a href="{{ route('packages.create') }}" class="btn btn-primary shadow-sm">
@@ -15,7 +15,7 @@
     <div class="card-body p-0">
         <div class="table-responsive">
             <table class="table table-hover mb-0 align-middle">
-                <thead>
+                <thead class="bg-light">
                     <tr>
                         <th class="ps-4">Name</th>
                         <th>Type</th>
@@ -57,7 +57,7 @@
                             <form action="{{ route('packages.destroy', $package->id) }}" method="POST" style="display:inline;">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="btn btn-outline-danger btn-sm" data-confirm-message="Delete this package? Instances using it will not be affected." data-confirm-btn="Delete Package">
+                                <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Are you sure? This will not delete instances using this package.')">
                                     <i class="bi bi-trash"></i>
                                 </button>
                             </form>

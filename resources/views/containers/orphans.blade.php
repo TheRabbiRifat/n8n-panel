@@ -45,11 +45,11 @@
                                     data-ports="{{ $orphan['ports'] }}">
                                 <i class="bi bi-box-arrow-in-down"></i> Import
                             </button>
-                            <form action="{{ route('containers.deleteOrphan') }}" method="POST" class="d-inline">
+                            <form action="{{ route('containers.deleteOrphan') }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this orphan instance? This cannot be undone.');">
                                 @csrf
                                 @method('DELETE')
                                 <input type="hidden" name="docker_id" value="{{ $orphan['id'] }}">
-                                <button type="submit" class="btn btn-sm btn-outline-danger" data-confirm-message="Delete this orphan instance? This cannot be undone." data-confirm-btn="Delete Orphan" data-loading-text="Deleting...">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
                                     <i class="bi bi-trash"></i>
                                 </button>
                             </form>
