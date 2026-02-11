@@ -31,7 +31,6 @@ class RequirementController extends Controller
             'is_ip' => $isIp,
             'a_records' => [],
             'wildcard_records' => [],
-            'nameservers' => [],
             'a_record_match' => false,
             'wildcard_match' => false,
         ];
@@ -42,14 +41,6 @@ class RequirementController extends Controller
             if ($dnsA) {
                 foreach ($dnsA as $record) {
                     $checks['a_records'][] = $record['ip'];
-                }
-            }
-
-            // Nameservers
-            $dnsNS = @dns_get_record($hostname, DNS_NS);
-            if ($dnsNS) {
-                foreach ($dnsNS as $record) {
-                    $checks['nameservers'][] = $record['target'];
                 }
             }
 

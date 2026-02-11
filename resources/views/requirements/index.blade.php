@@ -105,28 +105,6 @@
                 </div>
             </div>
 
-            <!-- Nameservers -->
-             <div class="col-12 mb-4">
-                <div class="card">
-                    <div class="card-header">
-                        Nameservers
-                    </div>
-                    <div class="card-body">
-                         @if(count($checks['nameservers']) > 0)
-                            <ul class="list-group list-group-flush">
-                                @foreach($checks['nameservers'] as $ns)
-                                    <li class="list-group-item">{{ $ns }}</li>
-                                @endforeach
-                            </ul>
-                        @else
-                            <p class="text-muted mb-0">No nameservers found.</p>
-                        @endif
-                        <div class="mt-3 text-muted small">
-                            <i class="bi bi-info-circle me-1"></i> Ensure these nameservers are correct at your domain registrar.
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
     @endif
 </div>
