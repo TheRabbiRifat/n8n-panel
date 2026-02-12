@@ -25,6 +25,7 @@ class RoleSeeder extends Seeder
             'view_logs',
             'view_system',
             'manage_roles',
+            'manage_packages',
         ];
 
         foreach ($permissions as $permission) {
@@ -36,7 +37,7 @@ class RoleSeeder extends Seeder
         $admin->syncPermissions(Permission::all());
 
         $reseller = Role::firstOrCreate(['name' => 'reseller']);
-        $reseller->syncPermissions(['view_dashboard', 'manage_instances']);
+        $reseller->syncPermissions(['view_dashboard', 'manage_instances', 'manage_packages']);
 
         $client = Role::firstOrCreate(['name' => 'client']);
         $client->syncPermissions(['view_dashboard', 'manage_instances']);

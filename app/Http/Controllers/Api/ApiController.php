@@ -455,7 +455,7 @@ class ApiController extends Controller
     // LIST PACKAGES (Helper for WHMCS config)
     public function listPackages()
     {
-        return response()->json(['status' => 'success', 'packages' => Package::all()]);
+        return response()->json(['status' => 'success', 'packages' => Package::where('user_id', auth()->id())->get()]);
     }
 
     // RESELLER CRUD
