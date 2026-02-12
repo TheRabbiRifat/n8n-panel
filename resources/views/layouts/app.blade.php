@@ -235,10 +235,12 @@
                 </a>
                 @endcan
 
+                @can('manage_packages')
                 <div class="nav-group-title">Packages</div>
                 <a href="{{ route('packages.index') }}" class="nav-link {{ request()->routeIs('packages.*') ? 'active' : '' }}">
                     <i class="bi bi-box"></i> Packages
                 </a>
+                @endcan
 
                 <div class="nav-group-title">Integration</div>
                 <a href="{{ route('api-tokens.index') }}" class="nav-link {{ request()->routeIs('api-tokens.*') ? 'active' : '' }}">

@@ -19,12 +19,15 @@ class PackageVisibilityTest extends TestCase
         parent::setUp();
 
         // Create roles if they don't exist (using Spatie Permissions)
-        if (!Role::where('name', 'admin')->exists()) {
-            Role::create(['name' => 'admin']);
-        }
-        if (!Role::where('name', 'reseller')->exists()) {
-            Role::create(['name' => 'reseller']);
-        }
+        $adminRole = Role::firstOrCreate(['name' => 'admin']);
+        $resellerRole = Role::firstOrCreate(['name' => 'reseller']);
+
+        // Create manage_packages permission
+        $managePackages = Permission::firstOrCreate(['name' => 'manage_packages']);
+
+        // Assign permission to roles
+        $adminRole->givePermissionTo($managePackages);
+        $resellerRole->givePermissionTo($managePackages);
     }
 
     public function test_admin_sees_all_packages_in_ui()

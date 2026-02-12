@@ -6,9 +6,11 @@
         <h2 class="fw-bold text-dark mb-1">Package Management</h2>
         <p class="text-muted mb-0">Define resource limits for your instances.</p>
     </div>
+    @can('manage_packages')
     <a href="{{ route('packages.create') }}" class="btn btn-primary shadow-sm">
         <i class="bi bi-plus-lg me-1"></i> Create Package
     </a>
+    @endcan
 </div>
 
 <div class="card shadow-sm border-0">
