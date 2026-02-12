@@ -122,11 +122,6 @@ class PackageVisibilityTest extends TestCase
             'disk_limit' => 10,
         ]);
 
-        // API Endpoint: /api/integration/packages
-        // The API uses check.api.ip middleware, which might block tests unless mocked or IP allowed.
-        // Assuming tests bypass check.api.ip if possible or configured.
-        // If check.api.ip is strict, we might need to mock middleware.
-
         $this->withoutMiddleware(\App\Http\Middleware\CheckApiIp::class);
 
         $response = $this->actingAs($admin, 'sanctum')->getJson('/api/integration/packages');
@@ -192,5 +187,110 @@ class PackageVisibilityTest extends TestCase
             'name' => 'New Reseller Package',
             'user_id' => $reseller->id,
         ]);
+    }
+
+    public function test_reseller_can_update_own_package()
+    {
+        $reseller = User::factory()->create();
+        $reseller->assignRole('reseller');
+
+        $package = Package::create([
+            'user_id' => $reseller->id,
+            'name' => 'Old Name',
+            'type' => 'instance',
+            'cpu_limit' => 1,
+            'ram_limit' => 1,
+            'disk_limit' => 10,
+        ]);
+
+        $response = $this->actingAs($reseller)->put(route('packages.update', $package->id), [
+            'name' => 'Updated Name',
+            'type' => 'instance',
+            'cpu_limit' => 2,
+            'ram_limit' => 2,
+            'disk_limit' => 20,
+        ]);
+
+        $response->assertRedirect(route('packages.index'));
+        $this->assertDatabaseHas('packages', [
+            'id' => $package->id,
+            'name' => 'Updated Name',
+            'cpu_limit' => 2,
+        ]);
+    }
+
+    public function test_reseller_cannot_update_others_package()
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+
+        $reseller = User::factory()->create();
+        $reseller->assignRole('reseller');
+
+        $package = Package::create([
+            'user_id' => $admin->id,
+            'name' => 'Admin Package',
+            'type' => 'instance',
+            'cpu_limit' => 1,
+            'ram_limit' => 1,
+            'disk_limit' => 10,
+        ]);
+
+        $response = $this->actingAs($reseller)->put(route('packages.update', $package->id), [
+            'name' => 'Hacked Name',
+            'type' => 'instance',
+            'cpu_limit' => 2,
+            'ram_limit' => 2,
+            'disk_limit' => 20,
+        ]);
+
+        $response->assertStatus(403);
+        $this->assertDatabaseHas('packages', [
+            'id' => $package->id,
+            'name' => 'Admin Package',
+        ]);
+    }
+
+    public function test_reseller_can_delete_own_package()
+    {
+        $reseller = User::factory()->create();
+        $reseller->assignRole('reseller');
+
+        $package = Package::create([
+            'user_id' => $reseller->id,
+            'name' => 'To Be Deleted',
+            'type' => 'instance',
+            'cpu_limit' => 1,
+            'ram_limit' => 1,
+            'disk_limit' => 10,
+        ]);
+
+        $response = $this->actingAs($reseller)->delete(route('packages.destroy', $package->id));
+
+        $response->assertRedirect(); // Usually back()
+        $this->assertDatabaseMissing('packages', ['id' => $package->id]);
+    }
+
+    public function test_reseller_cannot_delete_others_package()
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+
+        $reseller = User::factory()->create();
+        $reseller->assignRole('reseller');
+
+        $package = Package::create([
+            'user_id' => $admin->id,
+            'name' => 'Admin Package',
+            'type' => 'instance',
+            'cpu_limit' => 1,
+            'ram_limit' => 1,
+            'disk_limit' => 10,
+        ]);
+
+        $response = $this->actingAs($reseller)->delete(route('packages.destroy', $package->id));
+
+        $response->assertStatus(403);
+        $this->assertDatabaseHas('packages', ['id' => $package->id]);
     }
 }
