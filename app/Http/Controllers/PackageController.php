@@ -12,18 +12,10 @@ class PackageController extends Controller
     {
         $user = Auth::user();
 
-        // Resellers can only use the packages, no update, or delete.
-        // Assuming this means they can VIEW all available packages (or packages assigned to them?)
-        // The prompt says "resellers can only use the packages".
-        // Let's assume they can see all packages created by Admin.
-
         if ($user->hasRole('admin')) {
              $packages = Package::all();
         } else {
-             // Reseller: View all packages (to "use" them for creating instances)
-             // Previously it was "own packages". Now they cannot create/update/delete.
-             // So they must use Admin packages.
-             $packages = Package::all();
+             $packages = Package::where('user_id', $user->id)->get();
         }
 
         return view('packages.index', compact('packages'));
@@ -31,8 +23,7 @@ class PackageController extends Controller
 
     public function create()
     {
-        // Resellers cannot create packages
-        if (!Auth::user()->hasRole('admin')) {
+        if (!Auth::user()->hasRole('admin') && !Auth::user()->hasRole('reseller')) {
             abort(403, 'Unauthorized');
         }
         return view('packages.create');
@@ -40,7 +31,7 @@ class PackageController extends Controller
 
     public function store(Request $request)
     {
-        if (!Auth::user()->hasRole('admin')) {
+        if (!Auth::user()->hasRole('admin') && !Auth::user()->hasRole('reseller')) {
             abort(403, 'Unauthorized');
         }
 
@@ -76,8 +67,7 @@ class PackageController extends Controller
 
     public function edit(Package $package)
     {
-        // Resellers cannot update packages
-        if (!Auth::user()->hasRole('admin')) {
+        if (Auth::user()->id !== $package->user_id && !Auth::user()->hasRole('admin')) {
             abort(403, 'Unauthorized');
         }
 
@@ -86,8 +76,7 @@ class PackageController extends Controller
 
     public function update(Request $request, Package $package)
     {
-        // Resellers cannot update packages
-        if (!Auth::user()->hasRole('admin')) {
+        if (Auth::user()->id !== $package->user_id && !Auth::user()->hasRole('admin')) {
             abort(403, 'Unauthorized');
         }
 
@@ -122,8 +111,7 @@ class PackageController extends Controller
 
     public function destroy(Package $package)
     {
-        // Resellers cannot delete packages
-        if (!Auth::user()->hasRole('admin')) {
+        if (Auth::user()->id !== $package->user_id && !Auth::user()->hasRole('admin')) {
             abort(403, 'Unauthorized');
         }
 
