@@ -53,6 +53,7 @@
                         @endrole
                         <td>{{ $package->created_at->format('M d, Y') }}</td>
                         <td class="text-end pe-4">
+                            @if(auth()->user()->id === $package->user_id || auth()->user()->hasRole('admin'))
                             <a href="{{ route('packages.edit', $package->id) }}" class="btn btn-outline-primary btn-sm me-1">
                                 <i class="bi bi-pencil"></i>
                             </a>
@@ -63,6 +64,9 @@
                                     <i class="bi bi-trash"></i>
                                 </button>
                             </form>
+                            @else
+                                <span class="badge bg-secondary">Read-Only</span>
+                            @endif
                         </td>
                     </tr>
                     @empty

@@ -63,13 +63,16 @@ class PackageVisibilityTest extends TestCase
         $response->assertSee('Reseller Package');
     }
 
-    public function test_reseller_sees_only_own_packages_in_ui()
+    public function test_reseller_sees_own_and_admin_packages_in_ui()
     {
         $admin = User::factory()->create();
         $admin->assignRole('admin');
 
         $reseller = User::factory()->create();
         $reseller->assignRole('reseller');
+
+        $otherReseller = User::factory()->create();
+        $otherReseller->assignRole('reseller');
 
         $adminPackage = Package::create([
             'user_id' => $admin->id,
@@ -82,7 +85,16 @@ class PackageVisibilityTest extends TestCase
 
         $resellerPackage = Package::create([
             'user_id' => $reseller->id,
-            'name' => 'Reseller Package',
+            'name' => 'My Reseller Package',
+            'type' => 'instance',
+            'cpu_limit' => 1,
+            'ram_limit' => 1,
+            'disk_limit' => 10,
+        ]);
+
+        $otherResellerPackage = Package::create([
+            'user_id' => $otherReseller->id,
+            'name' => 'Other Reseller Package',
             'type' => 'instance',
             'cpu_limit' => 1,
             'ram_limit' => 1,
@@ -92,11 +104,12 @@ class PackageVisibilityTest extends TestCase
         $response = $this->actingAs($reseller)->get(route('packages.index'));
 
         $response->assertStatus(200);
-        $response->assertDontSee('Admin Package');
-        $response->assertSee('Reseller Package');
+        $response->assertSee('Admin Package');
+        $response->assertSee('My Reseller Package');
+        $response->assertDontSee('Other Reseller Package');
     }
 
-    public function test_admin_sees_only_own_packages_in_api()
+    public function test_admin_sees_all_packages_in_api()
     {
         $admin = User::factory()->create();
         $admin->assignRole('admin');
@@ -128,18 +141,21 @@ class PackageVisibilityTest extends TestCase
 
         $response->assertStatus(200);
 
-        // Assert JSON structure and content
+        // Admin should see ALL packages now, consistent with UI
         $response->assertJsonFragment(['name' => 'Admin Package']);
-        $response->assertJsonMissing(['name' => 'Reseller Package']);
+        $response->assertJsonFragment(['name' => 'Reseller Package']);
     }
 
-    public function test_reseller_sees_only_own_packages_in_api()
+    public function test_reseller_sees_own_and_admin_packages_in_api()
     {
         $admin = User::factory()->create();
         $admin->assignRole('admin');
 
         $reseller = User::factory()->create();
         $reseller->assignRole('reseller');
+
+        $otherReseller = User::factory()->create();
+        $otherReseller->assignRole('reseller');
 
         $adminPackage = Package::create([
             'user_id' => $admin->id,
@@ -152,7 +168,16 @@ class PackageVisibilityTest extends TestCase
 
         $resellerPackage = Package::create([
             'user_id' => $reseller->id,
-            'name' => 'Reseller Package',
+            'name' => 'My Reseller Package',
+            'type' => 'instance',
+            'cpu_limit' => 1,
+            'ram_limit' => 1,
+            'disk_limit' => 10,
+        ]);
+
+        $otherResellerPackage = Package::create([
+            'user_id' => $otherReseller->id,
+            'name' => 'Other Reseller Package',
             'type' => 'instance',
             'cpu_limit' => 1,
             'ram_limit' => 1,
@@ -165,8 +190,9 @@ class PackageVisibilityTest extends TestCase
 
         $response->assertStatus(200);
 
-        $response->assertJsonFragment(['name' => 'Reseller Package']);
-        $response->assertJsonMissing(['name' => 'Admin Package']);
+        $response->assertJsonFragment(['name' => 'Admin Package']);
+        $response->assertJsonFragment(['name' => 'My Reseller Package']);
+        $response->assertJsonMissing(['name' => 'Other Reseller Package']);
     }
 
     public function test_reseller_can_create_package()

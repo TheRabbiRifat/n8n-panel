@@ -15,7 +15,11 @@ class PackageController extends Controller
         if ($user->hasRole('admin')) {
              $packages = Package::all();
         } else {
-             $packages = Package::where('user_id', $user->id)->get();
+             // Resellers see their own packages + Admin packages
+             $adminIds = \App\Models\User::role('admin')->pluck('id');
+             $packages = Package::where('user_id', $user->id)
+                                ->orWhereIn('user_id', $adminIds)
+                                ->get();
         }
 
         return view('packages.index', compact('packages'));
