@@ -235,12 +235,12 @@
                 </a>
                 @endcan
 
-                @can('manage_packages')
+                @if(auth()->user()->can('manage_packages') || auth()->user()->hasRole('reseller'))
                 <div class="nav-group-title">Packages</div>
                 <a href="{{ route('packages.index') }}" class="nav-link {{ request()->routeIs('packages.*') ? 'active' : '' }}">
                     <i class="bi bi-box"></i> Packages
                 </a>
-                @endcan
+                @endif
 
                 <div class="nav-group-title">Integration</div>
                 <a href="{{ route('api-tokens.index') }}" class="nav-link {{ request()->routeIs('api-tokens.*') ? 'active' : '' }}">

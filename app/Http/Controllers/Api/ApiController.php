@@ -459,11 +459,14 @@ class ApiController extends Controller
             return response()->json(['status' => 'success', 'packages' => Package::all()]);
         }
         $adminIds = User::role('admin')->pluck('id');
+        // Include own packages if any exist (legacy)
+        $packages = Package::where('user_id', auth()->id())
+            ->orWhereIn('user_id', $adminIds)
+            ->get();
+
         return response()->json([
             'status' => 'success',
-            'packages' => Package::where('user_id', auth()->id())
-                ->orWhereIn('user_id', $adminIds)
-                ->get()
+            'packages' => $packages
         ]);
     }
 

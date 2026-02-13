@@ -6,11 +6,11 @@
         <h2 class="fw-bold text-dark mb-1">Package Management</h2>
         <p class="text-muted mb-0">Define resource limits for your instances.</p>
     </div>
-    @can('manage_packages')
+    @role('admin')
     <a href="{{ route('packages.create') }}" class="btn btn-primary shadow-sm">
         <i class="bi bi-plus-lg me-1"></i> Create Package
     </a>
-    @endcan
+    @endrole
 </div>
 
 <div class="card shadow-sm border-0">
@@ -53,7 +53,7 @@
                         @endrole
                         <td>{{ $package->created_at->format('M d, Y') }}</td>
                         <td class="text-end pe-4">
-                            @if(auth()->user()->id === $package->user_id || auth()->user()->hasRole('admin'))
+                            @role('admin')
                             <a href="{{ route('packages.edit', $package->id) }}" class="btn btn-outline-primary btn-sm me-1">
                                 <i class="bi bi-pencil"></i>
                             </a>
@@ -66,7 +66,7 @@
                             </form>
                             @else
                                 <span class="badge bg-secondary">Read-Only</span>
-                            @endif
+                            @endrole
                         </td>
                     </tr>
                     @empty

@@ -27,7 +27,7 @@ class PackageController extends Controller
 
     public function create()
     {
-        if (!Auth::user()->can('manage_packages')) {
+        if (!Auth::user()->hasRole('admin')) {
             abort(403, 'Unauthorized');
         }
         return view('packages.create');
@@ -35,7 +35,7 @@ class PackageController extends Controller
 
     public function store(Request $request)
     {
-        if (!Auth::user()->can('manage_packages')) {
+        if (!Auth::user()->hasRole('admin')) {
             abort(403, 'Unauthorized');
         }
 
@@ -71,11 +71,7 @@ class PackageController extends Controller
 
     public function edit(Package $package)
     {
-        if (!Auth::user()->can('manage_packages')) {
-            abort(403, 'Unauthorized');
-        }
-
-        if (Auth::user()->id !== $package->user_id && !Auth::user()->hasRole('admin')) {
+        if (!Auth::user()->hasRole('admin')) {
             abort(403, 'Unauthorized');
         }
 
@@ -84,11 +80,7 @@ class PackageController extends Controller
 
     public function update(Request $request, Package $package)
     {
-        if (!Auth::user()->can('manage_packages')) {
-            abort(403, 'Unauthorized');
-        }
-
-        if (Auth::user()->id !== $package->user_id && !Auth::user()->hasRole('admin')) {
+        if (!Auth::user()->hasRole('admin')) {
             abort(403, 'Unauthorized');
         }
 
@@ -123,11 +115,7 @@ class PackageController extends Controller
 
     public function destroy(Package $package)
     {
-        if (!Auth::user()->can('manage_packages')) {
-            abort(403, 'Unauthorized');
-        }
-
-        if (Auth::user()->id !== $package->user_id && !Auth::user()->hasRole('admin')) {
+        if (!Auth::user()->hasRole('admin')) {
             abort(403, 'Unauthorized');
         }
 

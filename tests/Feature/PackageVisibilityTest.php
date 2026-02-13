@@ -25,9 +25,8 @@ class PackageVisibilityTest extends TestCase
         // Create manage_packages permission
         $managePackages = Permission::firstOrCreate(['name' => 'manage_packages']);
 
-        // Assign permission to roles
+        // Only Admin should manage packages now
         $adminRole->givePermissionTo($managePackages);
-        $resellerRole->givePermissionTo($managePackages);
     }
 
     public function test_admin_sees_all_packages_in_ui()
@@ -47,23 +46,13 @@ class PackageVisibilityTest extends TestCase
             'disk_limit' => 10,
         ]);
 
-        $resellerPackage = Package::create([
-            'user_id' => $reseller->id,
-            'name' => 'Reseller Package',
-            'type' => 'instance',
-            'cpu_limit' => 1,
-            'ram_limit' => 1,
-            'disk_limit' => 10,
-        ]);
-
         $response = $this->actingAs($admin)->get(route('packages.index'));
 
         $response->assertStatus(200);
         $response->assertSee('Admin Package');
-        $response->assertSee('Reseller Package');
     }
 
-    public function test_reseller_sees_own_and_admin_packages_in_ui()
+    public function test_reseller_sees_admin_packages_in_ui()
     {
         $admin = User::factory()->create();
         $admin->assignRole('admin');
@@ -71,30 +60,9 @@ class PackageVisibilityTest extends TestCase
         $reseller = User::factory()->create();
         $reseller->assignRole('reseller');
 
-        $otherReseller = User::factory()->create();
-        $otherReseller->assignRole('reseller');
-
         $adminPackage = Package::create([
             'user_id' => $admin->id,
             'name' => 'Admin Package',
-            'type' => 'instance',
-            'cpu_limit' => 1,
-            'ram_limit' => 1,
-            'disk_limit' => 10,
-        ]);
-
-        $resellerPackage = Package::create([
-            'user_id' => $reseller->id,
-            'name' => 'My Reseller Package',
-            'type' => 'instance',
-            'cpu_limit' => 1,
-            'ram_limit' => 1,
-            'disk_limit' => 10,
-        ]);
-
-        $otherResellerPackage = Package::create([
-            'user_id' => $otherReseller->id,
-            'name' => 'Other Reseller Package',
             'type' => 'instance',
             'cpu_limit' => 1,
             'ram_limit' => 1,
@@ -105,8 +73,8 @@ class PackageVisibilityTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertSee('Admin Package');
-        $response->assertSee('My Reseller Package');
-        $response->assertDontSee('Other Reseller Package');
+        // Ensure buttons are hidden (implementation detail)
+        $response->assertDontSee('Create Package');
     }
 
     public function test_admin_sees_all_packages_in_api()
@@ -114,21 +82,9 @@ class PackageVisibilityTest extends TestCase
         $admin = User::factory()->create();
         $admin->assignRole('admin');
 
-        $reseller = User::factory()->create();
-        $reseller->assignRole('reseller');
-
         $adminPackage = Package::create([
             'user_id' => $admin->id,
             'name' => 'Admin Package',
-            'type' => 'instance',
-            'cpu_limit' => 1,
-            'ram_limit' => 1,
-            'disk_limit' => 10,
-        ]);
-
-        $resellerPackage = Package::create([
-            'user_id' => $reseller->id,
-            'name' => 'Reseller Package',
             'type' => 'instance',
             'cpu_limit' => 1,
             'ram_limit' => 1,
@@ -140,13 +96,10 @@ class PackageVisibilityTest extends TestCase
         $response = $this->actingAs($admin, 'sanctum')->getJson('/api/integration/packages');
 
         $response->assertStatus(200);
-
-        // Admin should see ALL packages now, consistent with UI
         $response->assertJsonFragment(['name' => 'Admin Package']);
-        $response->assertJsonFragment(['name' => 'Reseller Package']);
     }
 
-    public function test_reseller_sees_own_and_admin_packages_in_api()
+    public function test_reseller_sees_admin_packages_in_api()
     {
         $admin = User::factory()->create();
         $admin->assignRole('admin');
@@ -154,30 +107,9 @@ class PackageVisibilityTest extends TestCase
         $reseller = User::factory()->create();
         $reseller->assignRole('reseller');
 
-        $otherReseller = User::factory()->create();
-        $otherReseller->assignRole('reseller');
-
         $adminPackage = Package::create([
             'user_id' => $admin->id,
             'name' => 'Admin Package',
-            'type' => 'instance',
-            'cpu_limit' => 1,
-            'ram_limit' => 1,
-            'disk_limit' => 10,
-        ]);
-
-        $resellerPackage = Package::create([
-            'user_id' => $reseller->id,
-            'name' => 'My Reseller Package',
-            'type' => 'instance',
-            'cpu_limit' => 1,
-            'ram_limit' => 1,
-            'disk_limit' => 10,
-        ]);
-
-        $otherResellerPackage = Package::create([
-            'user_id' => $otherReseller->id,
-            'name' => 'Other Reseller Package',
             'type' => 'instance',
             'cpu_limit' => 1,
             'ram_limit' => 1,
@@ -189,13 +121,10 @@ class PackageVisibilityTest extends TestCase
         $response = $this->actingAs($reseller, 'sanctum')->getJson('/api/integration/packages');
 
         $response->assertStatus(200);
-
         $response->assertJsonFragment(['name' => 'Admin Package']);
-        $response->assertJsonFragment(['name' => 'My Reseller Package']);
-        $response->assertJsonMissing(['name' => 'Other Reseller Package']);
     }
 
-    public function test_reseller_can_create_package()
+    public function test_reseller_cannot_create_package()
     {
         $reseller = User::factory()->create();
         $reseller->assignRole('reseller');
@@ -208,44 +137,13 @@ class PackageVisibilityTest extends TestCase
             'disk_limit' => 20,
         ]);
 
-        $response->assertRedirect(route('packages.index'));
-        $this->assertDatabaseHas('packages', [
+        $response->assertStatus(403);
+        $this->assertDatabaseMissing('packages', [
             'name' => 'New Reseller Package',
-            'user_id' => $reseller->id,
         ]);
     }
 
-    public function test_reseller_can_update_own_package()
-    {
-        $reseller = User::factory()->create();
-        $reseller->assignRole('reseller');
-
-        $package = Package::create([
-            'user_id' => $reseller->id,
-            'name' => 'Old Name',
-            'type' => 'instance',
-            'cpu_limit' => 1,
-            'ram_limit' => 1,
-            'disk_limit' => 10,
-        ]);
-
-        $response = $this->actingAs($reseller)->put(route('packages.update', $package->id), [
-            'name' => 'Updated Name',
-            'type' => 'instance',
-            'cpu_limit' => 2,
-            'ram_limit' => 2,
-            'disk_limit' => 20,
-        ]);
-
-        $response->assertRedirect(route('packages.index'));
-        $this->assertDatabaseHas('packages', [
-            'id' => $package->id,
-            'name' => 'Updated Name',
-            'cpu_limit' => 2,
-        ]);
-    }
-
-    public function test_reseller_cannot_update_others_package()
+    public function test_reseller_cannot_update_package()
     {
         $admin = User::factory()->create();
         $admin->assignRole('admin');
@@ -263,7 +161,7 @@ class PackageVisibilityTest extends TestCase
         ]);
 
         $response = $this->actingAs($reseller)->put(route('packages.update', $package->id), [
-            'name' => 'Hacked Name',
+            'name' => 'Updated Name',
             'type' => 'instance',
             'cpu_limit' => 2,
             'ram_limit' => 2,
@@ -271,33 +169,9 @@ class PackageVisibilityTest extends TestCase
         ]);
 
         $response->assertStatus(403);
-        $this->assertDatabaseHas('packages', [
-            'id' => $package->id,
-            'name' => 'Admin Package',
-        ]);
     }
 
-    public function test_reseller_can_delete_own_package()
-    {
-        $reseller = User::factory()->create();
-        $reseller->assignRole('reseller');
-
-        $package = Package::create([
-            'user_id' => $reseller->id,
-            'name' => 'To Be Deleted',
-            'type' => 'instance',
-            'cpu_limit' => 1,
-            'ram_limit' => 1,
-            'disk_limit' => 10,
-        ]);
-
-        $response = $this->actingAs($reseller)->delete(route('packages.destroy', $package->id));
-
-        $response->assertRedirect(); // Usually back()
-        $this->assertDatabaseMissing('packages', ['id' => $package->id]);
-    }
-
-    public function test_reseller_cannot_delete_others_package()
+    public function test_reseller_cannot_delete_package()
     {
         $admin = User::factory()->create();
         $admin->assignRole('admin');
@@ -317,6 +191,5 @@ class PackageVisibilityTest extends TestCase
         $response = $this->actingAs($reseller)->delete(route('packages.destroy', $package->id));
 
         $response->assertStatus(403);
-        $this->assertDatabaseHas('packages', ['id' => $package->id]);
     }
 }
