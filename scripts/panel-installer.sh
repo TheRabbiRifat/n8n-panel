@@ -55,7 +55,57 @@ trap rollback ERR
 #################################
 echo "Installing system packages..."
 apt update -y
-apt install -y ca-certificates curl gnupg
+apt install -y ca-certificates curl gnupg software-properties-common dnsutils
+
+# Add PHP 8.2 Repository
+echo "Adding PHP Repository..."
+add-apt-repository -y ppa:ondrej/php
+apt update -y
+
+# Get Public IP
+PUBLIC_IP=$(curl -s https://api.ipify.org || curl -s https://ifconfig.me)
+
+# Prompt for Hostname
+CURRENT_HOSTNAME=$(hostname -f 2>/dev/null || hostname 2>/dev/null || echo 'localhost')
+echo "Current hostname is: $CURRENT_HOSTNAME"
+read -p "Enter hostname to use (leave blank to use current): " INPUT_HOSTNAME
+if [ -n "$INPUT_HOSTNAME" ]; then
+    HOSTNAME_FQDN="$INPUT_HOSTNAME"
+else
+    HOSTNAME_FQDN="$CURRENT_HOSTNAME"
+fi
+
+# Update dependent variables
+EMAIL="admin@${HOSTNAME_FQDN}"
+
+# DNS Check Loop
+while true; do
+    echo "Checking DNS records for $HOSTNAME_FQDN..."
+
+    # Check A record for HOSTNAME_FQDN
+    A_RECORD=$(dig @1.1.1.1 +short "$HOSTNAME_FQDN" A | head -n 1)
+
+    # Check A record for wildcard
+    WILDCARD_RECORD=$(dig @1.1.1.1 +short "*.$HOSTNAME_FQDN" A | head -n 1)
+
+    if [[ "$A_RECORD" == "$PUBLIC_IP" && "$WILDCARD_RECORD" == "$PUBLIC_IP" ]]; then
+        echo "✅ DNS records verified!"
+        break
+    else
+        echo "❌ DNS verification failed."
+        echo "Expected IP: $PUBLIC_IP"
+        echo "Found A Record for $HOSTNAME_FQDN: ${A_RECORD:-None}"
+        echo "Found Wildcard Record for *.$HOSTNAME_FQDN: ${WILDCARD_RECORD:-None}"
+        echo ""
+        echo "Please ensure you have A records for '$HOSTNAME_FQDN' and '*.$HOSTNAME_FQDN' pointing to $PUBLIC_IP"
+
+        read -p "Press Enter to retry check, or type 'skip' to ignore and proceed: " CHOICE
+        if [[ "$CHOICE" == "skip" ]]; then
+            echo "⚠ Skipping DNS verification. Proceeding..."
+            break
+        fi
+    fi
+done
 
 # Setup Docker Repo
 install -m 0755 -d /etc/apt/keyrings
