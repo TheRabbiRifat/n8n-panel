@@ -109,8 +109,8 @@
         <form action="{{ route('login') }}" method="POST">
             @csrf
             <div class="mb-3">
-                <label for="email" class="form-label small fw-bold text-secondary">Username</label>
-                <input type="email" class="form-control" id="email" name="email" required autofocus placeholder="Enter your username">
+                <label for="email" class="form-label small fw-bold text-secondary">Admin/Reseller Email</label>
+                <input type="email" class="form-control" id="email" name="email" required autofocus placeholder="Enter your email">
             </div>
 
             <div class="mb-4">
