@@ -55,7 +55,11 @@ trap rollback ERR
 #################################
 echo "Installing system packages..."
 apt update -y
-apt install -y ca-certificates curl gnupg
+apt install -y ca-certificates curl gnupg software-properties-common dnsutils
+
+# Add PHP Repository
+add-apt-repository -y ppa:ondrej/php
+apt update -y
 
 # Setup Docker Repo
 install -m 0755 -d /etc/apt/keyrings
@@ -81,6 +85,71 @@ apt install -y \
 
 systemctl enable --now docker
 systemctl enable --now cron
+
+#################################
+# 1.1 HOSTNAME CONFIGURATION
+#################################
+PUBLIC_IP=$(curl -s https://api.ipify.org || echo "YOUR_SERVER_IP")
+CURRENT_HOSTNAME=$(hostname -f 2>/dev/null || hostname 2>/dev/null || echo 'localhost')
+
+echo ""
+echo "----------------------------------------------------------------"
+echo "Please enter the hostname for this panel (e.g. panel.example.com)"
+echo "Current detected hostname: $CURRENT_HOSTNAME"
+echo "Server Public IP: $PUBLIC_IP"
+echo "----------------------------------------------------------------"
+# If running non-interactively, this read might fail or hang without -t check?
+# But installer is usually interactive.
+if [ -t 0 ]; then
+    read -p "Hostname [Press Enter to use '$CURRENT_HOSTNAME', or type 'skip' to skip DNS check]: " USER_HOSTNAME
+else
+    USER_HOSTNAME=""
+fi
+
+if [[ -z "$USER_HOSTNAME" ]]; then
+    USER_HOSTNAME="$CURRENT_HOSTNAME"
+fi
+
+if [[ "$USER_HOSTNAME" != "skip" ]]; then
+    HOSTNAME_FQDN="$USER_HOSTNAME"
+    EMAIL="admin@${HOSTNAME_FQDN}"
+
+    # Loop for DNS Verification
+    while true; do
+        echo "Verifying DNS records for $HOSTNAME_FQDN..."
+
+        A_RECORD=$(dig @1.1.1.1 +short "$HOSTNAME_FQDN" A | head -n1)
+        WILDCARD_RECORD=$(dig @1.1.1.1 +short "random-check.$HOSTNAME_FQDN" A | head -n1)
+
+        if [[ -n "$A_RECORD" && -n "$WILDCARD_RECORD" ]]; then
+            echo "✅ DNS records found."
+            echo "A Record: $A_RECORD"
+            echo "Wildcard Test: $WILDCARD_RECORD"
+            if [[ "$A_RECORD" != "$PUBLIC_IP" && "$PUBLIC_IP" != "YOUR_SERVER_IP" ]]; then
+                 echo "⚠️ Warning: DNS IP ($A_RECORD) does not match detected Public IP ($PUBLIC_IP)."
+            fi
+            break
+        else
+            echo "❌ DNS records not found or incomplete."
+            echo "Please ensure the following A records exist:"
+            echo "  $HOSTNAME_FQDN -> $PUBLIC_IP"
+            echo "  *.$HOSTNAME_FQDN -> $PUBLIC_IP"
+            echo ""
+            if [ -t 0 ]; then
+                read -p "Press Enter to recheck, or type 'skip' to proceed anyway: " choice
+            else
+                choice="skip"
+            fi
+            [[ "$choice" == "skip" ]] && break
+        fi
+        sleep 2
+    done
+else
+    # User typed 'skip', use current hostname without check
+    HOSTNAME_FQDN="$CURRENT_HOSTNAME"
+    EMAIL="admin@${HOSTNAME_FQDN}"
+    echo "Skipping DNS verification."
+fi
 
 #################################
 # 2. FIREWALL
