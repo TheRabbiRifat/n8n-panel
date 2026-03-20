@@ -496,9 +496,9 @@ class ApiController extends Controller
         }
         $user = User::role('reseller')->where('username', $username)->firstOrFail();
 
-        // Get all containers for this reseller
-        $instances = Container::where('user_id', $user->id)->get();
-        $total = $instances->count();
+        // Get all container names for this reseller
+        $instanceNames = Container::where('user_id', $user->id)->pluck('name');
+        $total = $instanceNames->count();
         $running = 0;
 
         // Fetch realtime status
@@ -517,8 +517,8 @@ class ApiController extends Controller
             }
         }
 
-        foreach ($instances as $instance) {
-            if (isset($activeIds[$instance->name])) {
+        foreach ($instanceNames as $name) {
+            if (isset($activeIds[$name])) {
                 $running++;
             }
         }
@@ -768,8 +768,7 @@ class ApiController extends Controller
             // Include themselves
             $myUsers->push($user->id);
 
-            $myInstances = Container::whereIn('user_id', $myUsers)->get();
-            $total = $myInstances->count();
+            $total = Container::whereIn('user_id', $myUsers)->count();
 
             return response()->json([
                 'status' => 'success',
