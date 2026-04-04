@@ -497,9 +497,7 @@ class ApiController extends Controller
         $user = User::role('reseller')->where('username', $username)->firstOrFail();
 
         // Get all containers for this reseller
-        $instances = Container::where('user_id', $user->id)->get();
-        $total = $instances->count();
-        $running = 0;
+        $total = Container::where('user_id', $user->id)->count();
 
         // Fetch realtime status
         // Optimization: Fetch all active containers once to match
@@ -508,20 +506,18 @@ class ApiController extends Controller
         });
 
         // Map active docker IDs for O(1) lookup
-        $activeIds = [];
+        $activeNames = [];
         foreach($activeContainers as $c) {
             if (str_contains(strtolower($c['status']), 'up')) {
                 // Remove leading slash from name if present
                 $cName = ltrim($c['name'], '/');
-                $activeIds[$cName] = true;
+                $activeNames[] = $cName;
             }
         }
 
-        foreach ($instances as $instance) {
-            if (isset($activeIds[$instance->name])) {
-                $running++;
-            }
-        }
+        $running = Container::where('user_id', $user->id)
+            ->whereIn('name', $activeNames)
+            ->count();
 
         return response()->json([
             'status' => 'success',
@@ -768,8 +764,7 @@ class ApiController extends Controller
             // Include themselves
             $myUsers->push($user->id);
 
-            $myInstances = Container::whereIn('user_id', $myUsers)->get();
-            $total = $myInstances->count();
+            $total = Container::whereIn('user_id', $myUsers)->count();
 
             return response()->json([
                 'status' => 'success',
