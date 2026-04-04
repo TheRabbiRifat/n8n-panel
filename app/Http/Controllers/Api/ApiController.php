@@ -737,7 +737,10 @@ class ApiController extends Controller
             $totalInstances = Container::count();
             $runningInstances = 0;
 
-            $allContainers = $this->dockerService->listContainers();
+            $allContainers = Cache::remember('docker_active_containers', 30, function () {
+                return $this->dockerService->listContainers();
+            });
+
             foreach($allContainers as $c) {
                 if (str_contains(strtolower($c['status']), 'up')) {
                     $runningInstances++;
