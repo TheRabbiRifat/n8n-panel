@@ -458,7 +458,7 @@ class ContainerController extends Controller
     /**
      * Shared logic to destroy and recreate a container with current DB settings.
      */
-    private function recreateContainer(Container $container)
+    public function recreateContainer(Container $container)
     {
         // 1. Prepare Configuration
         // Global Env
