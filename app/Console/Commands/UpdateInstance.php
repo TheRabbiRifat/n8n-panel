@@ -4,7 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use App\Models\Container;
-use App\Http\Controllers\ContainerController;
+use App\Services\ContainerManagementService;
 
 class UpdateInstance extends Command
 {
@@ -45,8 +45,8 @@ class UpdateInstance extends Command
         $this->info("Recreating and updating instance '{$name}'...");
 
         try {
-            $controller = app()->make(ContainerController::class);
-            $controller->recreateContainer($container);
+            $service = app()->make(ContainerManagementService::class);
+            $service->recreateContainer($container);
 
             $this->info("Instance '{$name}' updated and recreated successfully.");
             return 0;
