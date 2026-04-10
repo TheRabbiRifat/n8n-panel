@@ -579,14 +579,16 @@ class ApiController extends Controller
         foreach ($containers as $container) {
             try {
                 $this->dockerService->stopContainer($container->docker_id);
-                // Optionally mark container as suspended if desired, but request said "stop"
-                // Let's also update suspended status to prevent auto-start on reboot if system handles it
-                $container->is_suspended = true;
-                $container->save();
             } catch (\Exception $e) {
                 Log::error("Failed to stop container {$container->name} for suspended reseller: " . $e->getMessage());
             }
         }
+
+        // Batch update suspended status to prevent auto-start on reboot if system handles it
+        Container::where('user_id', $user->id)->update([
+            'is_suspended' => true,
+            'updated_at' => now(),
+        ]);
 
         return response()->json(['status' => 'success', 'message' => 'Reseller suspended and instances stopped.']);
     }
