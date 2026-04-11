@@ -60,6 +60,13 @@ Run the following command on a fresh Ubuntu 22.04+ server:
 bash <(curl -fsSL https://raw.githubusercontent.com/TheRabbiRifat/n8n-panel/main/scripts/panel-installer.sh)
 ```
 
+### 🔄 Updating the Panel
+
+To update your existing panel to the latest version, run the updater script as root:
+```bash
+sudo bash /var/n8n-panel/scripts/updater.sh
+```
+
 ### 🛠️ Manual Installation
 
 1. **Clone the Repository**
