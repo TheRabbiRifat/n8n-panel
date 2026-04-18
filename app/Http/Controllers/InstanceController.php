@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Cache;
 
 class InstanceController extends Controller
 {
@@ -156,8 +157,10 @@ class InstanceController extends Controller
         }
         $subdomain = Str::slug($request->name) . '.' . $baseDomain;
 
-        // 3. Global Environment
-        $globalEnv = GlobalSetting::where('key', 'n8n_env')->first();
+        // 3. Global Environment - Optimized with Cache
+        $globalEnv = Cache::remember('global_setting_n8n_env', 3600, function () {
+            return GlobalSetting::where('key', 'n8n_env')->first();
+        });
         $envArray = $globalEnv ? json_decode($globalEnv->value, true) : [];
 
         // Remove SMTP keys if present (only injected in recovery mode)

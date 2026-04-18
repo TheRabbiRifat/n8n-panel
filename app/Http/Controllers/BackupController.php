@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Cache;
 use App\Rules\CronExpression;
 
 class BackupController extends Controller
@@ -154,6 +155,15 @@ class BackupController extends Controller
              $adminUser = User::role('admin')->first();
         }
 
+        // Environment - Optimization: Fetch once outside the loop and use cache
+        $globalEnvRaw = Cache::remember('global_setting_n8n_env', 3600, function () {
+            return GlobalSetting::where('key', 'n8n_env')->first();
+        });
+        $baseEnvArray = $globalEnvRaw ? json_decode($globalEnvRaw->value, true) : [];
+        foreach (Container::SMTP_ENV_KEYS as $key) {
+            unset($baseEnvArray[$key]);
+        }
+
         foreach ($folders as $folderPath) {
             try {
                 // $folderPath can be 'hostname/instanceName' or just 'instanceName'
@@ -271,11 +281,7 @@ class BackupController extends Controller
                     $subdomain = Str::slug($instanceName) . '.' . $baseDomain;
 
                     // Environment
-                    $globalEnv = GlobalSetting::where('key', 'n8n_env')->first();
-                    $envArray = $globalEnv ? json_decode($globalEnv->value, true) : [];
-                    foreach (Container::SMTP_ENV_KEYS as $key) {
-                        unset($envArray[$key]);
-                    }
+                    $envArray = $baseEnvArray;
 
                     $envArray['N8N_HOST'] = $subdomain;
                     $envArray['N8N_PORT'] = 5678;

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\GlobalSetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Cache;
 
 class GlobalEnvironmentController extends Controller
 {
@@ -98,6 +99,8 @@ class GlobalEnvironmentController extends Controller
             ['key' => 'n8n_env'],
             ['value' => json_encode($envArray)]
         );
+
+        Cache::forget('global_setting_n8n_env');
 
         return back()->with('success', 'Global environment and Panel SMTP updated successfully.');
     }

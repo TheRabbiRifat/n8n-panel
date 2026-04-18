@@ -125,8 +125,10 @@ class ApiController extends Controller
         }
         $subdomain = Str::slug($request->name) . '.' . $baseDomain;
 
-        // 4. Env Prep
-        $globalEnv = GlobalSetting::where('key', 'n8n_env')->first();
+        // 4. Env Prep - Optimized with Cache
+        $globalEnv = Cache::remember('global_setting_n8n_env', 3600, function () {
+            return GlobalSetting::where('key', 'n8n_env')->first();
+        });
         $envArray = $globalEnv ? json_decode($globalEnv->value, true) : [];
 
         // Remove SMTP keys if present (only injected in recovery mode)
