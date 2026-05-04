@@ -10,6 +10,46 @@ if [ "$(id -u)" -ne 0 ]; then
 fi
 
 #################################
+# OS DETECTION
+#################################
+if [ -f /etc/os-release ]; then
+    . /etc/os-release
+    OS=$ID
+    OS_LIKE=${ID_LIKE:-""}
+    VERSION_ID=${VERSION_ID:-""}
+else
+    echo "❌ Error: Cannot detect OS from /etc/os-release."
+    exit 1
+fi
+
+is_debian_based() {
+    [[ "$OS" == "ubuntu" || "$OS" == "debian" || "$OS_LIKE" == *"debian"* ]]
+}
+
+is_rhel_based() {
+    [[ "$OS" == "almalinux" || "$OS" == "centos" || "$OS" == "rocky" || "$OS_LIKE" == *"rhel"* || "$OS_LIKE" == *"fedora"* ]]
+}
+
+if is_debian_based; then
+    WEB_USER="www-data"
+    PHP_SOCK="/run/php/php8.2-fpm.sock"
+    PHP_SERVICE="php8.2-fpm"
+    CRON_SERVICE="cron"
+    PG_HBA_PATTERN="/etc/postgresql/*/main/pg_hba.conf"
+    PG_CONF_PATTERN="/etc/postgresql/*/main/postgresql.conf"
+elif is_rhel_based; then
+    WEB_USER="nginx"
+    PHP_SOCK="/run/php-fpm/www.sock"
+    PHP_SERVICE="php-fpm"
+    CRON_SERVICE="crond"
+    PG_HBA_PATTERN="/var/lib/pgsql/data/pg_hba.conf"
+    PG_CONF_PATTERN="/var/lib/pgsql/data/postgresql.conf"
+else
+    echo "❌ Error: Unsupported OS ($OS). Only Debian/Ubuntu and RHEL-based OS (AlmaLinux, CentOS, Rocky) are supported."
+    exit 1
+fi
+
+#################################
 # CONFIGURATION
 #################################
 APP_DIR="/var/n8n-panel"
@@ -20,7 +60,6 @@ NGINX_PANEL_DIR="/var/lib/n8n/nginx"
 INSTANCES_DIR="/var/lib/n8n/instances"
 
 PANEL_PORT=8448
-PHP_SOCK="/run/php/php8.2-fpm.sock"
 
 HOSTNAME_FQDN="$(hostname -f 2>/dev/null || hostname 2>/dev/null || echo 'localhost')"
 EMAIL="admin@${HOSTNAME_FQDN}"
@@ -54,13 +93,19 @@ trap rollback ERR
 # 1. INSTALL SYSTEM PACKAGES
 #################################
 echo "Installing system packages..."
-apt update -y
-apt install -y ca-certificates curl gnupg software-properties-common dnsutils
 
-# Add PHP 8.2 Repository
-echo "Adding PHP Repository..."
-add-apt-repository -y ppa:ondrej/php
-apt update -y
+if is_debian_based; then
+    apt update -y
+    apt install -y ca-certificates curl gnupg software-properties-common dnsutils
+
+    # Add PHP 8.2 Repository
+    echo "Adding PHP Repository..."
+    add-apt-repository -y ppa:ondrej/php
+    apt update -y
+elif is_rhel_based; then
+    dnf install -y epel-release dnf-plugins-core
+    dnf install -y curl bind-utils gnupg2 ca-certificates
+fi
 
 # Get Public IP
 PUBLIC_IP=$(curl -s https://api.ipify.org || curl -s https://ifconfig.me)
@@ -107,30 +152,71 @@ while true; do
     fi
 done
 
-# Setup Docker Repo
-install -m 0755 -d /etc/apt/keyrings
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor --yes -o /etc/apt/keyrings/docker.gpg
-chmod a+r /etc/apt/keyrings/docker.gpg
+if is_debian_based; then
+    # Setup Docker Repo
+    install -m 0755 -d /etc/apt/keyrings
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor --yes -o /etc/apt/keyrings/docker.gpg
+    chmod a+r /etc/apt/keyrings/docker.gpg
 
-echo \
-  "deb [arch=\"$(dpkg --print-architecture)\" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
-  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
-  tee /etc/apt/sources.list.d/docker.list > /dev/null
+    echo \
+      "deb [arch=\"$(dpkg --print-architecture)\" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+      $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+      tee /etc/apt/sources.list.d/docker.list > /dev/null
 
-apt update -y
+    apt update -y
 
-apt install -y \
-    nginx \
-    docker-ce docker-ce-cli docker-buildx-plugin docker-compose-plugin docker-ce-rootless-extras \
-    git \
-    postgresql postgresql-contrib \
-    php8.2-fpm php8.2-cli php8.2-pgsql php8.2-mbstring php8.2-bcmath \
-    php8.2-curl php8.2-xml php8.2-zip php8.2-intl php8.2-gd \
-    unzip zip composer cron \
-    certbot python3-certbot-nginx ufw
+    apt install -y \
+        nginx \
+        docker-ce docker-ce-cli docker-buildx-plugin docker-compose-plugin docker-ce-rootless-extras \
+        git \
+        postgresql postgresql-contrib \
+        php8.2-fpm php8.2-cli php8.2-pgsql php8.2-mbstring php8.2-bcmath \
+        php8.2-curl php8.2-xml php8.2-zip php8.2-intl php8.2-gd \
+        unzip zip composer cron \
+        certbot python3-certbot-nginx ufw
+elif is_rhel_based; then
+    # Docker Repo
+    dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+
+    # PHP Repo (Remi)
+    MAJOR_VERSION=$(echo "$VERSION_ID" | cut -d'.' -f1)
+    dnf install -y "https://rpms.remirepo.net/enterprise/remi-release-${MAJOR_VERSION}.rpm" || true
+    dnf module reset php -y
+    dnf module enable php:remi-8.2 -y
+
+    dnf install -y \
+        nginx \
+        docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin \
+        git \
+        postgresql-server postgresql-contrib \
+        php-fpm php-cli php-pgsql php-mbstring php-bcmath \
+        php-curl php-xml php-zip php-intl php-gd \
+        unzip zip composer cronie \
+        certbot python3-certbot-nginx firewalld
+
+    # RHEL specific Postgresql initialization
+    postgresql-setup --initdb || true
+
+    # Fix php-fpm running as apache instead of nginx for Remi Repo
+    sed -i "s/^user = apache/user = nginx/" /etc/php-fpm.d/www.conf || true
+    sed -i "s/^group = apache/group = nginx/" /etc/php-fpm.d/www.conf || true
+    sed -i "s/^listen.owner = nobody/listen.owner = nginx/" /etc/php-fpm.d/www.conf || true
+    sed -i "s/^listen.group = nobody/listen.group = nginx/" /etc/php-fpm.d/www.conf || true
+
+    # Disable SELinux if enforcing
+    if command -v setenforce &> /dev/null; then
+        setenforce 0 || true
+        sed -i 's/^SELINUX=.*/SELINUX=permissive/g' /etc/selinux/config || true
+    fi
+fi
 
 systemctl enable --now docker
-systemctl enable --now cron
+systemctl enable --now $CRON_SERVICE
+if is_rhel_based; then
+    systemctl enable --now nginx
+    systemctl enable --now postgresql
+    systemctl enable --now $PHP_SERVICE
+fi
 
 #################################
 # 1.1 HOSTNAME CONFIGURATION
@@ -193,22 +279,42 @@ done
 #################################
 # 2. FIREWALL
 #################################
-ufw allow 80/tcp
-ufw allow 443/tcp
-ufw allow ${PANEL_PORT}/tcp
-# SSH
-ufw allow 22/tcp
-# FTP
-ufw allow 21/tcp
-# SMTP
-ufw allow 25/tcp
-ufw allow 465/tcp
-ufw allow 587/tcp
-# PostgreSQL (Restrict to Localhost and Docker Subnet)
-ufw allow from 127.0.0.1 to any port 5432
 DOCKER_SUBNET=$(docker network inspect bridge --format='{{(index .IPAM.Config 0).Subnet}}' 2>/dev/null || echo "172.17.0.0/16")
-ufw allow from "$DOCKER_SUBNET" to any port 5432
-ufw reload || true
+
+if is_debian_based; then
+    ufw allow 80/tcp
+    ufw allow 443/tcp
+    ufw allow ${PANEL_PORT}/tcp
+    # SSH
+    ufw allow 22/tcp
+    # FTP
+    ufw allow 21/tcp
+    # SMTP
+    ufw allow 25/tcp
+    ufw allow 465/tcp
+    ufw allow 587/tcp
+    # PostgreSQL (Restrict to Localhost and Docker Subnet)
+    ufw allow from 127.0.0.1 to any port 5432
+    ufw allow from "$DOCKER_SUBNET" to any port 5432
+    ufw reload || true
+elif is_rhel_based; then
+    systemctl enable --now firewalld
+    firewall-cmd --permanent --add-port=80/tcp
+    firewall-cmd --permanent --add-port=443/tcp
+    firewall-cmd --permanent --add-port=${PANEL_PORT}/tcp
+    # SSH
+    firewall-cmd --permanent --add-port=22/tcp
+    # FTP
+    firewall-cmd --permanent --add-port=21/tcp
+    # SMTP
+    firewall-cmd --permanent --add-port=25/tcp
+    firewall-cmd --permanent --add-port=465/tcp
+    firewall-cmd --permanent --add-port=587/tcp
+    # PostgreSQL (Restrict to Localhost and Docker Subnet)
+    firewall-cmd --permanent --add-rich-rule="rule family='ipv4' source address='127.0.0.1' port port='5432' protocol='tcp' accept"
+    firewall-cmd --permanent --add-rich-rule="rule family='ipv4' source address='${DOCKER_SUBNET}' port port='5432' protocol='tcp' accept"
+    firewall-cmd --reload || true
+fi
 
 #################################
 # 3. USERS, GROUPS, PERMISSIONS
@@ -217,15 +323,15 @@ groupadd -f n8n
 mkdir -p "$NGINX_PANEL_DIR" "$INSTANCES_DIR"
 chown -R root:n8n /var/lib/n8n
 chmod 2775 /var/lib/n8n "$NGINX_PANEL_DIR" "$INSTANCES_DIR"
-usermod -aG n8n www-data
-usermod -aG docker www-data
+usermod -aG n8n ${WEB_USER}
+usermod -aG docker ${WEB_USER}
 
 #################################
 # 4. SUDOERS
 #################################
 SUDO_FILE="/etc/sudoers.d/n8n-panel"
 cat > "$SUDO_FILE" <<EOF
-www-data ALL=(root) NOPASSWD: /var/n8n-panel/scripts/*.sh
+${WEB_USER} ALL=(root) NOPASSWD: /var/n8n-panel/scripts/*.sh
 EOF
 chmod 0440 "$SUDO_FILE"
 visudo -cf "$SUDO_FILE"
@@ -250,15 +356,19 @@ bash -c "curl -fsSL https://raw.githubusercontent.com/TheRabbiRifat/n8n-panel/ma
 # 6. POSTGRESQL CLEAN + SETUP
 #################################
 echo "Configuring PostgreSQL..."
-# Force scram-sha-256 auth for local connections
-sed -i "s/^local\s\+all\s\+all\s\+peer/local all all scram-sha-256/" /etc/postgresql/*/main/pg_hba.conf
-# Ensure host connections also use scram-sha-256
-sed -i "s/^host\s\+all\s\+all\s\+127.0.0.1\/32\s\+.*/host    all             all             127.0.0.1\/32            scram-sha-256/" /etc/postgresql/*/main/pg_hba.conf
-sed -i "s/^host\s\+all\s\+all\s\+::1\/128\s\+.*/host    all             all             ::1\/128                 scram-sha-256/" /etc/postgresql/*/main/pg_hba.conf
+
+PG_HBA_FILE=$(ls ${PG_HBA_PATTERN} 2>/dev/null | head -n 1 || true)
+if [ -f "$PG_HBA_FILE" ]; then
+    # Force scram-sha-256 auth for local connections
+    sed -i "s/^local\s\+all\s\+all\s\+peer/local all all scram-sha-256/" "$PG_HBA_FILE"
+    # Ensure host connections also use scram-sha-256
+    sed -i "s/^host\s\+all\s\+all\s\+127.0.0.1\/32\s\+.*/host    all             all             127.0.0.1\/32            scram-sha-256/" "$PG_HBA_FILE"
+    sed -i "s/^host\s\+all\s\+all\s\+::1\/128\s\+.*/host    all             all             ::1\/128                 scram-sha-256/" "$PG_HBA_FILE"
+fi
 
 # Listen on all addresses
-PG_CONF_FILE=$(find /etc/postgresql -name postgresql.conf 2>/dev/null | head -n 1)
-if [ ! -z "$PG_CONF_FILE" ]; then
+PG_CONF_FILE=$(ls ${PG_CONF_PATTERN} 2>/dev/null | head -n 1 || true)
+if [ -f "$PG_CONF_FILE" ]; then
     if ! grep -q "^listen_addresses = '*'" "$PG_CONF_FILE"; then
         sed -i "s/^#\?listen_addresses =.*/listen_addresses = '*'/" "$PG_CONF_FILE"
     fi
@@ -289,7 +399,7 @@ rm -rf "$APP_DIR"
 mv "$SRC_DIR" "$APP_DIR"
 
 # Set ownership for Laravel
-chown -R www-data:www-data "$APP_DIR"
+chown -R ${WEB_USER}:${WEB_USER} "$APP_DIR"
 chmod -R 775 "$APP_DIR"
 
 cd "$APP_DIR"
@@ -297,31 +407,31 @@ cd "$APP_DIR"
 #################################
 # 8. LARAVEL CONFIG
 #################################
-sudo -u www-data cp .env.example .env
+sudo -u ${WEB_USER} cp .env.example .env
 
-sudo -u www-data sed -i "s|^DB_CONNECTION=.*|DB_CONNECTION=pgsql|" .env
-sudo -u www-data sed -i "s|^.*DB_HOST=.*|DB_HOST=127.0.0.1|" .env
-sudo -u www-data sed -i "s|^.*DB_PORT=.*|DB_PORT=5432|" .env
-sudo -u www-data sed -i "s|^.*DB_DATABASE=.*|DB_DATABASE=${DB_NAME}|" .env
-sudo -u www-data sed -i "s|^.*DB_USERNAME=.*|DB_USERNAME=${DB_USER}|" .env
-sudo -u www-data sed -i "s|^.*DB_PASSWORD=.*|DB_PASSWORD=${DB_PASS}|" .env
-sudo -u www-data sed -i "s|^APP_URL=.*|APP_URL=https://${HOSTNAME_FQDN}:${PANEL_PORT}|" .env
+sudo -u ${WEB_USER} sed -i "s|^DB_CONNECTION=.*|DB_CONNECTION=pgsql|" .env
+sudo -u ${WEB_USER} sed -i "s|^.*DB_HOST=.*|DB_HOST=127.0.0.1|" .env
+sudo -u ${WEB_USER} sed -i "s|^.*DB_PORT=.*|DB_PORT=5432|" .env
+sudo -u ${WEB_USER} sed -i "s|^.*DB_DATABASE=.*|DB_DATABASE=${DB_NAME}|" .env
+sudo -u ${WEB_USER} sed -i "s|^.*DB_USERNAME=.*|DB_USERNAME=${DB_USER}|" .env
+sudo -u ${WEB_USER} sed -i "s|^.*DB_PASSWORD=.*|DB_PASSWORD=${DB_PASS}|" .env
+sudo -u ${WEB_USER} sed -i "s|^APP_URL=.*|APP_URL=https://${HOSTNAME_FQDN}:${PANEL_PORT}|" .env
 
 # Make storage and cache writable
-chown -R www-data:www-data storage bootstrap/cache
+chown -R ${WEB_USER}:${WEB_USER} storage bootstrap/cache
 chmod -R 775 storage bootstrap/cache
 
 # Install dependencies and setup Laravel
-sudo -u www-data composer install --no-dev --optimize-autoloader
-sudo -u www-data php artisan key:generate --force
-sudo -u www-data php artisan migrate --force
-sudo -u www-data php artisan db:seed --force
-sudo -u www-data php artisan config:clear
-sudo -u www-data php artisan config:cache
-sudo -u www-data php artisan route:cache
-sudo -u www-data php artisan view:cache
+sudo -u ${WEB_USER} composer install --no-dev --optimize-autoloader
+sudo -u ${WEB_USER} php artisan key:generate --force
+sudo -u ${WEB_USER} php artisan migrate --force
+sudo -u ${WEB_USER} php artisan db:seed --force
+sudo -u ${WEB_USER} php artisan config:clear
+sudo -u ${WEB_USER} php artisan config:cache
+sudo -u ${WEB_USER} php artisan route:cache
+sudo -u ${WEB_USER} php artisan view:cache
 
-systemctl restart php8.2-fpm
+systemctl restart ${PHP_SERVICE}
 
 #################################
 # 9. SSL (Let's Encrypt)
@@ -359,9 +469,10 @@ server {
     }
 
     location ~ \.php\$ {
-        include snippets/fastcgi-php.conf;
         fastcgi_pass unix:${PHP_SOCK};
+        fastcgi_index index.php;
         fastcgi_param SCRIPT_FILENAME \$realpath_root\$fastcgi_script_name;
+        include fastcgi_params;
     }
 
     location ~ /\.(?!well-known).* {
@@ -384,13 +495,13 @@ CRON_JOB="* * * * * cd ${APP_DIR} && /usr/bin/php artisan schedule:run >> /dev/n
 
 CRON_FILE=$(mktemp)
 # Get existing crontab, ignore error if empty
-crontab -u www-data -l > "$CRON_FILE" 2>/dev/null || true
+crontab -u ${WEB_USER} -l > "$CRON_FILE" 2>/dev/null || true
 
 # Append job if not present
 if ! grep -Fq "artisan schedule:run" "$CRON_FILE"; then
     echo "$CRON_JOB" >> "$CRON_FILE"
     # Install new crontab from file
-    crontab -u www-data "$CRON_FILE"
+    crontab -u ${WEB_USER} "$CRON_FILE"
     echo "Cron job added."
 else
     echo "Cron job already exists."

@@ -82,7 +82,20 @@ case $ACTION in
         # Use full path to PHP and ensure cron package is active
         PHP_BIN=$(which php || echo "/usr/bin/php")
         CRON_JOB="* * * * * cd /var/n8n-panel && $PHP_BIN artisan schedule:run >> /dev/null 2>&1"
-        USER="www-data"
+
+        # Detect OS and user
+        if [ -f /etc/os-release ]; then
+            . /etc/os-release
+            if [[ "$ID" == "ubuntu" || "$ID" == "debian" || "${ID_LIKE:-""}" == *"debian"* ]]; then
+                USER="www-data"
+            elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rocky" || "${ID_LIKE:-""}" == *"rhel"* || "${ID_LIKE:-""}" == *"fedora"* ]]; then
+                USER="nginx"
+            else
+                USER="www-data"
+            fi
+        else
+            USER="www-data"
+        fi
 
         # Check if job exists
         if ! crontab -u "$USER" -l 2>/dev/null | grep -Fq "$CRON_JOB"; then

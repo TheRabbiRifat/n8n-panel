@@ -17,9 +17,9 @@ class SsoEndpointTest extends TestCase
         parent::setUp();
 
         // Seed roles
-        Role::create(['name' => 'admin']);
-        Role::create(['name' => 'reseller']);
-        Role::create(['name' => 'user']);
+        Role::firstOrCreate(['name' => 'admin']);
+        Role::firstOrCreate(['name' => 'reseller']);
+        Role::firstOrCreate(['name' => 'user']);
     }
 
     public function test_admin_can_sso_by_username()

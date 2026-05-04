@@ -26,8 +26,8 @@ class BackupRestoreTest extends TestCase
         parent::setUp();
 
         // Seed roles
-        Role::create(['name' => 'admin']);
-        Role::create(['name' => 'user']);
+        Role::firstOrCreate(['name' => 'admin']);
+        Role::firstOrCreate(['name' => 'user']);
 
         Storage::fake('backup');
         Storage::fake('local');
