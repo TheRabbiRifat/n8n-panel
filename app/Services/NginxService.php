@@ -33,11 +33,13 @@ server {
 }
 nginx;
 
-        // Write config file (Assuming write permissions on /etc/nginx/sites-available)
-        // Using file_put_contents if possible, or tee without sudo
-        // We will stick to shell commands to minimize ownership issues if user is added to a group that has write access
-        Process::input($config)->run(['tee', "/etc/nginx/sites-available/$domain"]);
-        Process::run(['ln', '-sf', "/etc/nginx/sites-available/$domain", "/etc/nginx/sites-enabled/"]);
+        // Write config file using the OS agnostic path configured by the installer
+        $nginxDir = "/var/lib/n8n/nginx";
+        Process::run(['mkdir', '-p', $nginxDir]);
+
+        $confPath = "{$nginxDir}/{$domain}.conf";
+
+        Process::input($config)->run(['tee', $confPath]);
         Process::run(['systemctl', 'reload', 'nginx']);
     }
 
@@ -75,6 +77,12 @@ nginx;
 
     public function removeVhost(string $domain)
     {
+        // Remove from agnostic path
+        $nginxDir = "/var/lib/n8n/nginx";
+        $confPath = "{$nginxDir}/{$domain}.conf";
+        Process::run(['rm', '-f', $confPath]);
+
+        // Remove legacy paths just in case
         Process::run(['rm', '-f', "/etc/nginx/sites-available/$domain"]);
         Process::run(['rm', '-f', "/etc/nginx/sites-enabled/$domain"]);
 

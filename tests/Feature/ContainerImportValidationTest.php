@@ -17,7 +17,7 @@ class ContainerImportValidationTest extends TestCase
         parent::setUp();
         // Seed roles if necessary
         if (!Role::where('name', 'admin')->exists()) {
-            Role::create(['name' => 'admin']);
+            Role::firstOrCreate(['name' => 'admin']);
         }
     }
 

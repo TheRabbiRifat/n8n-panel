@@ -19,9 +19,9 @@ class ResellerStatsCachingTest extends TestCase
         parent::setUp();
 
         // Seed roles
-        Role::create(['name' => 'admin']);
-        Role::create(['name' => 'reseller']);
-        Role::create(['name' => 'user']);
+        Role::firstOrCreate(['name' => 'admin']);
+        Role::firstOrCreate(['name' => 'reseller']);
+        Role::firstOrCreate(['name' => 'user']);
     }
 
     public function test_reseller_stats_uses_caching_for_docker_containers()
