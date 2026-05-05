@@ -24,8 +24,8 @@ class BackupRunTest extends TestCase
         Storage::fake('local');
 
         // Seed roles
-        Role::create(['name' => 'admin']);
-        Role::create(['name' => 'user']);
+        Role::firstOrCreate(['name' => 'admin']);
+        Role::firstOrCreate(['name' => 'user']);
     }
 
     /** @test */

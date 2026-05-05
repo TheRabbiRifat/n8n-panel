@@ -30,23 +30,37 @@ SRC_DIR="$(find "$TMP_DIR" -mindepth 1 -maxdepth 1 -type d | head -n1)"
 echo "3. Updating files (preserving .env and storage)..."
 rsync -av --exclude='.env' --exclude='storage/' --exclude='.git/' "$SRC_DIR/" "$APP_DIR/"
 
+# Detect OS and set web user
+if [ -f /etc/os-release ]; then
+    . /etc/os-release
+    if [[ "$ID" == "ubuntu" || "$ID" == "debian" || "${ID_LIKE:-""}" == *"debian"* ]]; then
+        WEB_USER="www-data"
+    elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rocky" || "${ID_LIKE:-""}" == *"rhel"* || "${ID_LIKE:-""}" == *"fedora"* ]]; then
+        WEB_USER="nginx"
+    else
+        WEB_USER="www-data"
+    fi
+else
+    WEB_USER="www-data"
+fi
+
 echo "4. Setting permissions..."
-chown -R www-data:www-data "$APP_DIR"
+chown -R ${WEB_USER}:${WEB_USER} "$APP_DIR"
 chmod -R 775 "$APP_DIR"
 
 cd "$APP_DIR" || exit 1
 
 echo "5. Installing dependencies via Composer..."
-sudo -u www-data composer install --no-dev --optimize-autoloader
+sudo -u ${WEB_USER} composer install --no-dev --optimize-autoloader
 
 echo "6. Running database migrations..."
-sudo -u www-data php artisan migrate --force
+sudo -u ${WEB_USER} php artisan migrate --force
 
 echo "7. Clearing caches..."
-sudo -u www-data php artisan optimize:clear
-sudo -u www-data php artisan config:cache
-sudo -u www-data php artisan route:cache
-sudo -u www-data php artisan view:cache
+sudo -u ${WEB_USER} php artisan optimize:clear
+sudo -u ${WEB_USER} php artisan config:cache
+sudo -u ${WEB_USER} php artisan route:cache
+sudo -u ${WEB_USER} php artisan view:cache
 
 echo "8. Cleaning up..."
 rm -rf "$TMP_DIR"

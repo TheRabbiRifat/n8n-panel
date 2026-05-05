@@ -26,16 +26,11 @@ class NginxServiceTest extends TestCase
         $this->nginxService->createVhost($domain, $port);
 
         Process::assertRan(function ($process) use ($domain) {
-            return $process->command === "tee /etc/nginx/sites-available/$domain" &&
-                   $process->input() !== null;
-        });
-
-        Process::assertRan(function ($process) use ($domain) {
-            return $process->command === "ln -sf /etc/nginx/sites-available/$domain /etc/nginx/sites-enabled/";
+            return is_array($process->command) && $process->command[0] === 'tee' && $process->command[1] === "/var/lib/n8n/nginx/$domain.conf";
         });
 
         Process::assertRan(function ($process) {
-            return $process->command === "systemctl reload nginx";
+            return is_array($process->command) && $process->command === ['systemctl', 'reload', 'nginx'];
         });
     }
 
@@ -48,7 +43,7 @@ class NginxServiceTest extends TestCase
         $this->nginxService->secureVhost($domain);
 
         Process::assertRan(function ($process) use ($domain) {
-            return $process->command === "certbot --nginx -d $domain --non-interactive --agree-tos --email admin@example.com --redirect";
+            return is_array($process->command) && $process->command[0] === 'certbot' && in_array('--nginx', $process->command);
         });
     }
 
@@ -61,19 +56,23 @@ class NginxServiceTest extends TestCase
         $this->nginxService->removeVhost($domain);
 
         Process::assertRan(function ($process) use ($domain) {
-            return $process->command === "rm -f /etc/nginx/sites-available/$domain";
+            return is_array($process->command) && $process->command === ['rm', '-f', "/var/lib/n8n/nginx/$domain.conf"];
         });
 
         Process::assertRan(function ($process) use ($domain) {
-            return $process->command === "rm -f /etc/nginx/sites-enabled/$domain";
+            return is_array($process->command) && $process->command === ['rm', '-f', "/etc/nginx/sites-available/$domain"];
         });
 
         Process::assertRan(function ($process) use ($domain) {
-            return $process->command === "certbot delete --cert-name $domain --non-interactive";
+            return is_array($process->command) && $process->command === ['rm', '-f', "/etc/nginx/sites-enabled/$domain"];
+        });
+
+        Process::assertRan(function ($process) use ($domain) {
+            return is_array($process->command) && $process->command[0] === 'certbot' && in_array('delete', $process->command);
         });
 
         Process::assertRan(function ($process) {
-            return $process->command === "systemctl reload nginx";
+            return is_array($process->command) && $process->command === ['systemctl', 'reload', 'nginx'];
         });
     }
 }

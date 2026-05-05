@@ -21,7 +21,7 @@ class BackupSettingsTest extends TestCase
     {
         parent::setUp();
         // Seed roles
-        Role::create(['name' => 'admin']);
+        Role::firstOrCreate(['name' => 'admin']);
 
         // Mock Services
         $this->mock(DockerService::class);
